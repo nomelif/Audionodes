@@ -127,10 +127,8 @@ class Sine(Node, AudioTreeNode):
     def update(self):
         print("Sine")
     
-    def update_socket(self, context):
-        self.outputs[0].links[0].to_node.update()
     
-    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)", update = update_socket)
+    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)")
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
@@ -176,24 +174,32 @@ class Sink(Node, AudioTreeNode):
     # Icon identifier
     bl_icon = 'SOUND'
     
-    def update(self):
-        try:
-            self.playback.play_chunk(self.inputs[0].links[0].from_node.getData(0, time.time(), 41000, 1024/41000))
-        except:
-            pass
-        print("Sink")
+    playback = Playback()
     
+    internalTime = time.time()    
+    
+    running = [True]
+    
+    def updateSound(self):
+        if self.running[0]:
+            try:
+                self.playback.play_chunk(self.inputs[0].links[0].from_node.getData(0, self.internalTime, 41000, 1024/41000))
+            except IndexError:
+                pass
+    t1 = None
 
-    playback = Playback()    
+    def updateLoop(self):
+
+        while self.running[0]:
+            self.internalTime = self.internalTime + 1024/41000
+            self.updateSound()
+            #time.sleep(0.01)#1024/41000)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
-        def updateLoop():
-            while True:
-                time.sleep(1024/41000)
-                self.update()
-        t1 = threading.Thread(target=updateLoop)
-        t1.start()
+        self.running[0] = True
+        self.t1 = threading.Thread(target=self.updateLoop)
+        self.t1.start()
 
 
 
@@ -203,7 +209,7 @@ class Sink(Node, AudioTreeNode):
 
     # Free function to clean up on removal.
     def free(self):
-        self.playback.stopStream()
+        self.running[0] = False
         print("Removing node ", self, ", Goodbye!")
 
 
