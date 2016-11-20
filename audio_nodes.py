@@ -7,7 +7,7 @@ from bpy.types import NodeTree, Node, NodeSocket
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):
     # Description string
-    '''A custom node tree type that will show up in the node editor header'''
+    '''Node tree for audio mixer.'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'AudioTreeType'
     # Label for nice name display
@@ -17,72 +17,95 @@ class AudioTree(NodeTree):
 
 
 # Custom socket type
-class MyCustomSocket(NodeSocket):
+class RawAudioSocket(NodeSocket):
     # Description string
     '''Socket for raw audio'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'CustomSocketType'
+    bl_idname = 'RawAudioSocketType'
     # Label for nice name display
-    bl_label = 'Custom Node Socket'
+    bl_label = 'Raw Audio'
 
-    # Enum items list
-    my_items = [
-        ("DOWN", "Down", "Where your feet are"),
-        ("UP", "Up", "Where your head should be"),
-        ("LEFT", "Left", "Not right"),
-        ("RIGHT", "Right", "Not left")
-    ]
 
-    myEnumProperty = bpy.props.EnumProperty(name="Direction", description="Just an example", items=my_items, default='UP')
-
-    # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
         else:
-            layout.prop(self, "myEnumProperty", text=text)
+            layout.label(text)
 
     # Socket color
     def draw_color(self, context, node):
-        return (1.0, 0.4, 0.216, 0.5)
+        return (0.607, 0.153, 0.702, 1.0)
 
 
 # Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
-class MyCustomTreeNode:
+class AudioTreeNode:
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'AudioTreeType'
 
 
 # Derived from the Node base type.
-class MyCustomNode(Node, MyCustomTreeNode):
+class Sine(Node, AudioTreeNode):
     # === Basics ===
     # Description string
-    '''A custom node'''
+    '''A sine wave generator'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'CustomNodeType'
+    bl_idname = 'SineGeneratorNode'
     # Label for nice name display
-    bl_label = 'Custom Node'
+    bl_label = 'Sine'
     # Icon identifier
     bl_icon = 'SOUND'
-
-    # === Custom Properties ===
-    # These work just like custom properties in ID data blocks
-    # Extensive information can be found under
-    # http://wiki.blender.org/index.php/Doc:2.6/Manual/Extensions/Python/Properties
-    myStringProperty = bpy.props.StringProperty()
-    myFloatProperty = bpy.props.FloatProperty(default=3.1415926)
-
-    # === Optional Functions ===
-    # Initialization function, called when a new node is created.
-    # This is the most common place to create the sockets for a node, as shown below.
-    # NOTE: this is not the same as the standard __init__ function in Python, which is
-    #       a purely internal Python method and unknown to the node system!
+    
+    def update(self):
+        print("Sine")
+    
+    def update_socket(self, context):
+        self.outputs[0].links[0].to_node.update()
+    
+    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)", update = update_socket)
+    
     def init(self, context):
-        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
 
-        self.outputs.new('NodeSocketColor', "How")
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "my_input_value")
+
+
+    # Optional: custom label
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Sine"
+    
+
+# Derived from the Node base type.
+class Sink(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''An audio sink'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'AudioSinkNode'
+    # Label for nice name display
+    bl_label = 'Sink'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Sink")
+    
+    def init(self, context):
+        self.inputs.new('RawAudioSocketType', "Audio")
 
     # Copy function to initialize a copied node from an existing one.
     def copy(self, node):
@@ -97,7 +120,7 @@ class MyCustomNode(Node, MyCustomTreeNode):
     # Optional: custom label
     # Explicit user label overrides this, but here we can define a label dynamically
     def draw_label(self):
-        return "I am a custom node"
+        return "Sink"
 
 
 ### Node Categories ###
@@ -121,7 +144,8 @@ node_categories = [
     # identifier, label, items list
     MyNodeCategory("AUDIONODES", "Audio Nodes", items=[
         # our basic node
-        NodeItem("CustomNodeType"),
+        NodeItem("SineGeneratorNode"),
+        NodeItem("AudioSinkNode"),
         ])
     ]
 
@@ -134,8 +158,9 @@ def register():
         pass
     
     bpy.utils.register_class(AudioTree)
-    bpy.utils.register_class(MyCustomSocket)
-    bpy.utils.register_class(MyCustomNode)
+    bpy.utils.register_class(RawAudioSocket)
+    bpy.utils.register_class(Sine)
+    bpy.utils.register_class(Sink)
 
     nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
 
@@ -144,8 +169,9 @@ def unregister():
     nodeitems_utils.unregister_node_categories("AUDIO_NODES")
 
     bpy.utils.unregister_class(AudioTree)
-    bpy.utils.unregister_class(MyCustomSocket)
-    bpy.utils.unregister_class(MyCustomNode)
+    bpy.utils.unregister_class(RawAudioSocket)
+    bpy.utils.unregister_class(Sine)
+    bpy.utils.unregister_class(Sink)
 
 
 if __name__ == "__main__":
