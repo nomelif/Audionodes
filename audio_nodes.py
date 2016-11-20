@@ -1,5 +1,73 @@
 import bpy
+import numpy as np
+import time
 from bpy.types import NodeTree, Node, NodeSocket
+
+from struct import pack
+from array import array
+import pyaudio
+
+import threading
+ 
+"""
+Class using Pyaudio for simple playback of raw audio-data represented by a float array.
+The user only needs to create an object and call the play_chunk method.
+ 
+"""
+
+class Playback(object):
+    '''
+    classdocs
+    '''
+    CHUNK_SIZE = 1024
+    FORMAT = pyaudio.paInt16
+    RATE = 41000
+ 
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        self.audioDevice = pyaudio.PyAudio()
+        self.stream = self.audioDevice.open(format=Playback.FORMAT,
+                                            channels=1,
+                                            rate=Playback.RATE,
+                                            output=True,
+                                            frames_per_buffer=Playback.CHUNK_SIZE)
+ 
+    def play_chunk(self, inputArray):
+ 
+        if self.stream.is_stopped():
+            self.stream = self.audioDevice.open(format=Playback.FORMAT,
+                                                channels=1,
+                                                rate=Playback.RATE,
+                                                output=True,
+                                                frames_per_buffer=Playback.CHUNK_SIZE)
+ 
+        output = array('h')
+ 
+        for i in range(len(inputArray)):
+            # Check for Clips
+            if int(inputArray[i]*32768) < -32767:
+                output.append(-32767)
+                print("clip at "+str(i))
+            elif int(inputArray[i]*32768) > 32767:
+                output.append(32767)
+                print("clip at "+str(i))
+            else:
+                output.append(int(inputArray[i]*32767))
+ 
+        # Converts to bitstream for output
+        output = pack('<' + ('h'*len(output)), *output)
+ 
+        self.stream.write(output)
+ 
+    def stopStream(self):
+ 
+        self.stream.stop_stream()
+ 
+    def __del__(self):
+        self.stream.close()
+        self.audioDevice.terminate()
 
 # Implementation of custom nodes from Python
 
@@ -24,7 +92,6 @@ class RawAudioSocket(NodeSocket):
     bl_idname = 'RawAudioSocketType'
     # Label for nice name display
     bl_label = 'Raw Audio'
-
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
@@ -65,9 +132,15 @@ class Sine(Node, AudioTreeNode):
     
     my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)", update = update_socket)
     
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        return np.sin((np.arange(rate*length) + time)/rate * np.pi * self.my_input_value)
+    
     def init(self, context):
         
         self.outputs.new('RawAudioSocketType', "Audio")
+        self.outputs[0].getData = self.getData
 
 
 
@@ -91,6 +164,8 @@ class Sine(Node, AudioTreeNode):
 
 # Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
+    
+    
     # === Basics ===
     # Description string
     '''An audio sink'''
@@ -102,10 +177,25 @@ class Sink(Node, AudioTreeNode):
     bl_icon = 'SOUND'
     
     def update(self):
+        try:
+            self.playback.play_chunk(self.inputs[0].links[0].from_node.getData(0, time.time(), 41000, 1024/41000))
+        except:
+            pass
         print("Sink")
+    
+
+    playback = Playback()    
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
+        def updateLoop():
+            while True:
+                time.sleep(1024/41000)
+                self.update()
+        t1 = threading.Thread(target=updateLoop)
+        t1.start()
+
+
 
     # Copy function to initialize a copied node from an existing one.
     def copy(self, node):
@@ -113,6 +203,7 @@ class Sink(Node, AudioTreeNode):
 
     # Free function to clean up on removal.
     def free(self):
+        self.playback.stopStream()
         print("Removing node ", self, ", Goodbye!")
 
 
