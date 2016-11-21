@@ -161,7 +161,7 @@ class Saw(Node, AudioTreeNode):
         if self.inputs[0].default_value != 0:
             return ((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value
         else:
-            return np.array([0]*int(rate*length))
+            return np.zeros(int(rate*length))
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -180,7 +180,7 @@ class Square(Node, AudioTreeNode):
         if self.inputs[0].default_value != 0:
             return np.greater(((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value, 0.5)*2.0 - 1.0
         else:
-            return np.array([0]*int(rate*length))
+            return np.zeros(int(rate*length))
     
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
@@ -215,7 +215,7 @@ class Volume(Node, AudioTreeNode):
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        data_1 = np.array([0]*int(rate*length))
+        data_1 = np.zeros(int(rate*length))
         try:
             data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
         except IndexError:
@@ -242,7 +242,7 @@ class Sum(Node, AudioTreeNode):
         
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        data_1 = data_2 = np.array([0]*int(rate*length))
+        data_1 = data_2 = np.zeros(int(rate*length))
         try:
             data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
         except IndexError:
@@ -273,7 +273,7 @@ class Mul(Node, AudioTreeNode):
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        data_1 = data_2 = np.array([0]*int(rate*length))
+        data_1 = data_2 = np.zeros(int(rate*length))
         try:
             data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
         except IndexError:
