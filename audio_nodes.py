@@ -206,6 +206,55 @@ class Saw(Node, AudioTreeNode):
     # Explicit user label overrides this, but here we can define a label dynamically
     def draw_label(self):
         return "Saw"
+    
+# Derived from the Node base type.
+class Square(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''A square wave generator'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'SquareGeneratorNode'
+    # Label for nice name display
+    bl_label = 'Square'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Square")
+    
+    
+    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)")
+    
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        if self.my_input_value != 0:
+            return np.greater(((np.arange(rate*length)/rate+time) %  (1/self.my_input_value))*self.my_input_value, 0.5)*2.0 - 1.0
+        else:
+            return np.array([0]*int(rate*length))
+    def init(self, context):
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.outputs[0].getData = self.getData
+
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "my_input_value")
+
+
+    # Optional: custom label
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Square"
 
 # Derived from the Node base type.
 class Noise(Node, AudioTreeNode):
@@ -395,6 +444,7 @@ node_categories = [
         NodeItem("WaveSumNode"),
         NodeItem("NoiseGeneratorNode"),
         NodeItem("SawGeneratorNode"),
+        NodeItem("SquareGeneratorNode"),
         ])
     ]
 
@@ -413,6 +463,7 @@ def register():
     bpy.utils.register_class(Sum)
     bpy.utils.register_class(Saw)
     bpy.utils.register_class(Noise)
+    bpy.utils.register_class(Square)
 
     nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
 
@@ -427,6 +478,7 @@ def unregister():
     bpy.utils.unregister_class(Sum)
     bpy.utils.unregister_class(Saw)
     bpy.utils.unregister_class(Noise)
+    bpy.utils.unregister_class(Square)
 
 
 if __name__ == "__main__":
