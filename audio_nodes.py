@@ -133,7 +133,7 @@ class Sine(Node, AudioTreeNode):
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
     def getData(self, socketId, time, rate, length):
-        return np.sin((np.arange(rate*length) + time)/rate * np.pi * self.my_input_value)
+        return np.sin((np.arange(rate*length)/rate + time)* np.pi * 2 * self.my_input_value)
     
     def init(self, context):
         
@@ -191,7 +191,7 @@ class Sink(Node, AudioTreeNode):
     def updateLoop(self):
 
         while self.running[0]:
-            self.internalTime = self.internalTime + 1024/41000
+            self.internalTime = self.internalTime + 1024/4100
             self.updateSound()
             #time.sleep(0.01)#1024/41000)
     
