@@ -297,7 +297,7 @@ class Noise(Node, AudioTreeNode):
     # Optional: custom label
     # Explicit user label overrides this, but here we can define a label dynamically
     def draw_label(self):
-        return "Saw"
+        return "Noise"
 
 # Derived from the Node base type.
 class Volume(Node, AudioTreeNode):
@@ -413,6 +413,64 @@ class Sum(Node, AudioTreeNode):
 
 
 # Derived from the Node base type.
+class Mul(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''Multiply two signals'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'SignalMulNode'
+    # Label for nice name display
+    bl_label = 'Mul'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Sine")
+        
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        data_1 = data_2 = np.array([0]*int(rate*length))
+        try:
+            data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+        except IndexError:
+            pass
+        
+        try:
+            data_2 = self.inputs[1].links[0].from_node.getData(0, time, rate, length)
+        except IndexError:
+            pass
+        
+        return data_1 * data_2
+    
+    def init(self, context):
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
+        
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        pass
+
+
+    # Optional: custom labelz
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Multiply"
+
+
+# Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
     
     
@@ -428,7 +486,7 @@ class Sink(Node, AudioTreeNode):
     
     playback = Playback()
     
-    internalTime = time.time()
+    internalTime = time.time()    
     
     running = [True]
     
@@ -489,21 +547,28 @@ class AudioNodeCategory(NodeCategory):
         return context.space_data.tree_type == 'AudioTreeType'
 
 # all categories in a list
+
+
 node_categories = [
-    AudioNodeCategory("OSCILLATORS", "Oscillators", items=[
+    # identifier, label, items list
+    AudioNodeCategory("AUDIO_IN", "Inputs", items=[
+        # our basic node
         NodeItem("SineOscillatorNode"),
         NodeItem("SawOscillatorNode"),
         NodeItem("SquareOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
-    ]),
-    AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
+        ]),
+    AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
+        # our basic node
+        NodeItem("AudioSinkNode"),
+        ]),
+    AudioNodeCategory("COMBINATORS", "Combinators", items=[
+        # our basic node
         NodeItem("SignalSumNode"),
         NodeItem("VolumeNode"),
-    ]),
-    AudioNodeCategory("AUDIO_IO", "Input & output", items=[
-        NodeItem("AudioSinkNode"),
-    ])
-]
+        NodeItem("SignalMulNode"),
+        ]),
+    ]
 
 
 def register():
@@ -522,12 +587,14 @@ def register():
     bpy.utils.register_class(Noise)
     bpy.utils.register_class(Square)
     bpy.utils.register_class(Volume)
+    bpy.utils.register_class(Mul)
 
-    nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
+    nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
 
 def unregister():
-    nodeitems_utils.unregister_node_categories("AUDIO_NODES")
+    nodeitems_utils.unregister_node_categories("AUDIONODES")
+
 
     bpy.utils.unregister_class(AudioTree)
     bpy.utils.unregister_class(RawAudioSocket)
@@ -538,6 +605,7 @@ def unregister():
     bpy.utils.unregister_class(Noise)
     bpy.utils.unregister_class(Square)
     bpy.utils.unregister_class(Volume)
+    bpy.utils.register_class(Mul)
 
 
 if __name__ == "__main__":
