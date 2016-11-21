@@ -116,9 +116,9 @@ class AudioTreeNode:
 class Sine(Node, AudioTreeNode):
     # === Basics ===
     # Description string
-    '''A sine wave generator'''
+    '''A sine wave oscillator'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SineGeneratorNode'
+    bl_idname = 'SineOscillatorNode'
     # Label for nice name display
     bl_label = 'Sine'
     # Icon identifier
@@ -162,9 +162,9 @@ class Sine(Node, AudioTreeNode):
 class Saw(Node, AudioTreeNode):
     # === Basics ===
     # Description string
-    '''A saw wave generator'''
+    '''A saw wave oscillator'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SawGeneratorNode'
+    bl_idname = 'SawOscillatorNode'
     # Label for nice name display
     bl_label = 'Saw'
     # Icon identifier
@@ -211,9 +211,9 @@ class Saw(Node, AudioTreeNode):
 class Square(Node, AudioTreeNode):
     # === Basics ===
     # Description string
-    '''A square wave generator'''
+    '''A square wave oscillator'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SquareGeneratorNode'
+    bl_idname = 'SquareOscillatorNode'
     # Label for nice name display
     bl_label = 'Square'
     # Icon identifier
@@ -358,9 +358,9 @@ class Volume(Node, AudioTreeNode):
 class Sum(Node, AudioTreeNode):
     # === Basics ===
     # Description string
-    '''The sum of two waves'''
+    '''The sum of two signals'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'WaveSumNode'
+    bl_idname = 'SignalSumNode'
     # Label for nice name display
     bl_label = 'Sum'
     # Icon identifier
@@ -428,7 +428,7 @@ class Sink(Node, AudioTreeNode):
     
     playback = Playback()
     
-    internalTime = time.time()    
+    internalTime = time.time()
     
     running = [True]
     
@@ -483,25 +483,27 @@ from nodeitems_utils import NodeCategory, NodeItem
 
 # our own base class with an appropriate poll function,
 # so the categories only show up in our own tree type
-class MyNodeCategory(NodeCategory):
+class AudioNodeCategory(NodeCategory):
     @classmethod
     def poll(cls, context):
         return context.space_data.tree_type == 'AudioTreeType'
 
 # all categories in a list
 node_categories = [
-    # identifier, label, items list
-    MyNodeCategory("AUDIONODES", "Audio Nodes", items=[
-        # our basic node
-        NodeItem("SineGeneratorNode"),
-        NodeItem("AudioSinkNode"),
-        NodeItem("WaveSumNode"),
+    AudioNodeCategory("OSCILLATORS", "Oscillators", items=[
+        NodeItem("SineOscillatorNode"),
+        NodeItem("SawOscillatorNode"),
+        NodeItem("SquareOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
-        NodeItem("SawGeneratorNode"),
-        NodeItem("SquareGeneratorNode"),
+    ]),
+    AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
+        NodeItem("SignalSumNode"),
         NodeItem("VolumeNode"),
-        ])
-    ]
+    ]),
+    AudioNodeCategory("AUDIO_IO", "Input & output", items=[
+        NodeItem("AudioSinkNode"),
+    ])
+]
 
 
 def register():
