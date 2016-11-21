@@ -133,7 +133,6 @@ class Sine(Node, AudioTreeNode):
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
     def getData(self, socketId, time, rate, length):
-        print(((np.arange(rate*length)/(rate*length))*length)[-1])
         return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.my_input_value)
     
     def init(self, context):
@@ -159,6 +158,55 @@ class Sine(Node, AudioTreeNode):
     # Explicit user label overrides this, but here we can define a label dynamically
     def draw_label(self):
         return "Sine"
+# Derived from the Node base type.
+class Saw(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''A saw wave generator'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'SawGeneratorNode'
+    # Label for nice name display
+    bl_label = 'Saw'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Saw")
+    
+    
+    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)")
+    
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        if self.my_input_value != 0:
+            return ((np.arange(rate*length)/rate+time) %  (1/self.my_input_value))*self.my_input_value
+        else:
+            return np.array([0]*int(rate*length))
+    def init(self, context):
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.outputs[0].getData = self.getData
+
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "my_input_value")
+
+
+    # Optional: custom label
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Saw"
+
 
 # Derived from the Node base type.
 class Sum(Node, AudioTreeNode):
@@ -302,6 +350,7 @@ node_categories = [
         NodeItem("SineGeneratorNode"),
         NodeItem("AudioSinkNode"),
         NodeItem("WaveSumNode"),
+        NodeItem("SawGeneratorNode"),
         ])
     ]
 
@@ -318,6 +367,7 @@ def register():
     bpy.utils.register_class(Sine)
     bpy.utils.register_class(Sink)
     bpy.utils.register_class(Sum)
+    bpy.utils.register_class(Saw)
 
     nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
 
@@ -330,6 +380,7 @@ def unregister():
     bpy.utils.unregister_class(Sine)
     bpy.utils.unregister_class(Sink)
     bpy.utils.unregister_class(Sum)
+    bpy.utils.unregister_class(Saw)
 
 
 if __name__ == "__main__":
