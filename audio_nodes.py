@@ -107,12 +107,29 @@ class RawAudioSocket(NodeSocket):
 # Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
 class AudioTreeNode:
+    bl_icon = 'SOUND'
+    
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'AudioTreeType'
+    
+    def update(self):
+        print(self.bl_label)
+    
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
 
-
-# Derived from the Node base type.
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+    
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "my_input_value")
+    
+    def draw_buttons(self, context, layout):
+        pass
+    
 class Sine(Node, AudioTreeNode):
     # === Basics ===
     # Description string
@@ -121,43 +138,15 @@ class Sine(Node, AudioTreeNode):
     bl_idname = 'SineOscillatorNode'
     # Label for nice name display
     bl_label = 'Sine'
-    # Icon identifier
-    bl_icon = 'SOUND'
-    
-    def update(self):
-        print("Sine")
         
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].default_value)
     
     def init(self, context):
-        
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
-        
         self.outputs.new('RawAudioSocketType', "Audio")
-        
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        pass
-
-
-    # Optional: custom label
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Sine"
-# Derived from the Node base type.
+    
 class Saw(Node, AudioTreeNode):
     # === Basics ===
     # Description string
@@ -166,46 +155,17 @@ class Saw(Node, AudioTreeNode):
     bl_idname = 'SawOscillatorNode'
     # Label for nice name display
     bl_label = 'Saw'
-    # Icon identifier
-    bl_icon = 'SOUND'
-    
-    def update(self):
-        print("Saw")
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         if self.inputs[0].default_value != 0:
             return ((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value
         else:
             return np.array([0]*int(rate*length))
     def init(self, context):
-        
-        
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
-        
         self.outputs.new('RawAudioSocketType', "Audio")
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        pass
-
-
-    # Optional: custom label
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Saw"
     
-# Derived from the Node base type.
 class Square(Node, AudioTreeNode):
     # === Basics ===
     # Description string
@@ -214,45 +174,18 @@ class Square(Node, AudioTreeNode):
     bl_idname = 'SquareOscillatorNode'
     # Label for nice name display
     bl_label = 'Square'
-    # Icon identifier
-    bl_icon = 'SOUND'
-    
-    def update(self):
-        print("Square")
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         if self.inputs[0].default_value != 0:
             return np.greater(((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value, 0.5)*2.0 - 1.0
         else:
             return np.array([0]*int(rate*length))
+    
     def init(self, context):
-        
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
-        
         self.outputs.new('RawAudioSocketType', "Audio")
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        pass
-
-
-    # Optional: custom label
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Square"
-
-# Derived from the Node base type.
+    
 class Noise(Node, AudioTreeNode):
     # === Basics ===
     # Description string
@@ -261,41 +194,14 @@ class Noise(Node, AudioTreeNode):
     bl_idname = 'NoiseGeneratorNode'
     # Label for nice name display
     bl_label = 'Noise'
-    # Icon identifier
-    bl_icon = 'SOUND'
-    
-    def update(self):
-        print("Noise")
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         return np.random.rand(rate*length)
-        
+    
     def init(self, context):
-        
         self.outputs.new('RawAudioSocketType', "Audio")
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        pass
-
-
-    # Optional: custom label
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Noise"
-
-# Derived from the Node base type.
+    
 class Volume(Node, AudioTreeNode):
     # === Basics ===
     # Description string
@@ -304,17 +210,10 @@ class Volume(Node, AudioTreeNode):
     bl_idname = 'VolumeNode'
     # Label for nice name display
     bl_label = 'Volume'
-    # Icon identifier
-    bl_icon = 'SOUND'
-    
-    def update(self):
-        print("Volume")
-    
     
     my_input_value = bpy.props.FloatProperty(name="Volume multiplier")
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         data_1 = np.array([0]*int(rate*length))
         try:
@@ -325,30 +224,11 @@ class Volume(Node, AudioTreeNode):
         return data_1*self.my_input_value
         
     def init(self, context):
-        
         self.inputs.new('RawAudioSocketType', "Audio")
-        
         self.outputs.new('RawAudioSocketType', "Audio")
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
+    
     def draw_buttons(self, context, layout):
         layout.prop(self, "my_input_value")
-
-
-    # Optional: custom label
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Volume"
-
 
 # Derived from the Node base type.
 class Sum(Node, AudioTreeNode):
@@ -359,14 +239,8 @@ class Sum(Node, AudioTreeNode):
     bl_idname = 'SignalSumNode'
     # Label for nice name display
     bl_label = 'Sum'
-    # Icon identifier
-    bl_icon = 'SOUND'
-    
-    def update(self):
-        print("Sine")
         
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         data_1 = data_2 = np.array([0]*int(rate*length))
         try:
@@ -382,31 +256,10 @@ class Sum(Node, AudioTreeNode):
         return data_1 + data_2
     
     def init(self, context):
-        
         self.outputs.new('RawAudioSocketType', "Audio")
         
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        pass
-
-
-    # Optional: custom labelz
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Sum"
-
 
 # Derived from the Node base type.
 class Mul(Node, AudioTreeNode):
@@ -417,14 +270,8 @@ class Mul(Node, AudioTreeNode):
     bl_idname = 'SignalMulNode'
     # Label for nice name display
     bl_label = 'Mul'
-    # Icon identifier
-    bl_icon = 'SOUND'
     
-    def update(self):
-        print("Sine")
-        
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    
     def getData(self, socketId, time, rate, length):
         data_1 = data_2 = np.array([0]*int(rate*length))
         try:
@@ -446,30 +293,8 @@ class Mul(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
 
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-
-    def draw_buttons(self, context, layout):
-        pass
-
-
-    # Optional: custom labelz
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Multiply"
-
-
 # Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
-    
-    
     # === Basics ===
     # Description string
     '''An audio sink'''
@@ -482,7 +307,7 @@ class Sink(Node, AudioTreeNode):
     
     playback = Playback()
     
-    internalTime = time.time()    
+    internalTime = time.time()
     
     running = [True]
     
@@ -506,24 +331,11 @@ class Sink(Node, AudioTreeNode):
         self.running[0] = True
         self.t1 = threading.Thread(target=self.updateLoop)
         self.t1.start()
-
-
-
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
+    
     # Free function to clean up on removal.
     def free(self):
         self.running[0] = False
         print("Removing node ", self, ", Goodbye!")
-
-
-
-    # Optional: custom label
-    # Explicit user label overrides this, but here we can define a label dynamically
-    def draw_label(self):
-        return "Sink"
 
 
 ### Node Categories ###
@@ -543,28 +355,23 @@ class AudioNodeCategory(NodeCategory):
         return context.space_data.tree_type == 'AudioTreeType'
 
 # all categories in a list
-
-
 node_categories = [
     # identifier, label, items list
     AudioNodeCategory("AUDIO_IN", "Inputs", items=[
-        # our basic node
         NodeItem("SineOscillatorNode"),
         NodeItem("SawOscillatorNode"),
         NodeItem("SquareOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
-        ]),
+    ]),
     AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
-        # our basic node
         NodeItem("AudioSinkNode"),
-        ]),
+    ]),
     AudioNodeCategory("COMBINATORS", "Combinators", items=[
-        # our basic node
         NodeItem("SignalSumNode"),
         NodeItem("VolumeNode"),
         NodeItem("SignalMulNode"),
-        ]),
-    ]
+    ]),
+]
 
 
 def register():
