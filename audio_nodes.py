@@ -133,7 +133,8 @@ class Sine(Node, AudioTreeNode):
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
     def getData(self, socketId, time, rate, length):
-        return np.sin((np.arange(rate*length)/rate + time)* np.pi * 2 * self.my_input_value)
+        print(((np.arange(rate*length)/(rate*length))*length)[-1])
+        return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.my_input_value)
     
     def init(self, context):
         
@@ -152,6 +153,63 @@ class Sine(Node, AudioTreeNode):
 
     def draw_buttons(self, context, layout):
         layout.prop(self, "my_input_value")
+
+
+    # Optional: custom label
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Sine"
+
+# Derived from the Node base type.
+class Sum(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''The sum of two waves'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'WaveSumNode'
+    # Label for nice name display
+    bl_label = 'Sum'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Sine")
+        
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        data_1 = data_2 = np.array([0]*int(rate*length))
+        try:
+            data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+        except IndexError:
+            pass
+        
+        try:
+            data_2 = self.inputs[1].links[0].from_node.getData(0, time, rate, length)
+        except IndexError:
+            pass
+        
+        return data_1 + data_2
+    
+    def init(self, context):
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
+        
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        pass
 
 
     # Optional: custom label
@@ -191,7 +249,7 @@ class Sink(Node, AudioTreeNode):
     def updateLoop(self):
 
         while self.running[0]:
-            self.internalTime = self.internalTime + 1024/4100
+            self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
             #time.sleep(0.01)#1024/41000)
     
@@ -243,6 +301,7 @@ node_categories = [
         # our basic node
         NodeItem("SineGeneratorNode"),
         NodeItem("AudioSinkNode"),
+        NodeItem("WaveSumNode"),
         ])
     ]
 
@@ -258,6 +317,7 @@ def register():
     bpy.utils.register_class(RawAudioSocket)
     bpy.utils.register_class(Sine)
     bpy.utils.register_class(Sink)
+    bpy.utils.register_class(Sum)
 
     nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
 
@@ -269,6 +329,7 @@ def unregister():
     bpy.utils.unregister_class(RawAudioSocket)
     bpy.utils.unregister_class(Sine)
     bpy.utils.unregister_class(Sink)
+    bpy.utils.unregister_class(Sum)
 
 
 if __name__ == "__main__":
