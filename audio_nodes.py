@@ -486,7 +486,7 @@ class Sink(Node, AudioTreeNode):
     
     playback = Playback()
     
-    internalTime = time.time()    
+    internalTime = time.time()
     
     running = [True]
     
@@ -503,7 +503,7 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            #time.sleep(0.01)#1024/41000)
+            time.sleep((1024/41000)*0.5)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
