@@ -299,6 +299,60 @@ class Noise(Node, AudioTreeNode):
     def draw_label(self):
         return "Saw"
 
+# Derived from the Node base type.
+class Volume(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''A volume changer node'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'VolumeNode'
+    # Label for nice name display
+    bl_label = 'Volume'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Volume")
+    
+    
+    my_input_value = bpy.props.FloatProperty(name="Volume multiplier")
+    
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        data_1 = np.array([0]*int(rate*length))
+        try:
+            data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+        except IndexError:
+            pass
+        
+        return data_1*self.my_input_value
+        
+    def init(self, context):
+        
+        self.inputs.new('RawAudioSocketType', "Audio")
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
+
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "my_input_value")
+
+
+    # Optional: custom label
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Volume"
+
 
 # Derived from the Node base type.
 class Sum(Node, AudioTreeNode):
@@ -352,11 +406,11 @@ class Sum(Node, AudioTreeNode):
         pass
 
 
-    # Optional: custom label
+    # Optional: custom labelz
     # Explicit user label overrides this, but here we can define a label dynamically
     def draw_label(self):
         return "Sum"
-    
+
 
 # Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
@@ -445,6 +499,7 @@ node_categories = [
         NodeItem("NoiseGeneratorNode"),
         NodeItem("SawGeneratorNode"),
         NodeItem("SquareGeneratorNode"),
+        NodeItem("VolumeNode"),
         ])
     ]
 
@@ -464,6 +519,7 @@ def register():
     bpy.utils.register_class(Saw)
     bpy.utils.register_class(Noise)
     bpy.utils.register_class(Square)
+    bpy.utils.register_class(Volume)
 
     nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
 
@@ -479,6 +535,7 @@ def unregister():
     bpy.utils.unregister_class(Saw)
     bpy.utils.unregister_class(Noise)
     bpy.utils.unregister_class(Square)
+    bpy.utils.unregister_class(Volume)
 
 
 if __name__ == "__main__":
