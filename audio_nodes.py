@@ -207,6 +207,49 @@ class Saw(Node, AudioTreeNode):
     def draw_label(self):
         return "Saw"
 
+# Derived from the Node base type.
+class Noise(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''A white noise generator'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'NoiseGeneratorNode'
+    # Label for nice name display
+    bl_label = 'Noise'
+    # Icon identifier
+    bl_icon = 'SOUND'
+    
+    def update(self):
+        print("Noise")
+    
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    
+    def getData(self, socketId, time, rate, length):
+        return np.random.rand(rate*length)
+        
+    def init(self, context):
+        
+        self.outputs.new('RawAudioSocketType', "Audio")
+
+
+
+    # Copy function to initialize a copied node from an existing one.
+    def copy(self, node):
+        print("Copying from node ", node)
+
+    # Free function to clean up on removal.
+    def free(self):
+        print("Removing node ", self, ", Goodbye!")
+
+    def draw_buttons(self, context, layout):
+        pass
+
+
+    # Optional: custom label
+    # Explicit user label overrides this, but here we can define a label dynamically
+    def draw_label(self):
+        return "Saw"
+
 
 # Derived from the Node base type.
 class Sum(Node, AudioTreeNode):
@@ -350,6 +393,7 @@ node_categories = [
         NodeItem("SineGeneratorNode"),
         NodeItem("AudioSinkNode"),
         NodeItem("WaveSumNode"),
+        NodeItem("NoiseGeneratorNode"),
         NodeItem("SawGeneratorNode"),
         ])
     ]
@@ -368,6 +412,7 @@ def register():
     bpy.utils.register_class(Sink)
     bpy.utils.register_class(Sum)
     bpy.utils.register_class(Saw)
+    bpy.utils.register_class(Noise)
 
     nodeitems_utils.register_node_categories("AUDIO_NODES", node_categories)
 
@@ -381,6 +426,7 @@ def unregister():
     bpy.utils.unregister_class(Sink)
     bpy.utils.unregister_class(Sum)
     bpy.utils.unregister_class(Saw)
+    bpy.utils.unregister_class(Noise)
 
 
 if __name__ == "__main__":
