@@ -138,10 +138,21 @@ class Sine(Node, AudioTreeNode):
     bl_idname = 'SineOscillatorNode'
     # Label for nice name display
     bl_label = 'Sine'
-        
+    
+    last_state = {}
+    
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].default_value)
+        if self.inputs[0].is_linked:
+            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            last_state = 0
+            if self.path_from_id() in self.last_state:
+                last_state = self.last_state[self.path_from_id()]
+            output = np.cumsum(freq)/rate*np.pi*2 + last_state
+            self.last_state[self.path_from_id()] = output[-1] % 2*np.pi
+            return np.sin(output)
+        else:
+            return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].default_value)
     
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
@@ -324,7 +335,7 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            #time.sleep(0.01)#1024/41000)
+            time.sleep(1024/41000/3)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
