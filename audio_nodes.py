@@ -126,19 +126,18 @@ class Sine(Node, AudioTreeNode):
     
     def update(self):
         print("Sine")
-    
-    
-    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)")
-    
+        
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
     def getData(self, socketId, time, rate, length):
-        return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.my_input_value)
+        return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].default_value)
     
     def init(self, context):
         
+        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        
         self.outputs.new('RawAudioSocketType', "Audio")
-        self.outputs[0].getData = self.getData
+        
 
 
 
@@ -151,7 +150,7 @@ class Sine(Node, AudioTreeNode):
         print("Removing node ", self, ", Goodbye!")
 
     def draw_buttons(self, context, layout):
-        layout.prop(self, "my_input_value")
+        pass
 
 
     # Optional: custom label
@@ -173,20 +172,19 @@ class Saw(Node, AudioTreeNode):
     def update(self):
         print("Saw")
     
-    
-    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)")
-    
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
     def getData(self, socketId, time, rate, length):
-        if self.my_input_value != 0:
-            return ((np.arange(rate*length)/rate+time) %  (1/self.my_input_value))*self.my_input_value
+        if self.inputs[0].default_value != 0:
+            return ((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value
         else:
             return np.array([0]*int(rate*length))
     def init(self, context):
         
+        
+        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        
         self.outputs.new('RawAudioSocketType', "Audio")
-        self.outputs[0].getData = self.getData
 
 
 
@@ -199,7 +197,7 @@ class Saw(Node, AudioTreeNode):
         print("Removing node ", self, ", Goodbye!")
 
     def draw_buttons(self, context, layout):
-        layout.prop(self, "my_input_value")
+        pass
 
 
     # Optional: custom label
@@ -222,20 +220,18 @@ class Square(Node, AudioTreeNode):
     def update(self):
         print("Square")
     
-    
-    my_input_value = bpy.props.FloatProperty(name="Frequency (Hz)")
-    
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     
     def getData(self, socketId, time, rate, length):
-        if self.my_input_value != 0:
-            return np.greater(((np.arange(rate*length)/rate+time) %  (1/self.my_input_value))*self.my_input_value, 0.5)*2.0 - 1.0
+        if self.inputs[0].default_value != 0:
+            return np.greater(((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value, 0.5)*2.0 - 1.0
         else:
             return np.array([0]*int(rate*length))
     def init(self, context):
         
+        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        
         self.outputs.new('RawAudioSocketType', "Audio")
-        self.outputs[0].getData = self.getData
 
 
 
@@ -248,7 +244,7 @@ class Square(Node, AudioTreeNode):
         print("Removing node ", self, ", Goodbye!")
 
     def draw_buttons(self, context, layout):
-        layout.prop(self, "my_input_value")
+        pass
 
 
     # Optional: custom label
@@ -486,7 +482,7 @@ class Sink(Node, AudioTreeNode):
     
     playback = Playback()
     
-    internalTime = time.time()
+    internalTime = time.time()    
     
     running = [True]
     
@@ -503,7 +499,7 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            time.sleep((1024/41000)*0.5)
+            #time.sleep(0.01)#1024/41000)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
