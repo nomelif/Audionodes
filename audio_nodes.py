@@ -1,7 +1,7 @@
 import bpy
 import numpy as np
 import time
-from bpy.types import NodeTree, Node, NodeSocket
+from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 
 from struct import pack
 from array import array
@@ -92,13 +92,26 @@ class RawAudioSocket(NodeSocket):
     bl_idname = 'RawAudioSocketType'
     # Label for nice name display
     bl_label = 'Raw Audio'
+    
+    value_prop = bpy.props.FloatProperty()
+    
+        
+    def getData(self, time, rate, length):
+        if self.is_output:
+            return self.node.callback(self, time, rate, length)
+        elif self.is_linked:
+            return self.links[0].from_socket.getData(time, rate, length)
+        else:
+            print(self.value_prop)
+            return np.array([self.value_prop]*int(length*rate))
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
         else:
-            layout.label(text)
+            layout.prop(self, "value_prop", text="")
 
+    
     # Socket color
     def draw_color(self, context, node):
         return (0.607, 0.153, 0.702, 1.0)
@@ -138,10 +151,9 @@ class Sine(Node, AudioTreeNode):
     
     last_state = {}
     
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
+    def callback(self, socket, time, rate, length):
         if self.inputs[0].is_linked:
-            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            freq = self.inputs[0].links[0].getData(time, rate, length)
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
@@ -167,9 +179,9 @@ class Saw(Node, AudioTreeNode):
     last_state = {}
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
+    def callback(self, socket, time, rate, length):
         if self.inputs[0].is_linked:
-            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            freq = self.inputs[0].getData(time, rate, length)
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
@@ -195,9 +207,9 @@ class Square(Node, AudioTreeNode):
     last_state = {}
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
+    def callback(self, socket, time, rate, length):
         if self.inputs[0].is_linked:
-            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            freq = self.inputs[0].getData(time, rate, length)
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
@@ -223,9 +235,9 @@ class Triangle(Node, AudioTreeNode):
     last_state = {}
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
+    def callback(self, socket, time, rate, length):
         if self.inputs[0].is_linked:
-            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            freq = self.inputs[0].getData(time, rate, length)
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
@@ -249,39 +261,11 @@ class Noise(Node, AudioTreeNode):
     bl_label = 'Noise'
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
+    def callback(self, socket, time, rate, length):
         return np.random.rand(rate*length)
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
-    
-class Volume(Node, AudioTreeNode):
-    # === Basics ===
-    # Description string
-    '''A volume changer node'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'VolumeNode'
-    # Label for nice name display
-    bl_label = 'Volume'
-    
-    my_input_value = bpy.props.FloatProperty(name="Volume multiplier")
-    
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
-        data_1 = np.zeros(int(rate*length))
-        try:
-            data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
-        except IndexError:
-            pass
-        
-        return data_1*self.my_input_value
-        
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.outputs.new('RawAudioSocketType', "Audio")
-    
-    def draw_buttons(self, context, layout):
-        layout.prop(self, "my_input_value")
 
 # Derived from the Node base type.
 class Sum(Node, AudioTreeNode):
@@ -294,17 +278,9 @@ class Sum(Node, AudioTreeNode):
     bl_label = 'Sum'
         
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
-        data_1 = data_2 = np.zeros(int(rate*length))
-        try:
-            data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
-        except IndexError:
-            pass
-        
-        try:
-            data_2 = self.inputs[1].links[0].from_node.getData(0, time, rate, length)
-        except IndexError:
-            pass
+    def callback(self, socket, time, rate, length):
+        data_1 = self.inputs[0].getData(time, rate, length)
+        data_2 = self.inputs[1].getData(time, rate, length)
         
         return data_1 + data_2
     
@@ -325,17 +301,9 @@ class Mul(Node, AudioTreeNode):
     bl_label = 'Mul'
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def getData(self, socketId, time, rate, length):
-        data_1 = data_2 = np.zeros(int(rate*length))
-        try:
-            data_1 = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
-        except IndexError:
-            pass
-        
-        try:
-            data_2 = self.inputs[1].links[0].from_node.getData(0, time, rate, length)
-        except IndexError:
-            pass
+    def callback(self, socketId, time, rate, length):
+        data_1 = self.inputs[0].getData(time, rate, length)
+        data_2 = self.inputs[1].getData(time, rate, length)
         
         return data_1 * data_2
     
@@ -367,7 +335,7 @@ class Sink(Node, AudioTreeNode):
     def updateSound(self):
         if self.running[0]:
             try:
-                self.playback.play_chunk(self.inputs[0].links[0].from_node.getData(0, self.internalTime, 41000, 1024/41000))
+                self.playback.play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000))
             except IndexError:
                 pass
     t1 = None
@@ -422,7 +390,6 @@ node_categories = [
     ]),
     AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
         NodeItem("SignalSumNode"),
-        NodeItem("VolumeNode"),
         NodeItem("SignalMulNode"),
     ]),
 ]
@@ -444,7 +411,6 @@ def register():
     bpy.utils.register_class(Noise)
     bpy.utils.register_class(Square)
     bpy.utils.register_class(Triangle)
-    bpy.utils.register_class(Volume)
     bpy.utils.register_class(Mul)
 
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
@@ -463,7 +429,6 @@ def unregister():
     bpy.utils.unregister_class(Noise)
     bpy.utils.unregister_class(Square)
     bpy.utils.unregister_class(Triangle)
-    bpy.utils.unregister_class(Volume)
     bpy.utils.register_class(Mul)
 
 
