@@ -166,10 +166,8 @@ class Saw(Node, AudioTreeNode):
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        if self.inputs[0].default_value != 0:
-            return ((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value
-        else:
-            return np.zeros(int(rate*length))
+        return (np.arange(rate*length)/rate+time) * self.inputs[0].default_value * 2 % 2 - 1
+    
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -185,10 +183,7 @@ class Square(Node, AudioTreeNode):
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        if self.inputs[0].default_value != 0:
-            return np.greater(((np.arange(rate*length)/rate+time) %  (1/self.inputs[0].default_value))*self.inputs[0].default_value, 0.5)*2.0 - 1.0
-        else:
-            return np.zeros(int(rate*length))
+        return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].default_value % 1, 0.5) * 2 - 1
     
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
@@ -332,7 +327,7 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            time.sleep(1024/41000/3)
+            time.sleep(1024/41000/10)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
