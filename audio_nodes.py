@@ -95,7 +95,6 @@ class RawAudioSocket(NodeSocket):
     
     value_prop = bpy.props.FloatProperty()
     
-        
     def getData(self, time, rate, length):
         if self.is_output:
             return self.node.callback(self, time, rate, length)
@@ -108,7 +107,7 @@ class RawAudioSocket(NodeSocket):
         if self.is_output or self.is_linked:
             layout.label(text)
         else:
-            layout.prop(self, "value_prop", text="")
+            layout.prop(self, "value_prop", text=text)
 
     
     # Socket color
@@ -144,19 +143,24 @@ class Oscillator(Node, AudioTreeNode):
     last_state = {}
     
     def callback(self, socket, time, rate, length):
+        output = None
         if self.inputs[0].is_linked:
             freq = self.inputs[0].getData(time, rate, length)
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return self.generate(output)
+            phase = np.cumsum(freq)/rate + last_state
+            self.last_state[self.path_from_id()] = phase[-1] % 1
+            output = self.generate(phase)
         else:
-            return self.generate((np.arange(rate*length)/rate+time)*self.inputs[0].getData(time, rate, length))
+            output = self.generate((np.arange(rate*length)/rate+time)*self.inputs[0].getData(time, rate, length))
+        return output * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
+        self.inputs.new('RawAudioSocketType', "Range")
+        self.inputs[1].value_prop = 1.0
+        self.inputs.new('RawAudioSocketType', "Offset")
         self.outputs.new('RawAudioSocketType', "Audio")
 
 class Sine(Oscillator):
