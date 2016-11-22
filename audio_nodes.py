@@ -140,17 +140,13 @@ class AudioTreeNode:
 
 class Oscillator(Node, AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
-    last_state = {}
     
     def callback(self, socket, time, rate, length):
         output = None
         if self.inputs[0].is_linked:
             freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            phase = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = phase[-1] % 1
+            phase = np.cumsum(freq)/rate + self.last_state
+            self.last_state = phase[-1] % 1
             output = self.generate(phase)
         else:
             output = self.generate((np.arange(rate*length)/rate+time)*self.inputs[0].getData(time, rate, length))
@@ -171,6 +167,8 @@ class Sine(Oscillator):
     # Label for nice name display
     bl_label = 'Sine'
     
+    last_state = bpy.props.FloatProperty() # property can't be defined in the superclass
+    
     def generate(self, phase):
         return np.sin(phase*np.pi*2)
     
@@ -182,6 +180,8 @@ class Saw(Oscillator):
     bl_idname = 'SawOscillatorNode'
     # Label for nice name display
     bl_label = 'Saw'
+    
+    last_state = bpy.props.FloatProperty()
     
     def generate(self, phase):
         return phase * 2 % 2 - 1
@@ -195,6 +195,8 @@ class Square(Oscillator):
     # Label for nice name display
     bl_label = 'Square'
     
+    last_state = bpy.props.FloatProperty()
+    
     def generate(self, phase):
         return np.greater(phase % 1, 0.5) * 2 - 1
 
@@ -206,6 +208,8 @@ class Triangle(Oscillator):
     bl_idname = 'TriangleOscillatorNode'
     # Label for nice name display
     bl_label = 'Triangle'
+    
+    last_state = bpy.props.FloatProperty()
     
     def generate(self, phase):
         return np.abs(phase * 4 % 4 - 2) - 1
