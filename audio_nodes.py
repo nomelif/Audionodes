@@ -102,7 +102,6 @@ class RawAudioSocket(NodeSocket):
         elif self.is_linked:
             return self.links[0].from_socket.getData(time, rate, length)
         else:
-            print(self.value_prop)
             return np.array([self.value_prop]*int(length*rate))
 
     def draw(self, context, layout, node, text):
@@ -140,15 +139,8 @@ class AudioTreeNode:
     def draw_buttons(self, context, layout):
         pass
 
-class Sine(Node, AudioTreeNode):
-    # === Basics ===
-    # Description string
-    '''A sine wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SineOscillatorNode'
-    # Label for nice name display
-    bl_label = 'Sine'
-    
+class Oscillator(Node, AudioTreeNode):
+    '''Framework for an oscillator node. Just add a generator!'''
     last_state = {}
     
     def callback(self, socket, time, rate, length):
@@ -159,15 +151,26 @@ class Sine(Node, AudioTreeNode):
                 last_state = self.last_state[self.path_from_id()]
             output = np.cumsum(freq)/rate + last_state
             self.last_state[self.path_from_id()] = output[-1] % 1
-            return np.sin(output*np.pi*2)
+            return self.generate(output)
         else:
-            return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].getData(time, rate, length))
+            return self.generate((np.arange(rate*length)/rate+time)*self.inputs[0].getData(time, rate, length))
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
+
+class Sine(Oscillator):
+    # Description string
+    '''A sine wave oscillator'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'SineOscillatorNode'
+    # Label for nice name display
+    bl_label = 'Sine'
     
-class Saw(Node, AudioTreeNode):
+    def generate(self, phase):
+        return np.sin(phase*np.pi*2)
+    
+class Saw(Oscillator):
     # === Basics ===
     # Description string
     '''A saw wave oscillator'''
@@ -176,26 +179,10 @@ class Saw(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Saw'
     
-    last_state = {}
+    def generate(self, phase):
+        return phase * 2 % 2 - 1
     
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return output * 2 % 2 - 1
-        else:
-            return (np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) * 2 % 2 - 1
-    
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
-    
-class Square(Node, AudioTreeNode):
+class Square(Oscillator):
     # === Basics ===
     # Description string
     '''A square wave oscillator'''
@@ -204,26 +191,10 @@ class Square(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Square'
     
-    last_state = {}
-    
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return np.greater(output % 1, 0.5) * 2 - 1
-        else:
-            return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) % 1, 0.5) * 2 - 1
-    
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
+    def generate(self, phase):
+        return np.greater(phase % 1, 0.5) * 2 - 1
 
-class Triangle(Node, AudioTreeNode):
+class Triangle(Oscillator):
     # === Basics ===
     # Description string
     '''A triangle wave oscillator'''
@@ -232,24 +203,8 @@ class Triangle(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Triangle'
     
-    last_state = {}
-    
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return np.abs(output * 4 % 4 - 2) - 1
-        else:
-            return np.abs((np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) * 4 % 4 - 2) - 1
-    
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
+    def generate(self, phase):
+        return np.abs(phase * 4 % 4 - 2) - 1
     
 class Noise(Node, AudioTreeNode):
     # === Basics ===
