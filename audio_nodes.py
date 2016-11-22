@@ -210,6 +210,34 @@ class Square(Node, AudioTreeNode):
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
+
+class Triangle(Node, AudioTreeNode):
+    # === Basics ===
+    # Description string
+    '''A triangle wave oscillator'''
+    # Optional identifier string. If not explicitly defined, the python class name is used.
+    bl_idname = 'TriangleOscillatorNode'
+    # Label for nice name display
+    bl_label = 'Triangle'
+    
+    last_state = {}
+    
+    # This method gets the current time as a parameter as well as the socket input is wanted for.
+    def getData(self, socketId, time, rate, length):
+        if self.inputs[0].is_linked:
+            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            last_state = 0
+            if self.path_from_id() in self.last_state:
+                last_state = self.last_state[self.path_from_id()]
+            output = np.cumsum(freq)/rate + last_state
+            self.last_state[self.path_from_id()] = output[-1] % 1
+            return np.abs(output * 4 % 4 - 2) - 1
+        else:
+            return np.abs((np.arange(rate*length)/rate+time) * self.inputs[0].default_value * 4 % 4 - 2) - 1
+    
+    def init(self, context):
+        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        self.outputs.new('RawAudioSocketType', "Audio")
     
 class Noise(Node, AudioTreeNode):
     # === Basics ===
@@ -386,6 +414,7 @@ node_categories = [
         NodeItem("SineOscillatorNode"),
         NodeItem("SawOscillatorNode"),
         NodeItem("SquareOscillatorNode"),
+        NodeItem("TriangleOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
     ]),
     AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
@@ -414,6 +443,7 @@ def register():
     bpy.utils.register_class(Saw)
     bpy.utils.register_class(Noise)
     bpy.utils.register_class(Square)
+    bpy.utils.register_class(Triangle)
     bpy.utils.register_class(Volume)
     bpy.utils.register_class(Mul)
 
@@ -432,6 +462,7 @@ def unregister():
     bpy.utils.unregister_class(Saw)
     bpy.utils.unregister_class(Noise)
     bpy.utils.unregister_class(Square)
+    bpy.utils.unregister_class(Triangle)
     bpy.utils.unregister_class(Volume)
     bpy.utils.register_class(Mul)
 
