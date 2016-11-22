@@ -153,7 +153,7 @@ class Sine(Node, AudioTreeNode):
     
     def callback(self, socket, time, rate, length):
         if self.inputs[0].is_linked:
-            freq = self.inputs[0].links[0].getData(time, rate, length)
+            freq = self.inputs[0].getData(time, rate, length)
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
@@ -161,10 +161,10 @@ class Sine(Node, AudioTreeNode):
             self.last_state[self.path_from_id()] = output[-1] % 1
             return np.sin(output*np.pi*2)
         else:
-            return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].default_value)
+            return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].getData(time, rate, length))
     
     def init(self, context):
-        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
     
 class Saw(Node, AudioTreeNode):
@@ -189,10 +189,10 @@ class Saw(Node, AudioTreeNode):
             self.last_state[self.path_from_id()] = output[-1] % 1
             return output * 2 % 2 - 1
         else:
-            return (np.arange(rate*length)/rate+time) * self.inputs[0].default_value * 2 % 2 - 1
+            return (np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) * 2 % 2 - 1
     
     def init(self, context):
-        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
     
 class Square(Node, AudioTreeNode):
@@ -217,10 +217,10 @@ class Square(Node, AudioTreeNode):
             self.last_state[self.path_from_id()] = output[-1] % 1
             return np.greater(output % 1, 0.5) * 2 - 1
         else:
-            return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].default_value % 1, 0.5) * 2 - 1
+            return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) % 1, 0.5) * 2 - 1
     
     def init(self, context):
-        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
 
 class Triangle(Node, AudioTreeNode):
