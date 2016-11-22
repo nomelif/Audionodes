@@ -94,17 +94,22 @@ class RawAudioSocket(NodeSocket):
     bl_label = 'Raw Audio'
     
     value_prop = bpy.props.FloatProperty()
+    last_value = {}
     
-        
     def getData(self, time, rate, length):
         if self.is_output:
             return self.node.callback(self, time, rate, length)
         elif self.is_linked:
             return self.links[0].from_socket.getData(time, rate, length)
         else:
-            print(self.value_prop)
-            return np.array([self.value_prop]*int(length*rate))
-
+            last_value = 0
+            if self.path_from_id() in self.last_value:
+                last_value = self.last_value[self.path_from_id()]
+            self.last_value[self.path_from_id()] = self.value_prop
+            coeff = np.arange(int(length*rate))/(length*rate)
+            print(self.value_prop * coeff + last_value * (1-coeff))
+            return self.value_prop * coeff + last_value * (1-coeff)
+    
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
