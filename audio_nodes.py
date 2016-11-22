@@ -145,9 +145,9 @@ class Sine(Node, AudioTreeNode):
             last_state = 0
             if self.path_from_id() in self.last_state:
                 last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate*np.pi*2 + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 2*np.pi
-            return np.sin(output)
+            output = np.cumsum(freq)/rate + last_state
+            self.last_state[self.path_from_id()] = output[-1] % 1
+            return np.sin(output*np.pi*2)
         else:
             return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].default_value)
     
@@ -164,9 +164,20 @@ class Saw(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Saw'
     
+    last_state = {}
+    
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        return (np.arange(rate*length)/rate+time) * self.inputs[0].default_value * 2 % 2 - 1
+        if self.inputs[0].is_linked:
+            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            last_state = 0
+            if self.path_from_id() in self.last_state:
+                last_state = self.last_state[self.path_from_id()]
+            output = np.cumsum(freq)/rate + last_state
+            self.last_state[self.path_from_id()] = output[-1] % 1
+            return output * 2 % 2 - 1
+        else:
+            return (np.arange(rate*length)/rate+time) * self.inputs[0].default_value * 2 % 2 - 1
     
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
@@ -181,9 +192,20 @@ class Square(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Square'
     
+    last_state = {}
+    
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def getData(self, socketId, time, rate, length):
-        return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].default_value % 1, 0.5) * 2 - 1
+        if self.inputs[0].is_linked:
+            freq = self.inputs[0].links[0].from_node.getData(0, time, rate, length)
+            last_state = 0
+            if self.path_from_id() in self.last_state:
+                last_state = self.last_state[self.path_from_id()]
+            output = np.cumsum(freq)/rate + last_state
+            self.last_state[self.path_from_id()] = output[-1] % 1
+            return np.greater(output % 1, 0.5) * 2 - 1
+        else:
+            return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].default_value % 1, 0.5) * 2 - 1
     
     def init(self, context):
         self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
