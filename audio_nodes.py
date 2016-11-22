@@ -126,7 +126,7 @@ class AudioTreeNode:
     
     def draw_buttons(self, context, layout):
         pass
-    
+
 class Sine(Node, AudioTreeNode):
     # === Basics ===
     # Description string
@@ -420,7 +420,7 @@ node_categories = [
     AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
         NodeItem("AudioSinkNode"),
     ]),
-    AudioNodeCategory("COMBINATORS", "Combinators", items=[
+    AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
         NodeItem("SignalSumNode"),
         NodeItem("VolumeNode"),
         NodeItem("SignalMulNode"),
