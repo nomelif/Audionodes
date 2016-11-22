@@ -245,10 +245,10 @@ class Triangle(Node, AudioTreeNode):
             self.last_state[self.path_from_id()] = output[-1] % 1
             return np.abs(output * 4 % 4 - 2) - 1
         else:
-            return np.abs((np.arange(rate*length)/rate+time) * self.inputs[0].default_value * 4 % 4 - 2) - 1
+            return np.abs((np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) * 4 % 4 - 2) - 1
     
     def init(self, context):
-        self.inputs.new('NodeSocketFloat', "Frequency (Hz)")
+        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.outputs.new('RawAudioSocketType', "Audio")
     
 class Noise(Node, AudioTreeNode):
