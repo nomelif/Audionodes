@@ -125,9 +125,6 @@ class AudioTreeNode:
         print("Removing node ", self, ", Goodbye!")
     
     def draw_buttons(self, context, layout):
-        layout.prop(self, "my_input_value")
-    
-    def draw_buttons(self, context, layout):
         pass
     
 class Sine(Node, AudioTreeNode):
