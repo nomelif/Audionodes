@@ -181,17 +181,25 @@ class Piano(Node, AudioTreeNode):
     def setKey(self, key):
         self.keys[self.path_from_id()][0] = key
     
+    def getKey(self):
+        return self.keys[self.path_from_id()][0]
+    
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
         layout.operator("audionodes.piano").caller_id = self.path_from_id()
     
     def callback(self, socket, time, rate, length):
-        f = 0
+        
         if self.keys[self.path_from_id()][0] != None:
-            f = 100*int(self.keys[self.path_from_id()][0])
-        phase = [f]*int(rate*length)
-        return phase#output * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
-
+            frequencies = {"1":261.63, "2":277.18, "3":293.66, "4":311.13, "5":329.63, "6":349.23, "7":369.99, "8":392.00, "9":415.30, "0":440.00, "+":466.16, "BACK_SPACE":493.88}
+            try:
+                return np.array([frequencies[self.keys[self.path_from_id()][0]]]*int(rate*length))
+            except KeyError:
+                return np.array([0]*int(rate*length))
+        else:
+            return np.array([0]*int(rate*length))
+        
+        
 
 class Sine(Oscillator):
     # Description string
@@ -368,14 +376,26 @@ class PianoCapture(bpy.types.Operator):
         print("Start")
 
     def __del__(self):
-        self.caller.setKey("0")
+        self.caller.setKey(None)
         print("End")
 
     def modal(self, context, event):
         if event.type == 'ESC':
+            self.caller.setKey(None)
             return {'FINISHED'}
-        elif event.ascii in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"):
-            self.caller.setKey(event.ascii)
+        elif event.value == "RELEASE" and self.caller.getKey() != None:
+            if self.caller.getKey() != "BACK_SPACE":
+                print(self.caller.getKey())
+                if event.type in ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS") and ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+").index(self.caller.getKey()) == ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type):
+                    self.caller.setKey(None)
+            elif event.type == "BACK_SPACE":
+                self.caller.setKey(None)
+        elif event.ascii in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+") or event.type == "BACK_SPACE":
+
+            if event.type == "BACK_SPACE":
+                self.caller.setKey("BACK_SPACE")
+            else:
+                self.caller.setKey(event.ascii)
 
         return {'PASS_THROUGH'}
 
