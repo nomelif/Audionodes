@@ -137,6 +137,9 @@ class AudioTreeNode:
     
     def draw_buttons(self, context, layout):
         pass
+    
+    def getTree(self):
+        return self.id_data
 
 class Oscillator(Node, AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
@@ -159,6 +162,37 @@ class Oscillator(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Offset")
         self.outputs.new('RawAudioSocketType', "Audio")
 
+class Piano(Node, AudioTreeNode):
+    '''Map key presses to audio.'''
+    
+    def callback(self, socket, time, rate, length):
+        return np.zeros(rate*length)
+    
+    bl_idname = 'PianoNode'
+    # Label for nice name display
+    bl_label = 'Piano'
+    
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.keys[self.path_from_id()] = [None]
+    
+    keys = {}
+    
+    def setKey(self, key):
+        self.keys[self.path_from_id()][0] = key
+    
+    def draw_buttons(self, context, layout):
+        layout.label("Node settings")
+        layout.operator("audionodes.piano").caller_id = self.path_from_id()
+    
+    def callback(self, socket, time, rate, length):
+        f = 0
+        if self.keys[self.path_from_id()][0] != None:
+            f = 100*int(self.keys[self.path_from_id()][0])
+        phase = [f]*int(rate*length)
+        return phase#output * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
+
+
 class Sine(Oscillator):
     # Description string
     '''A sine wave oscillator'''
@@ -171,6 +205,7 @@ class Sine(Oscillator):
     
     def generate(self, phase):
         return np.sin(phase*np.pi*2)
+
     
 class Saw(Oscillator):
     # === Basics ===
@@ -322,6 +357,42 @@ class Sink(Node, AudioTreeNode):
         print("Removing node ", self, ", Goodbye!")
 
 
+class PianoCapture(bpy.types.Operator):
+    bl_idname = "audionodes.piano"
+    bl_label = "Keyboard capture"
+    
+    caller_id = bpy.props.StringProperty()
+    caller = None
+    
+    def __init__(self):
+        print("Start")
+
+    def __del__(self):
+        self.caller.setKey("0")
+        print("End")
+
+    def modal(self, context, event):
+        if event.type == 'ESC':
+            return {'FINISHED'}
+        elif event.ascii in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"):
+            self.caller.setKey(event.ascii)
+
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        tree = context.active_node.getTree()
+        
+        caller = None
+        for node in tree.nodes:
+            if node.path_from_id() == self.caller_id:
+                caller = node
+                break
+        
+        self.caller = caller
+        
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
 ### Node Categories ###
 # Node categories are a python system for automatically
 # extending the Add menu, toolbar panels and search operator.
@@ -347,6 +418,7 @@ node_categories = [
         NodeItem("SquareOscillatorNode"),
         NodeItem("TriangleOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
+        NodeItem("PianoNode"),
     ]),
     AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
         NodeItem("AudioSinkNode"),
@@ -365,6 +437,8 @@ def register():
     except:
         pass
     
+    bpy.utils.register_class(PianoCapture)
+    
     bpy.utils.register_class(AudioTree)
     bpy.utils.register_class(RawAudioSocket)
     bpy.utils.register_class(Sine)
@@ -375,6 +449,7 @@ def register():
     bpy.utils.register_class(Square)
     bpy.utils.register_class(Triangle)
     bpy.utils.register_class(Mul)
+    bpy.utils.register_class(Piano)
 
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
@@ -382,6 +457,7 @@ def register():
 def unregister():
     nodeitems_utils.unregister_node_categories("AUDIONODES")
 
+    bpy.utils.unregister_class(PianoCapture)
 
     bpy.utils.unregister_class(AudioTree)
     bpy.utils.unregister_class(RawAudioSocket)
@@ -393,6 +469,7 @@ def unregister():
     bpy.utils.unregister_class(Square)
     bpy.utils.unregister_class(Triangle)
     bpy.utils.register_class(Mul)
+    bpy.utils.register_class(Piano)
 
 
 if __name__ == "__main__":
