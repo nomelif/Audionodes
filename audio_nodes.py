@@ -96,25 +96,38 @@ class RawAudioSocket(NodeSocket):
     value_prop = bpy.props.FloatProperty()
     last_value = {}
     
+    cache = {}
+    
     def getData(self, time, rate, length):
+        
+        if self.is_output and self.path_from_id() in self.cache.keys():
+            if self.cache[self.path_from_id()]["time"] == time and self.cache[self.path_from_id()]["rate"] == rate and self.cache[self.path_from_id()]["length"] == length:
+                return self.cache[self.path_from_id()]["data"]
+        
+        new_data = None
+        
         if self.is_output:
-            return self.node.callback(self, time, rate, length)
+            new_data = self.node.callback(self, time, rate, length)
         elif self.is_linked:
-            return self.links[0].from_socket.getData(time, rate, length)
+            new_data = self.links[0].from_socket.getData(time, rate, length)
         else:
             last_value = 0
             if self.path_from_id() in self.last_value:
                 last_value = self.last_value[self.path_from_id()]
             self.last_value[self.path_from_id()] = self.value_prop
             coeff = np.arange(int(length*rate))/(length*rate)
-            print(self.value_prop * coeff + last_value * (1-coeff))
-            return self.value_prop * coeff + last_value * (1-coeff)
+            new_data = self.value_prop * coeff + last_value * (1-coeff)
+        
+        if self.is_output:
+            self.cache[self.path_from_id()] = {"time":time, "rate":rate, "length":length, "data":new_data}
+        
+        return new_data
     
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
         else:
-            layout.prop(self, "value_prop", text="")
+            layout.prop(self, "value_prop", text=text)
 
     
     # Socket color
@@ -144,9 +157,77 @@ class AudioTreeNode:
     
     def draw_buttons(self, context, layout):
         pass
+    
+    def getTree(self):
+        return self.id_data
 
-class Sine(Node, AudioTreeNode):
-    # === Basics ===
+class Oscillator(Node, AudioTreeNode):
+    '''Framework for an oscillator node. Just add a generator!'''
+    
+    def callback(self, socket, time, rate, length):
+        output = None
+        
+        # Possible optimization:
+        
+        #if np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0 or np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0:
+        #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
+        
+        if self.inputs[0].is_linked:
+            freq = self.inputs[0].getData(time, rate, length)
+            phase = np.cumsum(freq)/rate + self.last_state
+            self.last_state = phase[-1] % 1
+            output = self.generate(phase)
+        else:
+            output = self.generate((np.arange(rate*length)/rate+time)*self.inputs[0].getData(time, rate, length))
+        return output * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
+    
+    def init(self, context):
+        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
+        self.inputs.new('RawAudioSocketType', "Range")
+        self.inputs[1].value_prop = 1.0
+        self.inputs.new('RawAudioSocketType', "Offset")
+        self.outputs.new('RawAudioSocketType', "Audio")
+
+class Piano(Node, AudioTreeNode):
+    '''Map key presses to audio.'''
+    
+    def callback(self, socket, time, rate, length):
+        return np.zeros(rate*length)
+    
+    bl_idname = 'PianoNode'
+    # Label for nice name display
+    bl_label = 'Piano'
+    
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.keys[self.path_from_id()] = [None]
+    
+    keys = {}
+    
+    def setKey(self, key):
+        self.keys[self.path_from_id()][0] = key
+    
+    def getKey(self):
+        return self.keys[self.path_from_id()][0]
+    
+    def draw_buttons(self, context, layout):
+        layout.label("Node settings")
+        layout.operator("audionodes.piano").caller_id = self.path_from_id()
+    
+    def callback(self, socket, time, rate, length):
+        
+        if self.keys[self.path_from_id()][0] != None:
+            frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
+            try:
+                return np.array([frequencies[self.keys[self.path_from_id()][0]]]*int(rate*length))
+            except KeyError:
+                return np.array([0]*int(rate*length))
+        else:
+            return np.array([0]*int(rate*length))
+        
+        
+
+class Sine(Oscillator):
     # Description string
     '''A sine wave oscillator'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -154,25 +235,13 @@ class Sine(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Sine'
     
-    last_state = {}
+    last_state = bpy.props.FloatProperty() # property can't be defined in the superclass
     
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return np.sin(output*np.pi*2)
-        else:
-            return np.sin((np.arange(rate*length)/rate+time)*np.pi * 2 * self.inputs[0].getData(time, rate, length))
+    def generate(self, phase):
+        return np.sin(phase*np.pi*2)
+
     
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
-    
-class Saw(Node, AudioTreeNode):
+class Saw(Oscillator):
     # === Basics ===
     # Description string
     '''A saw wave oscillator'''
@@ -181,26 +250,12 @@ class Saw(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Saw'
     
-    last_state = {}
+    last_state = bpy.props.FloatProperty()
     
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return output * 2 % 2 - 1
-        else:
-            return (np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) * 2 % 2 - 1
+    def generate(self, phase):
+        return phase * 2 % 2 - 1
     
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
-    
-class Square(Node, AudioTreeNode):
+class Square(Oscillator):
     # === Basics ===
     # Description string
     '''A square wave oscillator'''
@@ -209,26 +264,12 @@ class Square(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Square'
     
-    last_state = {}
+    last_state = bpy.props.FloatProperty()
     
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return np.greater(output % 1, 0.5) * 2 - 1
-        else:
-            return np.greater((np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) % 1, 0.5) * 2 - 1
-    
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
+    def generate(self, phase):
+        return np.greater(phase % 1, 0.5) * 2 - 1
 
-class Triangle(Node, AudioTreeNode):
+class Triangle(Oscillator):
     # === Basics ===
     # Description string
     '''A triangle wave oscillator'''
@@ -237,24 +278,10 @@ class Triangle(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Triangle'
     
-    last_state = {}
+    last_state = bpy.props.FloatProperty()
     
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socket, time, rate, length):
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            last_state = 0
-            if self.path_from_id() in self.last_state:
-                last_state = self.last_state[self.path_from_id()]
-            output = np.cumsum(freq)/rate + last_state
-            self.last_state[self.path_from_id()] = output[-1] % 1
-            return np.abs(output * 4 % 4 - 2) - 1
-        else:
-            return np.abs((np.arange(rate*length)/rate+time) * self.inputs[0].getData(time, rate, length) * 4 % 4 - 2) - 1
-    
-    def init(self, context):
-        self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.outputs.new('RawAudioSocketType', "Audio")
+    def generate(self, phase):
+        return np.abs(phase * 4 % 4 - 2) - 1
     
 class Noise(Node, AudioTreeNode):
     # === Basics ===
@@ -364,6 +391,53 @@ class Sink(Node, AudioTreeNode):
         print("Removing node ", self, ", Goodbye!")
 
 
+class PianoCapture(bpy.types.Operator):
+    bl_idname = "audionodes.piano"
+    bl_label = "Keyboard capture"
+    
+    caller_id = bpy.props.StringProperty()
+    caller = None
+    
+    def __init__(self):
+        print("Start")
+
+    def __del__(self):
+        self.caller.setKey(None)
+        print("End")
+
+    def modal(self, context, event):
+        if event.type == 'ESC':
+            self.caller.setKey(None)
+            return {'FINISHED'}
+        elif event.value == "RELEASE" and self.caller.getKey() != None:
+            if event.type in ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS", "NONE") and ("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+").index(self.caller.getKey()) == ("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type):
+                self.caller.setKey(None)
+        elif event.unicode in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "§"):
+
+            if event.type == "BACK_SPACE":
+                self.caller.setKey("BACK_SPACE")
+            else:
+                self.caller.setKey(event.unicode)
+        else:
+            #print(event.unicode)
+            pass
+
+        return {'PASS_THROUGH'}
+
+    def invoke(self, context, event):
+        tree = context.active_node.getTree()
+        
+        caller = None
+        for node in tree.nodes:
+            if node.path_from_id() == self.caller_id:
+                caller = node
+                break
+        
+        self.caller = caller
+        
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
 ### Node Categories ###
 # Node categories are a python system for automatically
 # extending the Add menu, toolbar panels and search operator.
@@ -389,6 +463,7 @@ node_categories = [
         NodeItem("SquareOscillatorNode"),
         NodeItem("TriangleOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
+        NodeItem("PianoNode"),
     ]),
     AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
         NodeItem("AudioSinkNode"),
@@ -407,6 +482,8 @@ def register():
     except:
         pass
     
+    bpy.utils.register_class(PianoCapture)
+    
     bpy.utils.register_class(AudioTree)
     bpy.utils.register_class(RawAudioSocket)
     bpy.utils.register_class(Sine)
@@ -417,6 +494,7 @@ def register():
     bpy.utils.register_class(Square)
     bpy.utils.register_class(Triangle)
     bpy.utils.register_class(Mul)
+    bpy.utils.register_class(Piano)
 
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
@@ -424,6 +502,7 @@ def register():
 def unregister():
     nodeitems_utils.unregister_node_categories("AUDIONODES")
 
+    bpy.utils.unregister_class(PianoCapture)
 
     bpy.utils.unregister_class(AudioTree)
     bpy.utils.unregister_class(RawAudioSocket)
@@ -435,6 +514,7 @@ def unregister():
     bpy.utils.unregister_class(Square)
     bpy.utils.unregister_class(Triangle)
     bpy.utils.register_class(Mul)
+    bpy.utils.register_class(Piano)
 
 
 if __name__ == "__main__":
