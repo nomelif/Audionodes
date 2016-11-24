@@ -212,7 +212,7 @@ class Piano(Node, AudioTreeNode):
     def callback(self, socket, time, rate, length):
         
         if self.keys[self.path_from_id()][0] != None:
-            frequencies = {"1":261.63, "2":277.18, "3":293.66, "4":311.13, "5":329.63, "6":349.23, "7":369.99, "8":392.00, "9":415.30, "0":440.00, "+":466.16, "BACK_SPACE":493.88}
+            frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
             try:
                 return np.array([frequencies[self.keys[self.path_from_id()][0]]]*int(rate*length))
             except KeyError:
@@ -405,18 +405,17 @@ class PianoCapture(bpy.types.Operator):
             self.caller.setKey(None)
             return {'FINISHED'}
         elif event.value == "RELEASE" and self.caller.getKey() != None:
-            if self.caller.getKey() != "BACK_SPACE":
-                print(self.caller.getKey())
-                if event.type in ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS") and ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+").index(self.caller.getKey()) == ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type):
-                    self.caller.setKey(None)
-            elif event.type == "BACK_SPACE":
+            if event.type in ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS", "NONE") and ("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+").index(self.caller.getKey()) == ("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type):
                 self.caller.setKey(None)
-        elif event.ascii in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+") or event.type == "BACK_SPACE":
+        elif event.unicode in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "§"):
 
             if event.type == "BACK_SPACE":
                 self.caller.setKey("BACK_SPACE")
             else:
-                self.caller.setKey(event.ascii)
+                self.caller.setKey(event.unicode)
+        else:
+            #print(event.unicode)
+            pass
 
         return {'PASS_THROUGH'}
 
