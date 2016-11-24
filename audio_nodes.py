@@ -99,10 +99,9 @@ class RawAudioSocket(NodeSocket):
     
     def getData(self, time, rate, length):
         
-        if not self.is_output and self.path_from_id() in self.cache.keys():
-            cached = self.cache[self.path_from_id()]
-            if cached["time"] == time and cached["rate"] == rate and cached["length"] == length:
-                return cached["data"]
+        if self.is_output and self.path_from_id() in self.cache.keys():
+            if self.cache[self.path_from_id()]["time"] == time and self.cache[self.path_from_id()]["rate"] == rate and self.cache[self.path_from_id()]["length"] == length:
+                return self.cache[self.path_from_id()]["data"]
         
         new_data = None
         
@@ -113,7 +112,7 @@ class RawAudioSocket(NodeSocket):
         else:
             new_data =  np.array([self.value_prop]*int(length*rate))
         
-        if not self.is_output:
+        if self.is_output:
             self.cache[self.path_from_id()] = {"time":time, "rate":rate, "length":length, "data":new_data}
         
         return new_data
@@ -372,7 +371,7 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            time.sleep(1024/41000/20)
+            time.sleep(1024/41000/10)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
