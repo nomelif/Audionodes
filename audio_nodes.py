@@ -95,13 +95,27 @@ class RawAudioSocket(NodeSocket):
     
     value_prop = bpy.props.FloatProperty()
     
+    cache = {}
+    
     def getData(self, time, rate, length):
+        
+        if self.path_from_id() in self.cache.keys():
+            cached = self.cache[self.path_from_id()]
+            if cached["time"] == time and cached["rate"] == rate and cached["length"] == length:
+                return cached["data"]
+        
+        new_data = None
+        
         if self.is_output:
-            return self.node.callback(self, time, rate, length)
+            new_data = self.node.callback(self, time, rate, length)
         elif self.is_linked:
-            return self.links[0].from_socket.getData(time, rate, length)
+            new_data = self.links[0].from_socket.getData(time, rate, length)
         else:
-            return np.array([self.value_prop]*int(length*rate))
+            new_data =  np.array([self.value_prop]*int(length*rate))
+        
+        self.cache[self.path_from_id()] = {"time":time, "rate":rate, "length":length, "data":new_data}
+        
+        return new_data
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
@@ -351,7 +365,7 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            time.sleep(1024/41000/10)
+            time.sleep(1024/41000/20)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
