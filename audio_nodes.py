@@ -99,7 +99,7 @@ class RawAudioSocket(NodeSocket):
     
     def getData(self, time, rate, length):
         
-        if self.path_from_id() in self.cache.keys():
+        if not self.is_output and self.path_from_id() in self.cache.keys():
             cached = self.cache[self.path_from_id()]
             if cached["time"] == time and cached["rate"] == rate and cached["length"] == length:
                 return cached["data"]
@@ -113,7 +113,8 @@ class RawAudioSocket(NodeSocket):
         else:
             new_data =  np.array([self.value_prop]*int(length*rate))
         
-        self.cache[self.path_from_id()] = {"time":time, "rate":rate, "length":length, "data":new_data}
+        if not self.is_output:
+            self.cache[self.path_from_id()] = {"time":time, "rate":rate, "length":length, "data":new_data}
         
         return new_data
 
@@ -160,6 +161,12 @@ class Oscillator(Node, AudioTreeNode):
     
     def callback(self, socket, time, rate, length):
         output = None
+        
+        # Possible optimization:
+        
+        #if np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0 or np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0:
+        #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
+        
         if self.inputs[0].is_linked:
             freq = self.inputs[0].getData(time, rate, length)
             phase = np.cumsum(freq)/rate + self.last_state
