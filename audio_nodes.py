@@ -172,14 +172,10 @@ class Oscillator(Node, AudioTreeNode):
         #if np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0 or np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0:
         #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
         
-        if self.inputs[0].is_linked:
-            freq = self.inputs[0].getData(time, rate, length)
-            phase = np.cumsum(freq)/rate + self.last_state
-            self.last_state = phase[-1] % 1
-            output = self.generate(phase)
-        else:
-            output = self.generate((np.arange(rate*length)/rate+time)*self.inputs[0].getData(time, rate, length))
-        return output * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
+        freq = self.inputs[0].getData(time, rate, length)
+        phase = np.cumsum(freq)/rate + self.last_state
+        self.last_state = phase[-1] % 1
+        return self.generate(phase) * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
