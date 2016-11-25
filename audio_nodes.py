@@ -116,7 +116,7 @@ class RawAudioSocket(NodeSocket):
                 last_value = self.last_value[self.path_from_id()]
             self.last_value[self.path_from_id()] = self.value_prop
             coeff = np.arange(int(length*rate))/(length*rate)
-            new_data = self.value_prop * coeff + last_value * (1-coeff)
+            new_data = np.array([self.value_prop * coeff + last_value * (1-coeff)])
         
         if self.is_output:
             self.cache[self.path_from_id()] = {"time":time, "rate":rate, "length":length, "data":new_data}
@@ -164,6 +164,8 @@ class AudioTreeNode:
 class Oscillator(Node, AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
     
+    oscillatorStates = {}
+    
     def callback(self, socket, time, rate, length):
         output = None
         
@@ -172,9 +174,16 @@ class Oscillator(Node, AudioTreeNode):
         #if np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0 or np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0:
         #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
         
+        try:
+        
+            if len(self.oscillatorStates[self.path_from_id()]) != len(self.inputs[0].getData(time, rate, length)):
+                self.oscillatorStates[self.path_from_id()] = np.array([np.zeros(len(self.inputs[0].getData(time, rate, length)))])
+        except KeyError:
+            self.oscillatorStates[self.path_from_id()] = np.array([np.zeros(len(self.inputs[0].getData(time, rate, length)))])
+        
         freq = self.inputs[0].getData(time, rate, length)
-        phase = np.cumsum(freq)/rate + self.last_state
-        self.last_state = phase[-1] % 1
+        phase = freq.cumsum(axis=1)/rate + self.oscillatorStates[self.path_from_id()]
+        self.oscillatorStates[self.path_from_id()]= phase[:,-1] % 1
         return self.generate(phase) * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
     
     def init(self, context):
@@ -215,11 +224,11 @@ class Piano(Node, AudioTreeNode):
         if self.keys[self.path_from_id()][0] != None:
             frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
             try:
-                return np.array([frequencies[self.keys[self.path_from_id()][0]]]*int(rate*length))
+                return np.array([[frequencies[self.keys[self.path_from_id()][0]]]*int(rate*length)])
             except KeyError:
-                return np.array([0]*int(rate*length))
+                return np.array([[0]*int(rate*length)])
         else:
-            return np.array([0]*int(rate*length))
+            return np.array([[0]*int(rate*length)])
         
         
 
@@ -230,8 +239,6 @@ class Sine(Oscillator):
     bl_idname = 'SineOscillatorNode'
     # Label for nice name display
     bl_label = 'Sine'
-    
-    last_state = bpy.props.FloatProperty() # property can't be defined in the superclass
     
     def generate(self, phase):
         return np.sin(phase*np.pi*2)
@@ -260,8 +267,6 @@ class Square(Oscillator):
     # Label for nice name display
     bl_label = 'Square'
     
-    last_state = bpy.props.FloatProperty()
-    
     def generate(self, phase):
         return np.greater(phase % 1, 0.5) * 2 - 1
 
@@ -273,8 +278,6 @@ class Triangle(Oscillator):
     bl_idname = 'TriangleOscillatorNode'
     # Label for nice name display
     bl_label = 'Triangle'
-    
-    last_state = bpy.props.FloatProperty()
     
     def generate(self, phase):
         return np.abs(phase * 4 % 4 - 2) - 1
@@ -290,7 +293,7 @@ class Noise(Node, AudioTreeNode):
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def callback(self, socket, time, rate, length):
-        return np.random.rand(rate*length)
+        return np.array([np.random.rand(rate*length)])
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -363,7 +366,7 @@ class Sink(Node, AudioTreeNode):
     def updateSound(self):
         if self.running[0]:
             try:
-                self.playback.play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000))
+                self.playback.play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000).sum(axis=0))
             except IndexError:
                 pass
     t1 = None
