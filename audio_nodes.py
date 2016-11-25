@@ -173,17 +173,24 @@ class Oscillator(Node, AudioTreeNode):
         
         #if np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0 or np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0:
         #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
+
+        rebuildCache = False
         
         try:
         
             if len(self.oscillatorStates[self.path_from_id()]) != len(self.inputs[0].getData(time, rate, length)):
-                self.oscillatorStates[self.path_from_id()] = np.array([np.zeros(len(self.inputs[0].getData(time, rate, length)))])
+                rebuildCache = True
+
         except KeyError:
-            self.oscillatorStates[self.path_from_id()] = np.array([np.zeros(len(self.inputs[0].getData(time, rate, length)))])
+            rebuildCache = True
         
+        if rebuildCache:
+            self.oscillatorStates[self.path_from_id()] = np.array([np.zeros(len(self.inputs[0].getData(time, rate, length)))])
+
+       
         freq = self.inputs[0].getData(time, rate, length)
-        phase = freq.cumsum(axis=1)/rate + self.oscillatorStates[self.path_from_id()]
-        self.oscillatorStates[self.path_from_id()]= phase[:,-1] % 1
+        phase = ((freq.cumsum(axis=1)/rate).transpose() + self.oscillatorStates[self.path_from_id()]).transpose()
+        self.oscillatorStates[self.path_from_id()] = (phase[:,-1] % 1)
         return self.generate(phase) * self.inputs[1].getData(time, rate, length) + self.inputs[2].getData(time, rate, length)
     
     def init(self, context):
@@ -205,15 +212,25 @@ class Piano(Node, AudioTreeNode):
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
-        self.keys[self.path_from_id()] = [None]
+        self.keys[self.path_from_id()] = []
     
     keys = {}
     
     def setKey(self, key):
-        self.keys[self.path_from_id()][0] = key
+        if not key in self.keys[self.path_from_id()]:
+            self.keys[self.path_from_id()].append(key)
+    
+    def clear(self):
+        self.keys[self.path_from_id()] = []
     
     def getKey(self):
         return self.keys[self.path_from_id()][0]
+    
+    def removeKey(self, key):
+        try:
+            self.keys[self.path_from_id()].remove(key)
+        except ValueError:
+            pass
     
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
@@ -221,10 +238,15 @@ class Piano(Node, AudioTreeNode):
     
     def callback(self, socket, time, rate, length):
         
-        if self.keys[self.path_from_id()][0] != None:
+        if len(self.keys[self.path_from_id()][0]) != 0:
             frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
             try:
-                return np.array([[frequencies[self.keys[self.path_from_id()][0]]]*int(rate*length)])
+                
+                freqMap = []
+                for freq in self.keys[self.path_from_id()]:
+                    freqMap.append(frequencies[freq])
+                print(freqMap)
+                return np.tile(np.array([freqMap]).transpose(), int(length*rate))
             except KeyError:
                 return np.array([[0]*int(rate*length)])
         else:
@@ -401,16 +423,19 @@ class PianoCapture(bpy.types.Operator):
         print("Start")
 
     def __del__(self):
-        self.caller.setKey(None)
+        self.caller.clear()
         print("End")
 
     def modal(self, context, event):
         if event.type == 'ESC':
-            self.caller.setKey(None)
+            self.caller.clear()
             return {'FINISHED'}
-        elif event.value == "RELEASE" and self.caller.getKey() != None:
-            if event.type in ("NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS", "NONE") and ("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+").index(self.caller.getKey()) == ("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type):
-                self.caller.setKey(None)
+        
+        elif event.value == "RELEASE":
+            try:
+                self.caller.removeKey(("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+")[("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type)])
+            except ValueError:
+                pass
         elif event.unicode in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "§"):
 
             if event.type == "BACK_SPACE":
