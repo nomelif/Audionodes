@@ -144,20 +144,6 @@ class AudioTreeNode:
     def poll(cls, ntree):
         return ntree.bl_idname == 'AudioTreeType'
     
-    def update(self):
-        print(self.bl_label)
-    
-    # Copy function to initialize a copied node from an existing one.
-    def copy(self, node):
-        print("Copying from node ", node)
-
-    # Free function to clean up on removal.
-    def free(self):
-        print("Removing node ", self, ", Goodbye!")
-    
-    def draw_buttons(self, context, layout):
-        pass
-    
     def getTree(self):
         return self.id_data
 
@@ -175,9 +161,7 @@ class Oscillator(Node, AudioTreeNode):
         #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
 
         rebuildCache = False
-        
-        print(len(self.inputs[0].getData(timeData, rate, length)[0]))
-        
+
         try:
         
             if len(self.oscillatorStates[self.path_from_id()][0]) != len(self.inputs[0].getData(timeData, rate, length)[0]):
@@ -200,19 +184,14 @@ class Oscillator(Node, AudioTreeNode):
             # Add signals that are lacking
             for index in range(len(self.inputs[0].getData(timeData, rate, length)[1])):
                 
-                print(index)
-                
                 if not (len(self.oscillatorStates[self.path_from_id()][1]) > index and self.oscillatorStates[self.path_from_id()][1][index] == self.inputs[0].getData(timeData, rate, length)[1][index]):
                     self.oscillatorStates[self.path_from_id()][0] = np.insert(self.oscillatorStates[self.path_from_id()][0], index, 0, axis=0)
                     self.oscillatorStates[self.path_from_id()][1] = np.insert(self.oscillatorStates[self.path_from_id()][1], index, self.inputs[0].getData(timeData, rate, length)[1][index], axis=0)
-            
-            print(self.oscillatorStates[self.path_from_id()])
             
             
         freq = self.inputs[0].getData(timeData, rate, length)[0]
         phase = ((freq.cumsum(axis=1)/rate).transpose() + self.oscillatorStates[self.path_from_id()][0]).transpose()
         self.oscillatorStates[self.path_from_id()][0] = (phase[:,-1] % 1)
-        #print(self.oscillatorStates[self.path_from_id()][0])
         return (self.generate(phase) * self.inputs[1].getData(timeData, rate, length)[0] + self.inputs[2].getData(timeData, rate, length)[0], self.oscillatorStates[self.path_from_id()][0])
     
     def init(self, context):
@@ -442,7 +421,6 @@ class Sink(Node, AudioTreeNode):
     # Free function to clean up on removal.
     def free(self):
         self.running[0] = False
-        print("Removing node ", self, ", Goodbye!")
 
 
 class PianoCapture(bpy.types.Operator):
@@ -451,13 +429,9 @@ class PianoCapture(bpy.types.Operator):
     
     caller_id = bpy.props.StringProperty()
     caller = [None]
-    
-    def __init__(self):
-        print("Start")
 
     def __del__(self):
         self.caller[0].clear()
-        print("End")
 
     def modal(self, context, event):
         if event.type == 'ESC':
@@ -475,9 +449,6 @@ class PianoCapture(bpy.types.Operator):
                 self.caller[0].setKey("BACK_SPACE")
             else:
                 self.caller[0].setKey(event.unicode)
-        else:
-            #print(event.unicode)
-            pass
 
         return {'PASS_THROUGH'}
 
