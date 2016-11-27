@@ -22,7 +22,7 @@ On other systems, try to install similar packages.
 
 With `Homebrew` installed, run `brew install python3` to (among other things) setup `pip`correctly. Then install NumPy with `sudo pip3 install numpy`. Installing `PyAudio` is more sorcerous: `brew install portaudio && pip install pyaudio`.
 
-Then download the addon itself from the downloads section of this repository (or right here). In Blender, go to `File > User Preferences > Addons > Install from File...`. Pick the downloaded `audio_nodes.py` and then check the checkbox to enable the addon.
+Then download this repository and unpack the file `audio_nodes.py`. In Blender, go to `File > User Preferences > Addons > Install from File...`. Pick the downloaded `audio_nodes.py` and then check the checkbox to enable the addon.
 
 ### It still doesn't work
 
