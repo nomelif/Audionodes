@@ -1,3 +1,8 @@
+# Blender addon sorcery
+
+bl_info = {"name": "Audionodes", "description":"Create complex soundscapes in real time using nodes.", "author":"Roope Salmi, Théo Friberg", "version":(0,1), "blender":(2,77,0), "location":"Node Editor > Sound Icon > Add new", "warning":"Very much alpha, may blow up in your face.", "category": "Node", "tracker_url":"https://github.com/nomelif/Audionodes/issues", "wiki_url":"https://github.com/nomelif/Audionodes"}
+
+
 import bpy
 import numpy as np
 import time
