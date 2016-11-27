@@ -443,12 +443,12 @@ class PianoCapture(bpy.types.Operator):
                 self.caller[0].removeKey(("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+")[("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type)])
             except ValueError:
                 pass
-        elif event.unicode in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "§"):
-
-            if event.type == "BACK_SPACE":
-                self.caller[0].setKey("BACK_SPACE")
-            else:
-                self.caller[0].setKey(event.unicode)
+        else:
+            try:
+                if event.unicode in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "§"):
+                    self.caller[0].setKey(event.unicode)
+            except UnicodeDecodeError:
+                pass
 
         return {'PASS_THROUGH'}
 
