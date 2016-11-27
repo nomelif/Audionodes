@@ -332,9 +332,12 @@ class Noise(Node, AudioTreeNode):
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
     def callback(self, socket, time, rate, length):
-        return np.array([np.random.rand(rate*length)])
+        return (np.array([np.random.rand(rate*length)]), np.array(self.stamps[self.path_from_id()]))
+    
+    stamps = {}
     
     def init(self, context):
+        self.stamps[self.path_from_id()] = time.time()
         self.outputs.new('RawAudioSocketType', "Audio")
 
 # Derived from the Node base type.
