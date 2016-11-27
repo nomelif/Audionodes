@@ -176,7 +176,7 @@ class Oscillator(Node, AudioTreeNode):
 
         rebuildCache = False
         
-        print(self.inputs[0].getData(timeData, rate, length)[0][-1])
+        print(len(self.inputs[0].getData(timeData, rate, length)[0]))
         
         try:
         
@@ -193,9 +193,9 @@ class Oscillator(Node, AudioTreeNode):
             
             for key in self.oscillatorStates[self.path_from_id()][1]:
                 if not key in self.inputs[0].getData(timeData, rate, length)[1]:
-                    index = self.oscillatorStates[self.path_from_id()][1].index(key) 
-                    self.oscillatorStates[self.path_from_id()][1].remove(key)
-                    del self.oscillatorStates[self.path_from_id()][0][index]
+                    index = np.where(self.oscillatorStates[self.path_from_id()][1]==key) 
+                    self.oscillatorStates[self.path_from_id()][1] = np.delete(self.oscillatorStates[self.path_from_id()][1], index)
+                    self.oscillatorStates[self.path_from_id()][0] = np.delete(self.oscillatorStates[self.path_from_id()][0], index)
             
             # Add signals that are lacking
             for index in range(len(self.inputs[0].getData(timeData, rate, length)[1])):
@@ -203,7 +203,6 @@ class Oscillator(Node, AudioTreeNode):
                 print(index)
                 
                 if not (len(self.oscillatorStates[self.path_from_id()][1]) > index and self.oscillatorStates[self.path_from_id()][1][index] == self.inputs[0].getData(timeData, rate, length)[1][index]):
-                    print("!")
                     self.oscillatorStates[self.path_from_id()][0] = np.insert(self.oscillatorStates[self.path_from_id()][0], index, 0, axis=0)
                     self.oscillatorStates[self.path_from_id()][1] = np.insert(self.oscillatorStates[self.path_from_id()][1], index, self.inputs[0].getData(timeData, rate, length)[1][index], axis=0)
             
@@ -240,8 +239,13 @@ class Piano(Node, AudioTreeNode):
     keys = {}
     
     def setKey(self, key):
-        if not key in self.keys[self.path_from_id()]:
-            self.keys[self.path_from_id()].append((key, time.time()))
+        
+        # Exit if the key is already known
+        
+        for knownKey in self.keys[self.path_from_id()]:
+            if knownKey[0] == key:
+                return None
+        self.keys[self.path_from_id()].append((key, time.time()))
     
     def clear(self):
         self.keys[self.path_from_id()] = []
@@ -250,10 +254,12 @@ class Piano(Node, AudioTreeNode):
         return self.keys[self.path_from_id()][0]
     
     def removeKey(self, key):
-        try:
-            self.keys[self.path_from_id()].remove(key)
-        except ValueError:
-            pass
+        i = 0
+        for knownKey in self.keys[self.path_from_id()]:
+            if knownKey[0] == key:
+                del self.keys[self.path_from_id()][i]
+                break
+            i = i + 1
     
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
@@ -267,16 +273,13 @@ class Piano(Node, AudioTreeNode):
                 
                 freqMap = []
                 for freq in self.keys[self.path_from_id()]:
-                    freqMap.append(frequencies[freq][0])
+                    freqMap.append(frequencies[freq[0]])
                 
                 stampMap = []
                 for freq in self.keys[self.path_from_id()]:
-                    freqMap.append(frequencies[freq][1])
+                    stampMap.append(freq[1])
                 
-                
-                
-                
-                return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), stampMap)
+                return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap))
             except KeyError:
                 return (np.array([[0]*int(rate*length)]), [0])
         else:
@@ -447,31 +450,31 @@ class PianoCapture(bpy.types.Operator):
     bl_label = "Keyboard capture"
     
     caller_id = bpy.props.StringProperty()
-    caller = None
+    caller = [None]
     
     def __init__(self):
         print("Start")
 
     def __del__(self):
-        self.caller.clear()
+        self.caller[0].clear()
         print("End")
 
     def modal(self, context, event):
         if event.type == 'ESC':
-            self.caller.clear()
+            self.caller[0].clear()
             return {'FINISHED'}
         
         elif event.value == "RELEASE":
             try:
-                self.caller.removeKey(("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+")[("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type)])
+                self.caller[0].removeKey(("§", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+")[("NONE", "NUMPAD_0", "NUMPAD_1", "NUMPAD_2", "NUMPAD_3", "NUMPAD_4", "NUMPAD_5", "NUMPAD_6", "NUMPAD_7", "NUMPAD_8", "NUMPAD_9", "PLUS").index(event.type)])
             except ValueError:
                 pass
         elif event.unicode in ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "+", "§"):
 
             if event.type == "BACK_SPACE":
-                self.caller.setKey("BACK_SPACE")
+                self.caller[0].setKey("BACK_SPACE")
             else:
-                self.caller.setKey(event.unicode)
+                self.caller[0].setKey(event.unicode)
         else:
             #print(event.unicode)
             pass
@@ -487,7 +490,7 @@ class PianoCapture(bpy.types.Operator):
                 caller = node
                 break
         
-        self.caller = caller
+        self.caller[0] = caller
         
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
