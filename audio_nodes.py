@@ -537,8 +537,8 @@ def unregister():
     bpy.utils.unregister_class(Noise)
     bpy.utils.unregister_class(Square)
     bpy.utils.unregister_class(Triangle)
-    bpy.utils.register_class(Mul)
-    bpy.utils.register_class(Piano)
+    bpy.utils.unregister_class(Mul)
+    bpy.utils.unregister_class(Piano)
 
 
 if __name__ == "__main__":
