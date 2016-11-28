@@ -182,7 +182,7 @@ class Oscillator(Node, AudioTreeNode):
             
             for key in self.oscillatorStates[self.path_from_id()][1]:
                 if not key in self.inputs[0].getData(timeData, rate, length)[1]:
-                    index = np.where(self.oscillatorStates[self.path_from_id()][1]==key) 
+                    index = np.where(self.oscillatorStates[self.path_from_id()][1]==key)
                     self.oscillatorStates[self.path_from_id()][1] = np.delete(self.oscillatorStates[self.path_from_id()][1], index)
                     self.oscillatorStates[self.path_from_id()][0] = np.delete(self.oscillatorStates[self.path_from_id()][0], index)
             
@@ -387,6 +387,36 @@ class Mul(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
 
+class Max(Node, AudioTreeNode):
+    '''Maximum of two signals'''
+    bl_idname = 'SignalMaxNode'
+    bl_label = 'Max'
+    
+    def callback(self, socketId, time, rate, length):
+        data_1 = self.inputs[0].getData(time, rate, length)
+        data_2 = self.inputs[1].getData(time, rate, length)
+        return (np.maximum(data_1[0], data_2[0]), data_1[1])
+    
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+
+class Min(Node, AudioTreeNode):
+    '''Minimum of two signals'''
+    bl_idname = 'SignalMinNode'
+    bl_label = 'Min'
+    
+    def callback(self, socketId, time, rate, length):
+        data_1 = self.inputs[0].getData(time, rate, length)
+        data_2 = self.inputs[1].getData(time, rate, length)
+        return (np.minimum(data_1[0], data_2[0]), data_1[1])
+    
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+
 # Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
     # === Basics ===
@@ -507,6 +537,8 @@ node_categories = [
     AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
         NodeItem("SignalSumNode"),
         NodeItem("SignalMulNode"),
+        NodeItem("SignalMaxNode"),
+        NodeItem("SignalMinNode"),
     ]),
 ]
 
@@ -530,6 +562,8 @@ def register():
     bpy.utils.register_class(Square)
     bpy.utils.register_class(Triangle)
     bpy.utils.register_class(Mul)
+    bpy.utils.register_class(Max)
+    bpy.utils.register_class(Min)
     bpy.utils.register_class(Piano)
 
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
@@ -550,6 +584,8 @@ def unregister():
     bpy.utils.unregister_class(Square)
     bpy.utils.unregister_class(Triangle)
     bpy.utils.unregister_class(Mul)
+    bpy.utils.unregister_class(Max)
+    bpy.utils.unregister_class(Min)
     bpy.utils.unregister_class(Piano)
 
 
