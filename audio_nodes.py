@@ -13,12 +13,49 @@ from array import array
 import pyaudio
 
 import threading
+
+import wave
+import struct
+import tempfile
+import pygame
+import aud
  
 """
 Class using Pyaudio for simple playback of raw audio-data represented by a float array.
 The user only needs to create an object and call the play_chunk method.
  
 """
+
+class PygamePlayback(object):
+    
+    def setupPygame(self):
+            SRATE=41000 # sample rate in Hz
+            pygame.mixer.pre_init(SRATE, 16, 1,1014)
+            pygame.init()
+    # make it int16, scale it for 16 bit
+    
+            print("1/2")
+            self.ch=pygame.mixer.Channel(0)
+            #while not self.ch:
+            #    self.ch=pygame.mixer.find_channel()
+            #    time.sleep(0.1)
+            print("2/2")
+    
+    def __init__(self, actualInit=False):
+        if actualInit:
+            t1 = threading.Thread(target=self.setupPygame)
+            t1.start()
+            t1.join()
+
+        
+    def play_chunk(self, inputData):
+        snd=pygame.sndarray.make_sound(np.int16(inputData*2**15))
+        #snd.play()
+        #self.ch.queue(snd)
+        self.ch.queue(snd)
+        print(self.ch)
+        
+    
 
 class Playback(object):
     '''
@@ -399,7 +436,7 @@ class Sink(Node, AudioTreeNode):
     # Icon identifier
     bl_icon = 'SOUND'
     
-    playback = Playback()
+    playback = [PygamePlayback()]
     
     internalTime = time.time()
     
@@ -408,7 +445,7 @@ class Sink(Node, AudioTreeNode):
     def updateSound(self):
         if self.running[0]:
             try:
-                self.playback.play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000)[0].sum(axis=0))
+                self.playback[0].play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000)[0].sum(axis=0))
             except IndexError:
                 pass
     t1 = None
@@ -418,9 +455,10 @@ class Sink(Node, AudioTreeNode):
         while self.running[0]:
             self.internalTime = self.internalTime + 1024/41000
             self.updateSound()
-            time.sleep(1024/41000/10)
+            time.sleep(1024/41000/20)
     
     def init(self, context):
+        self.playback[0] = PygamePlayback(True)
         self.inputs.new('RawAudioSocketType', "Audio")
         self.running[0] = True
         self.t1 = threading.Thread(target=self.updateLoop)
