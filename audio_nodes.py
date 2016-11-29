@@ -19,6 +19,7 @@ import struct
 import tempfile
 import pygame
 import aud
+import traceback
  
 """
 Class using Pyaudio for simple playback of raw audio-data represented by a float array.
@@ -26,90 +27,6 @@ The user only needs to create an object and call the play_chunk method.
  
 """
 
-class PygamePlayback(object):
-    
-    def setupPygame(self):
-            SRATE=41000 # sample rate in Hz
-            pygame.mixer.pre_init(SRATE, 16, 1,1014)
-            pygame.init()
-    # make it int16, scale it for 16 bit
-    
-            print("1/2")
-            self.ch=pygame.mixer.Channel(0)
-            #while not self.ch:
-            #    self.ch=pygame.mixer.find_channel()
-            #    time.sleep(0.1)
-            print("2/2")
-    
-    def __init__(self, actualInit=False):
-        if actualInit:
-            t1 = threading.Thread(target=self.setupPygame)
-            t1.start()
-            t1.join()
-
-        
-    def play_chunk(self, inputData):
-        snd=pygame.sndarray.make_sound(np.int16(inputData*2**15))
-        #snd.play()
-        #self.ch.queue(snd)
-        self.ch.queue(snd)
-        print(self.ch)
-        
-    
-
-class Playback(object):
-    '''
-    classdocs
-    '''
-    CHUNK_SIZE = 1024
-    FORMAT = pyaudio.paInt16
-    RATE = 41000
- 
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        self.audioDevice = pyaudio.PyAudio()
-        self.stream = self.audioDevice.open(format=Playback.FORMAT,
-                                            channels=1,
-                                            rate=Playback.RATE,
-                                            output=True,
-                                            frames_per_buffer=Playback.CHUNK_SIZE)
- 
-    def play_chunk(self, inputArray):
- 
-        if self.stream.is_stopped():
-            self.stream = self.audioDevice.open(format=Playback.FORMAT,
-                                                channels=1,
-                                                rate=Playback.RATE,
-                                                output=True,
-                                                frames_per_buffer=Playback.CHUNK_SIZE)
- 
-        output = array('h')
- 
-        for i in range(len(inputArray)):
-            # Check for Clips
-            if int(inputArray[i]*32768) < -32767:
-                output.append(-32767)
-                print("clip at "+str(i))
-            elif int(inputArray[i]*32768) > 32767:
-                output.append(32767)
-                print("clip at "+str(i))
-            else:
-                output.append(int(inputArray[i]*32767))
- 
-        # Converts to bitstream for output
-        output = pack('<' + ('h'*len(output)), *output)
- 
-        self.stream.write(output)
- 
-    def stopStream(self):
- 
-        self.stream.stop_stream()
- 
-    def __del__(self):
-        self.stream.close()
-        self.audioDevice.terminate()
 
 # Implementation of custom nodes from Python
 
@@ -124,6 +41,49 @@ class AudioTree(NodeTree):
     bl_label = 'Audio nodes'
     # Icon identifier
     bl_icon = 'PLAY_AUDIO'
+    
+    pygameInited =  [False]
+    
+    ch = [None]
+    
+    t = [0]
+    
+    def setupPygame(self):
+            SRATE=41000 # sample rate in Hz
+            #pygame.mixer.pre_init(SRATE, -16, 1,1014)
+            pygame.mixer.init(SRATE, -16, 1, 1024)
+            #pygame.init()
+    # make it int16, scale it for 16 bit
+    
+            print("1/2")
+            self.ch[0]=pygame.mixer.Channel(0)
+            #while not self.ch:
+            #    self.ch=pygame.mixer.find_channel()
+            #    time.sleep(0.1)
+            print("2/2")
+            self.pygameInited[0] = True
+        
+    def play_chunk(self, inputData):
+        if not self.pygameInited[0]:
+            self.setupPygame()
+        else:
+            snd=pygame.sndarray.make_sound(np.int16((np.sin((np.arange(1024)/41000 + self.t[0])*2*np.pi*400))*(2**15)))#inputData*(2**15)))
+            #print(np.int16(inputData*(2**15)))
+            #snd.play()
+            #self.ch.queue(snd)
+            self.t[0] = self.t[0] + 1024/41000
+            self.ch[0].queue(snd)
+    
+    def needsAudio(self):
+        try:
+            if self.ch[0].get_queue() == None:
+                return True
+            else:
+                return False
+        except:
+            #traceback.print_exc()
+            return True
+    
 
 
 # Custom socket type
@@ -436,8 +396,6 @@ class Sink(Node, AudioTreeNode):
     # Icon identifier
     bl_icon = 'SOUND'
     
-    playback = [PygamePlayback()]
-    
     internalTime = time.time()
     
     running = [True]
@@ -445,7 +403,7 @@ class Sink(Node, AudioTreeNode):
     def updateSound(self):
         if self.running[0]:
             try:
-                self.playback[0].play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000)[0].sum(axis=0))
+                self.getTree().play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000)[0].sum(axis=0))
             except IndexError:
                 pass
     t1 = None
@@ -453,12 +411,12 @@ class Sink(Node, AudioTreeNode):
     def updateLoop(self):
 
         while self.running[0]:
-            self.internalTime = self.internalTime + 1024/41000
-            self.updateSound()
-            time.sleep(1024/41000/20)
+            if self.getTree().needsAudio():
+                self.internalTime = self.internalTime + 1024/41000
+                self.updateSound()
+            time.sleep(0.01)
     
     def init(self, context):
-        self.playback[0] = PygamePlayback(True)
         self.inputs.new('RawAudioSocketType', "Audio")
         self.running[0] = True
         self.t1 = threading.Thread(target=self.updateLoop)
@@ -477,7 +435,10 @@ class PianoCapture(bpy.types.Operator):
     caller = [None]
 
     def __del__(self):
-        self.caller[0].clear()
+        try:
+            self.caller[0].clear()
+        except:
+            pass
 
     def modal(self, context, event):
         if event.type == 'ESC':
