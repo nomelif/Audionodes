@@ -10,7 +10,6 @@ from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 
 from struct import pack
 from array import array
-import pyaudio
 
 import threading
 
@@ -19,7 +18,6 @@ import struct
 import tempfile
 import pygame
 import aud
-import traceback
  
 """
 Class using Pyaudio for simple playback of raw audio-data represented by a float array.
@@ -46,32 +44,17 @@ class AudioTree(NodeTree):
     
     ch = [None]
     
-    t = [0]
-    
     def setupPygame(self):
             SRATE=41000 # sample rate in Hz
-            #pygame.mixer.pre_init(SRATE, -16, 1,1014)
             pygame.mixer.init(SRATE, -16, 1, 1024)
-            #pygame.init()
-    # make it int16, scale it for 16 bit
-    
-            print("1/2")
             self.ch[0]=pygame.mixer.Channel(0)
-            #while not self.ch:
-            #    self.ch=pygame.mixer.find_channel()
-            #    time.sleep(0.1)
-            print("2/2")
             self.pygameInited[0] = True
         
     def play_chunk(self, inputData):
         if not self.pygameInited[0]:
             self.setupPygame()
         else:
-            snd=pygame.sndarray.make_sound(np.int16((np.sin((np.arange(1024)/41000 + self.t[0])*2*np.pi*400))*(2**15)))#inputData*(2**15)))
-            #print(np.int16(inputData*(2**15)))
-            #snd.play()
-            #self.ch.queue(snd)
-            self.t[0] = self.t[0] + 1024/41000
+            snd=pygame.sndarray.make_sound(np.int16(inputData*(2**15)))
             self.ch[0].queue(snd)
     
     def needsAudio(self):
@@ -81,7 +64,6 @@ class AudioTree(NodeTree):
             else:
                 return False
         except:
-            #traceback.print_exc()
             return True
     
 
@@ -179,7 +161,7 @@ class Oscillator(Node, AudioTreeNode):
             
             for key in self.oscillatorStates[self.path_from_id()][1]:
                 if not key in self.inputs[0].getData(timeData, rate, length)[1]:
-                    index = np.where(self.oscillatorStates[self.path_from_id()][1]==key) 
+                    index = np.where(self.oscillatorStates[self.path_from_id()][1]==key)
                     self.oscillatorStates[self.path_from_id()][1] = np.delete(self.oscillatorStates[self.path_from_id()][1], index)
                     self.oscillatorStates[self.path_from_id()][0] = np.delete(self.oscillatorStates[self.path_from_id()][0], index)
             
