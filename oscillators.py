@@ -1,12 +1,14 @@
+import bpy
+from bpy.types import Node
+
 import numpy as np
 
-import bpy
 
 from .node_tree import Oscillator
         
 
 
-class Sine(Oscillator):
+class Sine(Node, Oscillator):
     # Description string
     '''A sine wave oscillator'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
@@ -18,7 +20,7 @@ class Sine(Oscillator):
         return np.sin(phase*np.pi*2)
 
     
-class Saw(Oscillator):
+class Saw(Node, Oscillator):
     # === Basics ===
     # Description string
     '''A saw wave oscillator'''
@@ -32,7 +34,7 @@ class Saw(Oscillator):
     def generate(self, phase):
         return phase * 2 % 2 - 1
     
-class Square(Oscillator):
+class Square(Node, Oscillator):
     # === Basics ===
     # Description string
     '''A square wave oscillator'''
@@ -44,7 +46,7 @@ class Square(Oscillator):
     def generate(self, phase):
         return np.greater(phase % 1, 0.5) * 2 - 1
 
-class Triangle(Oscillator):
+class Triangle(Node, Oscillator):
     # === Basics ===
     # Description string
     '''A triangle wave oscillator'''

@@ -109,7 +109,6 @@ class RawAudioSocket(NodeSocket):
 class AudioTreeNode:
 
     bl_icon = 'SOUND'
-    bl_label = ''    
 
     @classmethod
     def poll(cls, ntree):
@@ -120,9 +119,9 @@ class AudioTreeNode:
 
 
 
-class Oscillator(Node, AudioTreeNode):
+class Oscillator(AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
-    
+
     oscillatorStates = {}
     
     def callback(self, socket, timeData, rate, length):
