@@ -121,6 +121,7 @@ class AudioTreeNode:
 class Oscillator(Node, AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
     
+    bl_label = ''
     oscillatorStates = {}
     
     def callback(self, socket, timeData, rate, length):
