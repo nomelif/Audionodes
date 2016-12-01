@@ -107,8 +107,10 @@ class RawAudioSocket(NodeSocket):
 # Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
 class AudioTreeNode:
+
     bl_icon = 'SOUND'
-    
+    bl_label = ''    
+
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'AudioTreeType'
@@ -121,7 +123,6 @@ class AudioTreeNode:
 class Oscillator(Node, AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
     
-    bl_label = ''
     oscillatorStates = {}
     
     def callback(self, socket, timeData, rate, length):
