@@ -38,7 +38,7 @@ if "bpy" in locals():
         import importlib
 
         try:
-            modules = (node_tree, piano_capture)
+            modules = (node_tree, piano_capture, oscillators)
             for m in modules:
                 importlib.reload(m)
             print("audio_nodes: reloaded modules, all systems operational")
@@ -50,60 +50,10 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree, piano_capture
+from . import node_tree, piano_capture, oscillators
 
-from .node_tree import Oscillator, AudioTreeNode
+from .node_tree import AudioTreeNode
         
-
-class Sine(Oscillator):
-    # Description string
-    '''A sine wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SineOscillatorNode'
-    # Label for nice name display
-    bl_label = 'Sine'
-    
-    def generate(self, phase):
-        return np.sin(phase*np.pi*2)
-
-    
-class Saw(Oscillator):
-    # === Basics ===
-    # Description string
-    '''A saw wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SawOscillatorNode'
-    # Label for nice name display
-    bl_label = 'Saw'
-    
-    last_state = bpy.props.FloatProperty()
-    
-    def generate(self, phase):
-        return phase * 2 % 2 - 1
-    
-class Square(Oscillator):
-    # === Basics ===
-    # Description string
-    '''A square wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'SquareOscillatorNode'
-    # Label for nice name display
-    bl_label = 'Square'
-    
-    def generate(self, phase):
-        return np.greater(phase % 1, 0.5) * 2 - 1
-
-class Triangle(Oscillator):
-    # === Basics ===
-    # Description string
-    '''A triangle wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
-    bl_idname = 'TriangleOscillatorNode'
-    # Label for nice name display
-    bl_label = 'Triangle'
-    
-    def generate(self, phase):
-        return np.abs(phase * 4 % 4 - 2) - 1
     
 class Noise(Node, AudioTreeNode):
     # === Basics ===
@@ -292,46 +242,12 @@ def register():
     except:
         pass
 
-
-
     bpy.utils.register_module(__name__)
-    
-    # bpy.utils.register_class(PianoCapture)
-    # bpy.utils.register_class(AudioTree)
-    # bpy.utils.register_class(RawAudioSocket)
-    # bpy.utils.register_class(Sine)
-    # bpy.utils.register_class(Sink)
-    # bpy.utils.register_class(Sum)
-    # bpy.utils.register_class(Saw)
-    # bpy.utils.register_class(Noise)
-    # bpy.utils.register_class(Square)
-    # bpy.utils.register_class(Triangle)
-    # bpy.utils.register_class(Mul)
-    # bpy.utils.register_class(Max)
-    # bpy.utils.register_class(Min)
-    # bpy.utils.register_class(Piano)
-
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
 
 def unregister():
     nodeitems_utils.unregister_node_categories("AUDIONODES")
-
-    # bpy.utils.unregister_class(PianoCapture)
-
-    # bpy.utils.unregister_class(AudioTree)
-    # bpy.utils.unregister_class(RawAudioSocket)
-    # bpy.utils.unregister_class(Sine)
-    # bpy.utils.unregister_class(Sink)
-    # bpy.utils.unregister_class(Sum)
-    # bpy.utils.unregister_class(Saw)
-    # bpy.utils.unregister_class(Noise)
-    # bpy.utils.unregister_class(Square)
-    # bpy.utils.unregister_class(Triangle)
-    # bpy.utils.unregister_class(Mul)
-    # bpy.utils.unregister_class(Max)
-    # bpy.utils.unregister_class(Min)
-    # bpy.utils.unregister_class(Piano)
     bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
