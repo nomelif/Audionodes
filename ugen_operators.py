@@ -1,4 +1,6 @@
 import bpy
+from bpy.types import NodeTree, Node # , NodeSocket, NodeSocketFloat
+
 import numpy as np
 import time
 
