@@ -4,6 +4,8 @@ Audio generation in blender nodes.
 
 _We do not support Windows yet, but we will try to as soon as we figure how to package everything._
 
+Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
+
 ## Install
 
 For now Audionodes doesn't come with the required libraries. You need to install `PyAudio` and `NumPy` for it to work.
