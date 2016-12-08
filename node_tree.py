@@ -39,7 +39,7 @@ class AudioTree(NodeTree):
         if not self.pygameInited[0]:
             self.setupPygame()
         else:
-            snd=pygame.sndarray.make_sound(np.int16(inputData*(2**15)))
+            snd=pygame.sndarray.make_sound(np.int16(np.clip(inputData*(2**15), -2**15, 2**15-1)))
             self.ch[0].queue(snd)
     
     def needsAudio(self):
