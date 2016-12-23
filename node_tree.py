@@ -187,31 +187,37 @@ class Piano(Node, AudioTreeNode):
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
         self.keys[self.path_from_id()] = []
-    
+
+    def parseEvent(self, event):
+        if event["direction"] == "DOWN":
+            keys[self.path_from_id()].append((event["frequency"], time.time()))
+        else:
+            keys = list([key for key in keys if key[0] != event["frequency"]])
+
     keys = {}
     
-    def setKey(self, key):
+    #def setKey(self, key):
         
         # Exit if the key is already known
         
-        for knownKey in self.keys[self.path_from_id()]:
-            if knownKey[0] == key:
-                return None
-        self.keys[self.path_from_id()].append((key, time.time()))
+    #    for knownKey in self.keys[self.path_from_id()]:
+    #        if knownKey[0] == key:
+    #            return None
+    #    self.keys[self.path_from_id()].append((key, time.time()))
     
-    def clear(self):
-        self.keys[self.path_from_id()] = []
+    #def clear(self):
+    #    self.keys[self.path_from_id()] = []
     
-    def getKey(self):
-        return self.keys[self.path_from_id()][0]
+    #def getKey(self):
+    #    return self.keys[self.path_from_id()][0]
     
-    def removeKey(self, key):
-        i = 0
-        for knownKey in self.keys[self.path_from_id()]:
-            if knownKey[0] == key:
-                del self.keys[self.path_from_id()][i]
-                break
-            i = i + 1
+    #def removeKey(self, key):
+    #    i = 0
+    #    for knownKey in self.keys[self.path_from_id()]:
+    #        if knownKey[0] == key:
+    #            del self.keys[self.path_from_id()][i]
+    #            break
+    #        i = i + 1
     
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
@@ -220,12 +226,13 @@ class Piano(Node, AudioTreeNode):
     def callback(self, socket, time, rate, length):
         
         if len(self.keys[self.path_from_id()][0]) != 0:
-            frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
+            #frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
             try:
                 
                 freqMap = []
                 for freq in self.keys[self.path_from_id()]:
-                    freqMap.append(frequencies[freq[0]])
+                    #freqMap.append(frequencies[freq[0]])
+                    freqMap.append(freq[0])
                 
                 stampMap = []
                 for freq in self.keys[self.path_from_id()]:
