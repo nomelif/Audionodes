@@ -1,5 +1,15 @@
 import bpy
-import alsaseq
+
+alsa_ok = False
+
+try:
+
+    import alsaseq
+    alsa_ok = True
+
+except:
+    pass
+
 import time
 from threading import Thread
 
@@ -36,15 +46,21 @@ class PianoCapture(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def MIDIgen(self):
-        alsaseq.client("Audionodes", 1, 1, False)
-        while True:
-            if alsaseq.inputpending():
-                inputData = alsaseq.input()
-                direction = inputData[0]-6 # Taikaluku liittyen alsan sisäiseen toteutukseen
-                if direction in (0, 1):
-                    f = 440*(2**((inputData[-1][1]-48)/12))
-                    yield {"direction":("DOWN","UP")[direction], "frequency":f, "note":inputData[-1][1]}
-                time.sleep(0.01)
+
+        if alsa_ok:
+
+            alsaseq.client("Audionodes", 1, 1, False)
+            while True:
+                if alsaseq.inputpending():
+                    inputData = alsaseq.input()
+                    direction = inputData[0]-6 # Magic number six; key down is seven and key up is six
+                    if direction in (0, 1):
+                        f = 440*(2**((inputData[-1][1]-48)/12))
+                        yield {"direction":("DOWN","UP")[direction], "frequency":f, "note":inputData[-1][1]}
+                    time.sleep(0.01)
+        else:
+            while True: # Never give events; sleepy loop
+                time.sleep(10)
 
     def talkToCaller(self):
         for event in self.MIDIgen():
