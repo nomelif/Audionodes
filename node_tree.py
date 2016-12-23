@@ -184,17 +184,18 @@ class Piano(Node, AudioTreeNode):
     # Label for nice name display
     bl_label = 'Piano'
     
+    keys = {}
+
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
         self.keys[self.path_from_id()] = []
 
     def parseEvent(self, event):
-        if event["direction"] == "DOWN":
-            keys[self.path_from_id()].append((event["frequency"], time.time()))
-        else:
-            keys = list([key for key in keys if key[0] != event["frequency"]])
 
-    keys = {}
+        if event["direction"] == "DOWN":
+            self.keys[self.path_from_id()].append((event["frequency"], time.time(), event["note"]))
+        else:
+            self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key[2] != event["note"]])
     
     #def setKey(self, key):
         
@@ -205,8 +206,8 @@ class Piano(Node, AudioTreeNode):
     #            return None
     #    self.keys[self.path_from_id()].append((key, time.time()))
     
-    #def clear(self):
-    #    self.keys[self.path_from_id()] = []
+    def clear(self):
+        self.keys[self.path_from_id()] = []
     
     #def getKey(self):
     #    return self.keys[self.path_from_id()][0]
@@ -225,7 +226,7 @@ class Piano(Node, AudioTreeNode):
     
     def callback(self, socket, time, rate, length):
         
-        if len(self.keys[self.path_from_id()][0]) != 0:
+        if len(self.keys[self.path_from_id()]) != 0:
             #frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
             try:
                 
