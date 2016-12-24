@@ -57,7 +57,7 @@ class PianoCapture(bpy.types.Operator):
                     if direction in (0, 1):
                         f = 440*(2**((inputData[-1][1]-48)/12))
                         yield {"direction":("DOWN","UP")[direction], "frequency":f, "note":inputData[-1][1]}
-                    time.sleep(0.01)
+                time.sleep(0.01)
         else:
             while True: # Never give events; sleepy loop
                 time.sleep(10)
