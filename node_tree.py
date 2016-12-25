@@ -188,6 +188,7 @@ class Piano(Node, AudioTreeNode):
 
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
+        self.outputs.new('RawAudioSocketType', "Runtimes")
         self.keys[self.path_from_id()] = []
 
     def parseEvent(self, event):
@@ -224,27 +225,44 @@ class Piano(Node, AudioTreeNode):
         layout.label("Node settings")
         layout.operator("audionodes.piano").caller_id = self.path_from_id()
     
-    def callback(self, socket, time, rate, length):
+    def callback(self, socket, timeIn, rate, length):
+
+        if socket == self.outputs[0]:
         
-        if len(self.keys[self.path_from_id()]) != 0:
-            #frequencies = {"§":261.63, "1":277.18, "2":293.66, "3":311.13, "4":329.63, "5":349.23, "6":369.99, "7":392.00, "8":415.30, "9":440.00, "0":466.16, "+":493.88}
-            try:
-                
-                freqMap = []
-                for freq in self.keys[self.path_from_id()]:
-                    #freqMap.append(frequencies[freq[0]])
-                    freqMap.append(freq[0])
-                
-                stampMap = []
-                for freq in self.keys[self.path_from_id()]:
-                    stampMap.append(freq[1])
-                
-                return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap))
-            except KeyError:
+            if len(self.keys[self.path_from_id()]) != 0:
+                try:
+                    
+                    freqMap = []
+                    for freq in self.keys[self.path_from_id()]:
+                        freqMap.append(freq[0])
+                    
+                    stampMap = []
+                    for freq in self.keys[self.path_from_id()]:
+                        stampMap.append(freq[1])
+                    
+                    return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap))
+                except KeyError:
+                    return (np.array([[0]*int(rate*length)]), [0])
+            else:
                 return (np.array([[0]*int(rate*length)]), [0])
         else:
-            return (np.array([[0]*int(rate*length)]), [0])
-        
+            
+            if len(self.keys[self.path_from_id()]) != 0:
+                try:
+                    
+                    freqMap = []
+                    for freq in self.keys[self.path_from_id()]:
+                        freqMap.append(time.time() - freq[1])
+                    
+                    stampMap = []
+                    for freq in self.keys[self.path_from_id()]:
+                        stampMap.append(freq[1])
+                    
+                    return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap))
+                except KeyError:
+                    return (np.array([[0]*int(rate*length)]), [0])
+            else:
+                return (np.array([[0]*int(rate*length)]), [0])
 
 
 def register():
