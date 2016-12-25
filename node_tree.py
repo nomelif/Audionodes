@@ -185,41 +185,68 @@ class Piano(Node, AudioTreeNode):
     bl_label = 'Piano'
     
     keys = {}
+    sustain = {}
+    data = {}
 
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
         self.outputs.new('RawAudioSocketType', "Runtimes")
+        self.outputs.new('RawAudioSocketType', "Velocities")
         self.keys[self.path_from_id()] = []
+        self.sustain[self.path_from_id()] = False
+        self.data[self.path_from_id()] = [None, None, None, -1]
 
     def parseEvent(self, event):
 
-        if event["direction"] == "DOWN":
-            self.keys[self.path_from_id()].append((event["frequency"], time.time(), event["note"]))
-        else:
-            self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key[2] != event["note"]])
-    
-    #def setKey(self, key):
-        
-        # Exit if the key is already known
-        
-    #    for knownKey in self.keys[self.path_from_id()]:
-    #        if knownKey[0] == key:
-    #            return None
-    #    self.keys[self.path_from_id()].append((key, time.time()))
+        if event["type"] == "key":
+
+            if event["velocity"] != 0:
+
+                if self.sustain[self.path_from_id()]:
+
+                    # Does the note already exist? If so, reactivate it
+
+                    i = 0
+                    found = False
+                    while i < len(self.keys[self.path_from_id()]):
+                        if self.keys[self.path_from_id()][i][2] == event["note"]:
+                            self.keys[self.path_from_id()][i] = (event["frequency"], time.time(), event["note"], event["velocity"], "pressed")
+                            found = True
+                        i = i + 1
+
+                    if not found: # If no note is found, create a new one
+                        self.keys[self.path_from_id()].append((event["frequency"], time.time(), event["note"], event["velocity"], "pressed"))
+                else:
+
+                    self.keys[self.path_from_id()].append((event["frequency"], time.time(), event["note"], event["velocity"], "pressed"))
+
+            else:
+
+                if not self.sustain[self.path_from_id()]:
+
+                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key[2] != event["note"]])
+
+                elif self.sustain[self.path_from_id()]:
+
+                    i = 0
+                    while i < len(self.keys[self.path_from_id()]):
+                        if self.keys[self.path_from_id()][i][2] == event["note"]:
+                            self.keys[self.path_from_id()][i] = (event["frequency"], self.keys[self.path_from_id()][i][1], event["note"], self.keys[self.path_from_id()][i][3], "sustain")
+                        i = i + 1
+
+        elif event["type"] == "sustain":
+
+            if (event["velocity"] == 0) == self.sustain[self.path_from_id()]: # a velocity of zero means release; only run this if the state changes:
+                self.sustain[self.path_from_id()] = not self.sustain[self.path_from_id()]
+                print(self.sustain[self.path_from_id()])
+                if not self.sustain[self.path_from_id()]:
+
+                    # Remove sustained notes
+
+                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key[3] != "sustain"])
     
     def clear(self):
         self.keys[self.path_from_id()] = []
-    
-    #def getKey(self):
-    #    return self.keys[self.path_from_id()][0]
-    
-    #def removeKey(self, key):
-    #    i = 0
-    #    for knownKey in self.keys[self.path_from_id()]:
-    #        if knownKey[0] == key:
-    #            del self.keys[self.path_from_id()][i]
-    #            break
-    #        i = i + 1
     
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
@@ -227,8 +254,10 @@ class Piano(Node, AudioTreeNode):
     
     def callback(self, socket, timeIn, rate, length):
 
-        if socket == self.outputs[0]:
-        
+        result = []
+
+        if self.data[self.path_from_id()][-1] != timeIn:
+
             if len(self.keys[self.path_from_id()]) != 0:
                 try:
                     
@@ -240,14 +269,10 @@ class Piano(Node, AudioTreeNode):
                     for freq in self.keys[self.path_from_id()]:
                         stampMap.append(freq[1])
                     
-                    return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap))
+                    result.append((np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap)))
                 except KeyError:
-                    return (np.array([[0]*int(rate*length)]), [0])
-            else:
-                return (np.array([[0]*int(rate*length)]), [0])
-        else:
-            
-            if len(self.keys[self.path_from_id()]) != 0:
+                    result.append((np.array([[0]*int(rate*length)]), [0]))
+
                 try:
                     
                     freqMap = []
@@ -258,11 +283,37 @@ class Piano(Node, AudioTreeNode):
                     for freq in self.keys[self.path_from_id()]:
                         stampMap.append(freq[1])
                     
-                    return (np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap))
+                    result.append((np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap)))
                 except KeyError:
-                    return (np.array([[0]*int(rate*length)]), [0])
+                    result.append((np.array([[0]*int(rate*length)]), [0]))
+                try:
+                    
+                    freqMap = []
+                    for freq in self.keys[self.path_from_id()]:
+                        freqMap.append(freq[3]/127)
+                    
+                    stampMap = []
+                    for freq in self.keys[self.path_from_id()]:
+                        stampMap.append(freq[1])
+                    
+                    result.append((np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap)))
+                except KeyError:
+                    result.append((np.array([[0]*int(rate*length)]), [0]))
             else:
-                return (np.array([[0]*int(rate*length)]), [0])
+                result.append((np.array([[0]*int(rate*length)]), [0]))
+                result.append((np.array([[0]*int(rate*length)]), [0]))
+                result.append((np.array([[0]*int(rate*length)]), [0]))
+
+            result.append(timeIn)
+
+            self.data[self.path_from_id()] = result
+
+        if socket == self.outputs[0]:
+            return self.data[self.path_from_id()][0]
+        elif socket == self.outputs[1]:
+            return self.data[self.path_from_id()][1]
+        else:
+            return self.data[self.path_from_id()][2]
 
 
 def register():
