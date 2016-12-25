@@ -177,9 +177,6 @@ class Oscillator(AudioTreeNode):
 class Piano(Node, AudioTreeNode):
     '''Map key presses to audio.'''
     
-    def callback(self, socket, time, rate, length):
-        return np.zeros(rate*length)
-    
     bl_idname = 'PianoNode'
     # Label for nice name display
     bl_label = 'Piano'
