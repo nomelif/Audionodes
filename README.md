@@ -2,6 +2,8 @@
 
 Audio generation in blender nodes.
 
+We now support MIDI keyboards but only on Linux.
+
 _We do not support Windows yet, but we will try to as soon as we figure how to package everything._
 
 Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
@@ -50,13 +52,14 @@ sys.path
 
 On my machine the output looks like:
 
-```['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
+```
+['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
 ```
 
 Copy the output of the command. In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
 
 ```
-import syy
+import sys
 sys.path.extend(whatever your output was)
 ```
 
