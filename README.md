@@ -10,7 +10,53 @@ Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Install
 
-For now Audionodes doesn't come with the required libraries. You need to install `PyAudio` and `NumPy` for it to work.
+For now Audionodes doesn't come with the required libraries. You need to install `PyGame` and `NumPy` for it to work.
+
+### I am running Windows
+
+### Installing python
+
+We need a fresh Python interpreter on Windows. Grab the one that matches your architechture. Grab the one that matches Blender's Python. As of writing this, that is Python 3.5. If you are running a 64-bit copy of windows, download Python (here)[https://www.python.org/ftp/python/3.5.2/python-3.5.2-amd64-webinstall.exe]. If you are running a 32-bit one, (here)[https://www.python.org/ftp/python/3.5.2/python-3.5.2-webinstall.exe].
+
+For this part, just follow the on-screen instructions.
+
+### Installing dependences.
+
+Here is a nifty little script that installs all it needs:
+
+```
+import pip
+print("Installing PyGame")
+pip.main(["install", "PyGame", "--user"])
+print("\nInstalling NumPy")
+pip.main(["install", "NumPy", "--user"])
+import sys
+try:
+    with open("path.txt", "w") as f:
+        f.write(str(sys.path))
+except IOError:
+    print("Failed to save sys.path to file; here it is anyway:\n\" + str(sys.path))
+input("\nPress [enter] to exit")
+```
+
+It also spits `sys.path` to a file in the same folder as it is. (or at least tries to) The path will be usefull later.
+
+Anyway, save the script somewhere as `dependencysetup.py` and double-click it to run.
+
+### Install Audio Nodes
+
+Blender needs to know where this Python interpreter is located. That is where the path from before comes in handy.
+
+In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
+
+```
+import sys
+sys.path.extend(copy your path here)
+```
+
+This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
+
+After this you can download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > Install from File ...` and pick the archive. Enable the addon and you should be good to go. We recommend you do not save the user settings; the path manipulation is not permanent and has to be repeated every time you want to use Audionodes.
 
 ### I am running Linux
 
@@ -18,9 +64,12 @@ For now Audionodes doesn't come with the required libraries. You need to install
 
 On Ubuntu run this command:
 
-`sudo apt-get install python-pyaudio python3-pyaudio python3-numpy`
+`sudo apt-get install python3-numpy`
 
-On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`. From `pip` install pyaudio with `pip install PyAudio`.
+On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`.
+
+
+Regardless of your distribution, install `PyGame` from `pip` with `pip3 install PyGame --user`.
 
 On other systems, try to install similar packages.
 
@@ -39,7 +88,7 @@ To connect to a midi keyboard, add a `Piano` node and hit `Keyboard capture`. Th
 
 ### Main installation
 
-Download this repository as a zip and load that zip into Blender through `User Preferences > Addons > Install from File...`.
+Download this repository as a zip and load that zip into Blender through `User Preferences > Addons > Install from File...`. Then enable the addon by checking the checkbox.
 
 ### Troubleshooting
 
@@ -69,9 +118,36 @@ Now go and enable the addon, it should work.
 
 ### I am running macOS
 
-With `Homebrew` installed, run `brew install python3` to (among other things) setup `pip`correctly. Then install NumPy with `sudo pip3 install numpy`. Installing `PyAudio` is more sorcerous: `brew install portaudio && pip install pyaudio`.
+With `Homebrew` installed, run `brew install python3` to (among other things) setup `pip`correctly. Then install NumPy with `pip3 install numpy --user` and PyGame with `pip3 install numpy --user`.
 
-Then download this repository and unpack the file `audio_nodes.py`. In Blender, go to `File > User Preferences > Addons > Install from File...`. Pick the downloaded `audio_nodes.py` and then check the checkbox to enable the addon.
+
+Then download this repository as a zip. In Blender, go to `File > User Preferences > Addons > Install from File...`. Pick the downloaded archuve and then check the checkbox to enable the addon.
+
+### Troubleshooting
+
+If there is an error when enabling the addon, you are probably not using the right Python installation. To remedy this, open a terminal and run `python3`. There type:
+
+```
+import sys
+sys.path
+```
+
+On my machine the output looks like:
+
+```
+['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
+```
+
+Copy the output of the command. In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
+
+```
+import sys
+sys.path.extend(whatever your output was)
+```
+
+This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
+
+Now go and enable the addon, it should work.
 
 ### It still doesn't work
 
