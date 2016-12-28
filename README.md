@@ -10,7 +10,26 @@ Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Install
 
-For now Audionodes doesn't come with the required libraries. You need to install `PyAudio` and `NumPy` for it to work.
+For now Audionodes doesn't come with the required libraries. You need to install `PyGame` and `NumPy` for it to work.
+
+### I am running Windows
+
+### Installing python
+
+We need a fresh Python interpreter on Windows. Grab the one that matches your architechture. Grab the one that matches Blender's Python. As of writing this, that is Python 3.5. If you are running a 64-bit copy of windows, download Python (here)[https://www.python.org/ftp/python/3.5.2/python-3.5.2-amd64-webinstall.exe]. If you are running a 32-bit one, (here)[https://www.python.org/ftp/python/3.5.2/python-3.5.2-webinstall.exe].
+
+For this part, just follow the on-screen instructions.
+
+### Installing dependences.
+
+Look for Python (command line) in the `Start` menu. Run it. In it, type (copy and paste may or may not work depending on your version of Windows):
+
+```
+import pip
+pip.main(["install", "NumPy"])
+```
+
+PyGame is more complicated to install on Windows.
 
 ### I am running Linux
 
@@ -18,9 +37,12 @@ For now Audionodes doesn't come with the required libraries. You need to install
 
 On Ubuntu run this command:
 
-`sudo apt-get install python-pyaudio python3-pyaudio python3-numpy`
+`sudo apt-get install python3-numpy`
 
-On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`. From `pip` install pyaudio with `pip install PyAudio`.
+On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`.
+
+
+Regardless of your distribution, install `PyGame` from `pip` with `pip install PyGame`.
 
 On other systems, try to install similar packages.
 
