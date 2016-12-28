@@ -4,7 +4,7 @@ Audio generation in blender nodes.
 
 We now support MIDI keyboards but only on Linux.
 
-_We do not support Windows yet, but we will try to as soon as we figure how to package everything._
+_We support Windows now! Testing and reporting back of errors is highly encouraged!_
 
 Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
