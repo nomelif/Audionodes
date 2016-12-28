@@ -9,10 +9,12 @@ The user only needs to create an object and call the play_chunk method.
 import time
 
 import bpy
-import numpy as np
+
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 
-import pygame
+from .painfuls import fix
+
+pygame, np = fix()
 
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):

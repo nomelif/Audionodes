@@ -1,8 +1,9 @@
 import bpy
 from bpy.types import Node
 
-import numpy as np
+from .painfuls import fix
 
+pygame, np = fix()
 
 from .node_tree import Oscillator
         

@@ -13,6 +13,10 @@ except:
 import time
 from threading import Thread
 
+from .painfuls import fix
+
+pygame, np = fix()
+
 class PianoCapture(bpy.types.Operator):
     bl_idname = "audionodes.piano"
     bl_label = "Keyboard capture"

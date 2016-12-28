@@ -1,7 +1,10 @@
 import bpy
 from bpy.types import NodeTree, Node # , NodeSocket, NodeSocketFloat
 
-import numpy as np
+from .painfuls import fix
+
+pygame, np = fix()
+
 import time
 
 import threading
@@ -116,24 +119,24 @@ class Sink(Node, AudioTreeNode):
     # Icon identifier
     bl_icon = 'SOUND'
     
-    internalTime = time.time()
+    
     
     running = [True]
     
-    def updateSound(self):
+    def updateSound(self, internalTime):
         if self.running[0]:
             try:
-                self.getTree().play_chunk(self.inputs[0].getData(self.internalTime, 41000, 1024/41000)[0].sum(axis=0))
+                self.getTree().play_chunk(self.inputs[0].getData(internalTime, 41000, 1024/41000)[0].sum(axis=0))
             except IndexError:
                 pass
     t1 = None
 
     def updateLoop(self):
-
+        internalTime = time.time()
         while self.running[0]:
             if self.getTree().needsAudio():
-                self.internalTime = self.internalTime + 1024/41000
-                self.updateSound()
+                internalTime = internalTime + 1024/41000
+                self.updateSound(internalTime)
             time.sleep(0.01)
     
     def init(self, context):

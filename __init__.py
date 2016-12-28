@@ -15,7 +15,6 @@ bl_info = {
 
 
 import bpy
-import numpy as np
 import time
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 
@@ -27,9 +26,7 @@ import threading
 import wave
 import struct
 import tempfile
-import pygame
-import aud
- 
+import platform
 
 if "bpy" in locals():
     if 'node_tree' in locals():
@@ -38,7 +35,7 @@ if "bpy" in locals():
         import importlib
 
         try:
-            modules = (node_tree, piano_capture, oscillators, ugen_operators)
+            modules = (node_tree, piano_capture, oscillators, ugen_operators, effects)
             for m in modules:
                 importlib.reload(m)
             print("audio_nodes: reloaded modules, all systems operational")
@@ -50,7 +47,7 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree, piano_capture, oscillators, ugen_operators
+from . import node_tree, piano_capture, oscillators, ugen_operators, effects
 
 
 ### Node Categories ###
@@ -88,6 +85,9 @@ node_categories = [
         NodeItem("SignalMulNode"),
         NodeItem("SignalMaxNode"),
         NodeItem("SignalMinNode"),
+    ]),
+    AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
+        NodeItem("DelayNode"),
     ]),
 ]
 
