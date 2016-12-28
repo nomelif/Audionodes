@@ -12,6 +12,8 @@ For now Audionodes doesn't come with the required libraries. You need to install
 
 ### I am running Linux
 
+### Basic setup
+
 On Ubuntu run this command:
 
 `sudo apt-get install python-pyaudio python3-pyaudio python3-numpy`
@@ -19,6 +21,48 @@ On Ubuntu run this command:
 On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`. From `pip` install pyaudio with `pip install PyAudio`.
 
 On other systems, try to install similar packages.
+
+### Aside on MIDI input
+
+You can use a MIDI keyboard with Audio Nodes. This however requires some extra steps. You will have to install alsaseq. It is available through `pip`, but I never got it to build right. This slightly modified version of an older release seems to work fine, though. Download (this)[https://drive.google.com/file/d/0B0nfZWGohnB7MG4wMnZ6RzUyb0E/view?usp=sharing] zip file and unpack it where you want. Navigate into it and run:
+
+```
+sudo python3 setup.py build
+sudo python3 setup.py install
+```
+
+The archive is an old version (only one that I got to build) of alsaseq, see here: (Alsaseq home site)[http://pp.com.mx/python/alsaseq/]
+
+To connect to a midi keyboard, add a `Piano` node and hit `Keyboard capture`. This should create an alsa socket to connect a MIDI device to. A nice GUI tool to do this is QjackCtl. After launching it go to `Connect > Alsa [tab]` and hook up the USB midi on the left to Audionodes on the right. To kill the sound from the piano node quickly, hit escape on the keyboard.
+
+### Main installation
+
+Download this repository as a zip and load that zip into Blender through `User Preferences > Addons > Install from File...`.
+
+### Troubleshooting
+
+If there is an error when activating the addon, you are probably not using the right Python installation. To remedy this, open a terminal and run `python3`. There type:
+
+```
+import sys
+sys.path
+```
+
+On my machine the output looks like:
+
+```['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
+```
+
+Copy the output of the command. In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
+
+```
+import syy
+sys.path.extend(whatever your output was)
+```
+
+This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
+
+Now go and enable the addon, it should work.
 
 ### I am running macOS
 
