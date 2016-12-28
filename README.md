@@ -31,32 +31,31 @@ pip.main(["install", "PyGame", "--user"])
 print("\nInstalling NumPy")
 pip.main(["install", "NumPy", "--user"])
 import sys
-try:
-    with open("path.txt", "w") as f:
-        f.write(str(sys.path))
-except IOError:
-    print("Failed to save sys.path to file; here it is anyway:\n\" + str(sys.path))
+import os
+import os.path
+    
+with open(os.getenv('APPDATA')+"/ANPath.py", "w") as f:
+    f.write("def importAll():\n")
+    f.write("    import os\n")
+    f.write("    wd = os.getcwd()\n")
+    f.write("    import sys\n")
+    f.write("    sys.path.extend("+str(sys.path)+")\n")
+    f.write("    os.chdir("+str([os.path.abspath(os.path.join(os.getenv('APPDATA'), os.pardir))+"\\Local\\Programs\\Python\\Python35"])[1:-1]+")\n")
+    f.write("    import numpy as np\n")
+    f.write("    import pygame as p\n")
+    f.write("    os.chdir(wd)\n")
+    f.write("    return p, np\n")
+    
 input("\nPress [enter] to exit")
 ```
 
-It also spits `sys.path` to a file in the same folder as it is. (or at least tries to) The path will be usefull later.
+It also spits a `ANPath.py` file that the addon uses to import the third party modules.
 
 Anyway, save the script somewhere as `dependencysetup.py` and double-click it to run.
 
 ### Install Audio Nodes
 
-Blender needs to know where this Python interpreter is located. That is where the path from before comes in handy.
-
-In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
-
-```
-import sys
-sys.path.extend(copy your path here)
-```
-
-This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
-
-After this you can download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > Install from File ...` and pick the archive. Enable the addon and you should be good to go. We recommend you do not save the user settings; the path manipulation is not permanent and has to be repeated every time you want to use Audionodes.
+Download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > Install from File ...` and pick the archive. Enable the addon and you should be good to go.
 
 ### I am running Linux
 
@@ -118,7 +117,7 @@ Now go and enable the addon, it should work.
 
 ### I am running macOS
 
-With `Homebrew` installed, run `brew install python3` to (among other things) setup `pip`correctly. Then install NumPy with `pip3 install numpy --user` and PyGame with `pip3 install numpy --user`.
+With `Homebrew` installed, run `brew install python3` to (among other things) setup `pip`correctly. Then install NumPy with `pip3 install numpy --user` and PyGame with `pip3 install PyGame --user`.
 
 
 Then download this repository as a zip. In Blender, go to `File > User Preferences > Addons > Install from File...`. Pick the downloaded archuve and then check the checkbox to enable the addon.
