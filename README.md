@@ -180,7 +180,7 @@ Activate it by hitting the `Keyboard capture` button and terminate it by hitting
 
 ### Interesting setups
 
-We have made up a gist with interesting Audionodes setups, see here: (Audionodes demo networks)[https://gist.github.com/nomelif/759d6963c3ded049268f6e6ada855d3f]. They are complete with samples on SoundCloud.
+We have made up a gist with interesting Audionodes setups, see here: https://gist.github.com/nomelif/759d6963c3ded049268f6e6ada855d3f. They are complete with samples on SoundCloud.
 
 #### Sonar [TODO: Move to the Gist]
 
