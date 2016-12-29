@@ -196,7 +196,8 @@ class Piano(Node, AudioTreeNode):
         self.data[self.path_from_id()] = [None, None, None, -1]
 
     def parseEvent(self, event):
-
+        currentTime = self.data[self.path_from_id()][-1]
+        
         if event["type"] == "key":
 
             if event["velocity"] != 0:
@@ -209,15 +210,15 @@ class Piano(Node, AudioTreeNode):
                     found = False
                     while i < len(self.keys[self.path_from_id()]):
                         if self.keys[self.path_from_id()][i][2] == event["note"]:
-                            self.keys[self.path_from_id()][i] = (event["frequency"], time.time(), event["note"], event["velocity"], "pressed")
+                            self.keys[self.path_from_id()][i] = (event["frequency"], currentTime, event["note"], event["velocity"], "pressed")
                             found = True
                         i = i + 1
 
                     if not found: # If no note is found, create a new one
-                        self.keys[self.path_from_id()].append((event["frequency"], time.time(), event["note"], event["velocity"], "pressed"))
+                        self.keys[self.path_from_id()].append((event["frequency"], currentTime, event["note"], event["velocity"], "pressed"))
                 else:
 
-                    self.keys[self.path_from_id()].append((event["frequency"], time.time(), event["note"], event["velocity"], "pressed"))
+                    self.keys[self.path_from_id()].append((event["frequency"], currentTime, event["note"], event["velocity"], "pressed"))
 
             else:
 
@@ -252,7 +253,6 @@ class Piano(Node, AudioTreeNode):
         layout.operator("audionodes.piano").caller_id = self.path_from_id()
     
     def callback(self, socket, timeIn, rate, length):
-
         result = []
 
         if self.data[self.path_from_id()][-1] != timeIn:
@@ -276,13 +276,17 @@ class Piano(Node, AudioTreeNode):
                     
                     freqMap = []
                     for freq in self.keys[self.path_from_id()]:
-                        freqMap.append(time.time() - freq[1])
+                        freqMap.append(timeIn - freq[1])
                     
                     stampMap = []
                     for freq in self.keys[self.path_from_id()]:
                         stampMap.append(freq[1])
                     
-                    result.append((np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap)))
+                    result.append((
+                        np.tile(np.array([freqMap]).transpose(),
+                                int(length*rate)) +
+                            np.arange(int(length*rate)) / rate,
+                        np.array(stampMap)))
                 except KeyError:
                     result.append((np.array([[0]*int(rate*length)]), [0]))
                 try:

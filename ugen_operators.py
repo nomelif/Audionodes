@@ -148,4 +148,3 @@ class Sink(Node, AudioTreeNode):
     # Free function to clean up on removal.
     def free(self):
         self.running[0] = False
-

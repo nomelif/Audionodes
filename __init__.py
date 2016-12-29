@@ -1,7 +1,7 @@
 # Blender addon sorcery
 
 bl_info = {
-    "name": "Audionodes", 
+    "name": "Audionodes",
     "description": "Create complex soundscapes in real time using nodes.",
     "author": "Roope Salmi, Théo Friberg",
     "version": (0,1),
