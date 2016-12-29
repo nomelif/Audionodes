@@ -85,6 +85,7 @@ node_categories = [
         NodeItem("SignalMulNode"),
         NodeItem("SignalMaxNode"),
         NodeItem("SignalMinNode"),
+        NodeItem("SignalLogicNode"),
     ]),
     AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
         NodeItem("DelayNode"),

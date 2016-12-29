@@ -107,6 +107,25 @@ class Min(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
 
+class Logic(Node, AudioTreeNode):
+    '''Output A or B depending on a condition signal.'''
+    bl_idname = 'SignalLogicNode'
+    bl_label = 'Logic'
+    
+    def callback(self, socketId, time, rate, length):
+        data_condition = self.inputs[0].getData(time, rate, length)
+        condition = data_condition[0] > 0
+        data_a = self.inputs[1].getData(time, rate, length)
+        data_b = self.inputs[2].getData(time, rate, length)
+        result = condition * data_a[0] + (1-condition) * data_b[0]
+        return (result, data_condition[1])
+    
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Condition")
+        self.inputs.new('RawAudioSocketType', "C > 0")
+        self.inputs.new('RawAudioSocketType', "C <= 0")
+
 # Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
     # === Basics ===
