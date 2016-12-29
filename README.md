@@ -63,7 +63,7 @@ Download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > 
 
 On Ubuntu run this command:
 
-`sudo apt-get install python3-numpy`
+`sudo apt-get install python3-numpy python3-pip`
 
 On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`.
 
