@@ -59,6 +59,8 @@ Download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > 
 
 ### I am running Linux
 
+We have found that Audio Nodes has a greater chance of working (especially with MIDI setups) on versions of Blender that are installed through a package manager. We speculate that this is due to them using a standard Python 3 release.
+
 ### Basic setup
 
 On Ubuntu run this command:
