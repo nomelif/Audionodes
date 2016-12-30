@@ -11,7 +11,7 @@ import time
 import bpy
 
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
-
+from threading import Lock
 from .painfuls import fix
 
 pygame, np = fix()
@@ -186,21 +186,26 @@ class Piano(Node, AudioTreeNode):
     keys = {}
     sustain = {}
     data = {}
+    lock = {}
 
     def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
+        self.outputs.new('RawAudioSocketType', "Frequency")
         self.outputs.new('RawAudioSocketType', "Runtimes")
         self.outputs.new('RawAudioSocketType', "Velocities")
         self.keys[self.path_from_id()] = []
         self.sustain[self.path_from_id()] = False
-        self.data[self.path_from_id()] = [None, None, None, -1]
+        self.data[self.path_from_id()] = {"time":-1}
+        self.lock[self.path_from_id()] = Lock()
 
     def parseEvent(self, event):
-        currentTime = self.data[self.path_from_id()][-1]
+
+        self.lock[self.path_from_id()].acquire() # No one but me shall touch the notes        
+
+        currentTime = self.data[self.path_from_id()]["time"]
         
         if event["type"] == "key":
 
-            if event["velocity"] != 0:
+            if event["velocity"] != 0: # Press
 
                 if self.sustain[self.path_from_id()]:
 
@@ -209,42 +214,44 @@ class Piano(Node, AudioTreeNode):
                     i = 0
                     found = False
                     while i < len(self.keys[self.path_from_id()]):
-                        if self.keys[self.path_from_id()][i][2] == event["note"]:
-                            self.keys[self.path_from_id()][i] = (event["frequency"], currentTime, event["note"], event["velocity"], "pressed")
+                        if self.keys[self.path_from_id()][i]["note"] == event["note"]:
+                            self.keys[self.path_from_id()][i] = {"frequency":event["frequency"], "startTime":currentTime, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time()}
                             found = True
                         i = i + 1
 
                     if not found: # If no note is found, create a new one
-                        self.keys[self.path_from_id()].append((event["frequency"], currentTime, event["note"], event["velocity"], "pressed"))
+                        self.keys[self.path_from_id()].append({"frequency":event["frequency"], "startTime":currentTime, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time()})
                 else:
 
-                    self.keys[self.path_from_id()].append((event["frequency"], currentTime, event["note"], event["velocity"], "pressed"))
+                    self.keys[self.path_from_id()].append({"frequency":event["frequency"], "startTime":currentTime, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time()})
 
-            else:
+            else: # Release
 
                 if not self.sustain[self.path_from_id()]:
 
-                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key[2] != event["note"]])
+                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key["note"] != event["note"]])
 
                 elif self.sustain[self.path_from_id()]:
 
                     i = 0
-                    while i < len(self.keys[self.path_from_id()]):
-                        if self.keys[self.path_from_id()][i][2] == event["note"]:
-                            self.keys[self.path_from_id()][i] = (event["frequency"], self.keys[self.path_from_id()][i][1], event["note"], self.keys[self.path_from_id()][i][3], "sustain")
+                    while i < len(self.keys[self.path_from_id()]): # Mark that the note is not pressed but only sustained
+                        if self.keys[self.path_from_id()][i]["note"] == event["note"]:
+                            self.keys[self.path_from_id()][i]["type"] = "sustain"
                         i = i + 1
 
         elif event["type"] == "sustain":
 
             if (event["velocity"] == 0) == self.sustain[self.path_from_id()]: # a velocity of zero means release; only run this if the state changes:
                 self.sustain[self.path_from_id()] = not self.sustain[self.path_from_id()]
-                print(self.sustain[self.path_from_id()])
                 if not self.sustain[self.path_from_id()]:
 
                     # Remove sustained notes
 
-                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key[3] != "sustain"])
-    
+                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key["type"] != "sustain"])
+
+
+        self.lock[self.path_from_id()].release()
+
     def clear(self):
         self.keys[self.path_from_id()] = []
     
@@ -253,70 +260,54 @@ class Piano(Node, AudioTreeNode):
         layout.operator("audionodes.piano").caller_id = self.path_from_id()
     
     def callback(self, socket, timeIn, rate, length):
-        result = []
 
-        if self.data[self.path_from_id()][-1] != timeIn:
+        if self.data[self.path_from_id()]["time"] != timeIn:
 
-            if len(self.keys[self.path_from_id()]) != 0:
-                try:
-                    
-                    freqMap = []
-                    for freq in self.keys[self.path_from_id()]:
-                        freqMap.append(freq[0])
-                    
-                    stampMap = []
-                    for freq in self.keys[self.path_from_id()]:
-                        stampMap.append(freq[1])
-                    
-                    result.append((np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap)))
-                except KeyError:
-                    result.append((np.array([[0]*int(rate*length)]), [0]))
+            self.lock[self.path_from_id()].acquire() # No one but me shall touch the notes
 
-                try:
-                    
-                    freqMap = []
-                    for freq in self.keys[self.path_from_id()]:
-                        freqMap.append(timeIn - freq[1])
-                    
-                    stampMap = []
-                    for freq in self.keys[self.path_from_id()]:
-                        stampMap.append(freq[1])
-                    
-                    result.append((
-                        np.tile(np.array([freqMap]).transpose(),
-                                int(length*rate)) +
-                            np.arange(int(length*rate)) / rate,
-                        np.array(stampMap)))
-                except KeyError:
-                    result.append((np.array([[0]*int(rate*length)]), [0]))
-                try:
-                    
-                    freqMap = []
-                    for freq in self.keys[self.path_from_id()]:
-                        freqMap.append(freq[3]/127)
-                    
-                    stampMap = []
-                    for freq in self.keys[self.path_from_id()]:
-                        stampMap.append(freq[1])
-                    
-                    result.append((np.tile(np.array([freqMap]).transpose(), int(length*rate)), np.array(stampMap)))
-                except KeyError:
-                    result.append((np.array([[0]*int(rate*length)]), [0]))
+            if len(self.keys[self.path_from_id()]) == 0:
+
+                self.data[self.path_from_id()] = {
+                                                      
+                                                  "id": [0],
+                                                  "frequency": np.array([[0]*int(rate*length)]),
+                                                  "startTime": np.array([[0]*int(rate*length)]),
+                                                  "velocity": np.array([[0]*int(rate*length)]),
+                                                  "time": timeIn
+                                                      
+                                                  }
+
             else:
-                result.append((np.array([[0]*int(rate*length)]), [0]))
-                result.append((np.array([[0]*int(rate*length)]), [0]))
-                result.append((np.array([[0]*int(rate*length)]), [0]))
 
-            result.append(timeIn)
+                freqMap = []
+                timeMap = []
+                velocityMap = []
+                stampMap = []
+                
+                for note in self.keys[self.path_from_id()]:
+                    freqMap.append(note["frequency"])
+                    timeMap.append(timeIn - note["startTime"])
+                    velocityMap.append(note["velocity"]/127)
+                    stampMap.append(note["id"])
+                    
+                self.data[self.path_from_id()] = {
+                                                      
+                                                  "id": np.array(stampMap),
+                                                  "frequency": np.tile(np.array([freqMap]).transpose(), int(length*rate)),
+                                                  "startTime": np.tile(np.array([timeMap]).transpose(), int(length*rate)),
+                                                  "velocity": np.tile(np.array([velocityMap]).transpose(), int(length*rate)),
+                                                  "time": timeIn
+                                                      
+                                                  }
 
-            self.data[self.path_from_id()] = result
+            self.lock[self.path_from_id()].release()
 
         if socket == self.outputs[0]:
-            return self.data[self.path_from_id()][0]
+            return (self.data[self.path_from_id()]["frequency"], self.data[self.path_from_id()]["id"])
         elif socket == self.outputs[1]:
-            return self.data[self.path_from_id()][1]
+            return (self.data[self.path_from_id()]["startTime"], self.data[self.path_from_id()]["id"])
         else:
-            return self.data[self.path_from_id()][2]
+            return (self.data[self.path_from_id()]["velocity"], self.data[self.path_from_id()]["id"])
 
 
 def register():
