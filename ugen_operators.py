@@ -153,9 +153,17 @@ class Sink(Node, AudioTreeNode):
     def updateLoop(self):
         internalTime = time.time()
         while self.running[0]:
-            if self.getTree().needsAudio():
+            needsUpdate = False
+
+            try:
+                needsUpdate = self.getTree().needsAudio()
+            except AttributeError: # A random error sometimes gets thrown here
+                pass
+
+            if needsUpdate:
                 internalTime = internalTime + 1024/41000
                 self.updateSound(internalTime)
+            
             time.sleep(0.01)
     
     def init(self, context):
