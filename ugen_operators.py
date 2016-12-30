@@ -108,7 +108,7 @@ class Min(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Audio")
 
 class Logic(Node, AudioTreeNode):
-    '''Output A or B depending on a condition signal.'''
+    '''Output A or B depending on a condition signal'''
     bl_idname = 'SignalLogicNode'
     bl_label = 'Logic'
     

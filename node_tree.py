@@ -19,7 +19,7 @@ pygame, np = fix()
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):
     # Description string
-    '''Node tree for audio mixer.'''
+    '''Node tree for audio mixer'''
     # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'AudioTreeType'
     # Label for nice name display
@@ -177,7 +177,7 @@ class Oscillator(AudioTreeNode):
 
 
 class Piano(Node, AudioTreeNode):
-    '''Map key presses to audio.'''
+    '''Map key presses to audio'''
     
     bl_idname = 'PianoNode'
     # Label for nice name display
