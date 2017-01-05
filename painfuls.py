@@ -10,6 +10,19 @@ def fix(modules = ("pygame", "numpy")):
         mod = importlib.import_module("ANPath")
         return mod.importAll(modules)
     else:
+
+        result = []
+
         import numpy as np
         import pygame
-        return pygame, np
+        import pygame.midi
+
+        for module in modules:
+            if module == "pygame":
+                result.append(pygame)
+            elif module == "numpy":
+                result.append(np)
+            elif module == "pygame.midi":
+                result.append(pygame.midi)
+            
+        return tuple(result)
