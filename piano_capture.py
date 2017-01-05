@@ -52,48 +52,48 @@ class PianoCapture(bpy.types.Operator):
 
     def MIDIgen(self):
 
-    # Try to run using a platform-specific backend
+        # Try to run using a platform-specific backend
 
-    if platform.system() == "Linux" and alsa_ok:
-        alsaseq.client("Audionodes", 1, 1, False)
-        while True:
-            if alsaseq.inputpending():
-                inputData = alsaseq.input()
-                if inputData[0] in (6, 7): # Key
-                    f = 440*(2**((inputData[-1][1]-48)/12))
-                    yield {"type": "key", "frequency":f, "velocity":inputData[-1][2], "note":inputData[-1][1]}
-                elif inputData[0] in (10,): # Sustain
-                    yield {"type": "sustain","velocity":inputData[-1][-1]}
-            time.sleep(0.01)
-            
-    # If such is not available, fall back to PyGame
+        if platform.system() == "Linux" and alsa_ok:
+            alsaseq.client("Audionodes", 1, 1, False)
+            while True:
+                if alsaseq.inputpending():
+                    inputData = alsaseq.input()
+                    if inputData[0] in (6, 7): # Key
+                        f = 440*(2**((inputData[-1][1]-48)/12))
+                        yield {"type": "key", "frequency":f, "velocity":inputData[-1][2], "note":inputData[-1][1]}
+                    elif inputData[0] in (10,): # Sustain
+                        yield {"type": "sustain","velocity":inputData[-1][-1]}
+                time.sleep(0.01)
 
-    else:
-        pygame.init()
-        midi.init()
+        # If such is not available, fall back to PyGame
 
-        inputdata = midi.Input(midi.get_default_input_id())
+        else:
+            pygame.init()
+            midi.init()
 
-        def toDict(event):
+            inputdata = midi.Input(midi.get_default_input_id())
 
-            velocity = event[0][0][2]
+            def toDict(event):
 
-            # Sustain
+                velocity = event[0][0][2]
 
-            if event[0][0][0] == 176 and event[0][0][1] == 64:
-                return {"velocity":velocity, "type":"sustain"}
-            elif event[0][0][0] == 144:
-                note = event[0][0][1]
-                f = 440*(2**((note-48)/12))
-                return {"type":"key", "velocity":velocity, "note":note, "frequency":f}
+                # Sustain
 
-        while 1:
-            if inputdata.poll():
-                event = inputdata.read(1)
-                if toDict(event) != None:
-                    print(toDict(event))
-                    yield toDict(event)
-            time.sleep(0.01)
+                if event[0][0][0] == 176 and event[0][0][1] == 64:
+                    return {"velocity":velocity, "type":"sustain"}
+                elif event[0][0][0] == 144:
+                    note = event[0][0][1]
+                    f = 440*(2**((note-48)/12))
+                    return {"type":"key", "velocity":velocity, "note":note, "frequency":f}
+
+            while 1:
+                if inputdata.poll():
+                    event = inputdata.read(1)
+                    if toDict(event) != None:
+                        print(toDict(event))
+                        yield toDict(event)
+                time.sleep(0.01)
 
 
     def talkToCaller(self):
