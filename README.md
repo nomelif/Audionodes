@@ -33,9 +33,9 @@ pip.main(["install", "NumPy", "--user"])
 import sys
 import os
 import os.path
-    
+
 with open(os.getenv('APPDATA')+"/ANPath.py", "w") as f:
-    f.write("def importAll():\n")
+    f.write("def importAll(modules):\n")
     f.write("    import os\n")
     f.write("    wd = os.getcwd()\n")
     f.write("    import sys\n")
@@ -43,9 +43,18 @@ with open(os.getenv('APPDATA')+"/ANPath.py", "w") as f:
     f.write("    os.chdir("+str([os.path.abspath(os.path.join(os.getenv('APPDATA'), os.pardir))+"\\Local\\Programs\\Python\\Python35"])[1:-1]+")\n")
     f.write("    import numpy as np\n")
     f.write("    import pygame as p\n")
+    f.write("    import pygame.midi as midi\n")
     f.write("    os.chdir(wd)\n")
-    f.write("    return p, np\n")
-    
+    f.write("    result = []\n")
+    f.write("    for module in modules:\n")
+    f.write("        if module == 'pygame':\n")
+    f.write("            result.append(p)\n")
+    f.write("        elif module == 'numpy':\n")
+    f.write("            result.append(np)\n")
+    f.write("        elif module == 'pygame.midi':\n")
+    f.write("            result.append(midi)\n")
+    f.write("    return tuple(result)\n")
+
 input("\nPress [enter] to exit")
 ```
 
