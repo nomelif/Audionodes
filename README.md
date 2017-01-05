@@ -2,7 +2,7 @@
 
 Audio generation in blender nodes.
 
-We now support MIDI keyboards but only on Linux.
+We now support MIDI keyboards on both Linux and Windows.
 
 _We support Windows now! Testing and reporting back of errors is highly encouraged!_
 
@@ -64,7 +64,7 @@ Anyway, save the script somewhere as `dependencysetup.py` and double-click it to
 
 ### Install Audio Nodes
 
-Download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > Install from File ...` and pick the archive. Enable the addon and you should be good to go.
+Download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > Install from File ...` and pick the archive. Enable the addon and you should be good to go. Midi keyboards should be autodetected.
 
 ### I am running Linux
 
@@ -85,7 +85,7 @@ On other systems, try to install similar packages.
 
 ### Aside on MIDI input
 
-You can use a MIDI keyboard with Audio Nodes. This however requires some extra steps. You will have to install alsaseq. It is available through `pip`, but I never got it to build right. This slightly modified version of an older release seems to work fine, though. Download (this)[https://drive.google.com/file/d/0B0nfZWGohnB7MG4wMnZ6RzUyb0E/view?usp=sharing] zip file and unpack it where you want. Navigate into it and run:
+You can use a MIDI keyboard with Audio Nodes. It is possible that it may work out of the box, but we recommend installing Alsaseq. It is available through `pip`, but I never got it to build right. This slightly modified version of an older release seems to work fine, though. Download (this)[https://drive.google.com/file/d/0B0nfZWGohnB7MG4wMnZ6RzUyb0E/view?usp=sharing] zip file and unpack it where you want. Navigate into it and run:
 
 ```
 sudo python3 setup.py build
