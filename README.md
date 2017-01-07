@@ -187,7 +187,7 @@ We can even make this playable by keyboard: plug in a `Piano` input like so:
 
 <a href="http://imgur.com/yG1n4Rf"><img src="http://i.imgur.com/yG1n4Rf.png" title="source: imgur.com" /></a>
 
-Activate it by hitting the `Keyboard capture` button and terminate it by hitting `Esc` on your keyboard. While the `Piano` node is activated, you can play with your keyboard: the keys from `§` to `0` are one octave. MIDI keyboard support is being planned.
+Activate it by hitting the `Keyboard capture` button and terminate it by hitting `Esc` on your keyboard. While the `Piano` node is activated, you can play with a MIDI keyboard. Windows should jump on the first one that moves. Linux with the alsaseq module installed should be hand-configured with QJackCTL (GUI) or aconnect (CLI). Linux without alsaseq installed should try to autoconfigure itself like Windows.
 
 ### Interesting setups
 
