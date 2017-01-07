@@ -170,7 +170,7 @@ class Oscillator(AudioTreeNode):
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
-        self.inputs.new('RawAudioSocketType', "Range")
+        self.inputs.new('RawAudioSocketType', "Amplitude")
         self.inputs[1].value_prop = 1.0
         self.inputs.new('RawAudioSocketType', "Offset")
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -199,7 +199,7 @@ class Piano(Node, AudioTreeNode):
 
     def parseEvent(self, event):
 
-        self.lock[self.path_from_id()].acquire() # No one but me shall touch the notes        
+        self.lock[self.path_from_id()].acquire() # No one but me shall touch the notes
 
         currentTime = self.data[self.path_from_id()]["time"]
         
