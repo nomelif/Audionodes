@@ -17,7 +17,7 @@ class Sine(Node, Oscillator):
     # Label for nice name display
     bl_label = 'Sine'
     
-    def generate(self, phase):
+    def generate(self, phase, **dataArgs):
         return np.sin(phase*np.pi*2)
 
     
@@ -32,7 +32,7 @@ class Saw(Node, Oscillator):
     
     last_state = bpy.props.FloatProperty()
     
-    def generate(self, phase):
+    def generate(self, phase, **dataArgs):
         return phase * 2 % 2 - 1
     
 class Square(Node, Oscillator):
@@ -44,8 +44,14 @@ class Square(Node, Oscillator):
     # Label for nice name display
     bl_label = 'Square'
     
-    def generate(self, phase):
-        return np.greater(phase % 1, 0.5) * 2 - 1
+    def generate(self, phase, **dataArgs):
+        pulseWidth = self.inputs[3].getData(**dataArgs)[0]
+        return np.greater(phase % 1, 1 - pulseWidth) * 2 - 1
+    
+    def init(self, context):
+        Oscillator.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Pulse width")
+        self.inputs[3].value_prop = 0.5
 
 class Triangle(Node, Oscillator):
     # === Basics ===
@@ -56,7 +62,7 @@ class Triangle(Node, Oscillator):
     # Label for nice name display
     bl_label = 'Triangle'
     
-    def generate(self, phase):
+    def generate(self, phase, **dataArgs):
         return np.abs(phase * 4 % 4 - 2) - 1
 
 
