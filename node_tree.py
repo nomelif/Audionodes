@@ -13,6 +13,8 @@ import bpy
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 from threading import Lock
 from .painfuls import fix
+from collections import deque
+from threading import Thread
 
 pygame, np, pyaudio = fix(("pygame", "numpy", "pyaudio"))
 
@@ -175,6 +177,35 @@ class Oscillator(AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Offset")
         self.outputs.new('RawAudioSocketType', "Audio")
 
+class MicrophoneGen():
+
+    data = deque()
+
+    def __init__(self, bufferlen = 4):
+        self.bufferlen = bufferlen
+        self.alive = True
+        Thread(target=self.listen).start()
+
+    def kill(self):
+        self.alive = False
+
+    def listen(self):
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16, channels=1, rate=41000, input=True, frames_per_buffer=1024)
+        while self.alive:
+            data = stream.read(1024)
+            self.data.append(np.fromstring(data, dtype=np.int16).astype(np.float64)/65536)
+
+    def __iter__(self):
+
+        while self.alive:
+            while len(self.data) < self.bufferlen:
+                time.sleep(0.0001)
+            while len(self.data) > self.bufferlen*2:
+                self.data.popleft()
+            yield self.data.popleft()
+
+
 class Microphone(Node, AudioTreeNode):
 
     '''Record from a live microphone'''
@@ -183,8 +214,23 @@ class Microphone(Node, AudioTreeNode):
 
     bl_label = 'Microphone'
 
+    data = {}
+
     def init(self,context):
         self.outputs.new('RawAudioSocketType', 'Sound')
+        self.data[self.path_from_id()] = {}
+        self.data[self.path_from_id()]["generator"] = MicrophoneGen()
+        self.data[self.path_from_id()]["stamp"] = time.time()
+
+    def free(self):
+        self.data[self.path_from_id()]["generator"].kill()
+
+    def callback(self, socket, timeData, rate, length):
+        try:
+            for part in self.data[self.path_from_id()]["generator"]:
+                return (np.array([part]), np.array([self.data[self.path_from_id()]["stamp"]]))
+        except KeyError:
+            return (np.array([np.zeros(int(length*rate))]), np.array(time.time()))
 
 class Piano(Node, AudioTreeNode):
     '''Map key presses to audio'''
