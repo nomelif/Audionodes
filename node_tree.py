@@ -1,7 +1,7 @@
 """
 Class using Pyaudio for simple playback of raw audio-data represented by a float array.
 The user only needs to create an object and call the play_chunk method.
- 
+
 """
 
 
@@ -14,7 +14,7 @@ from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 from threading import Lock
 from .painfuls import fix
 
-pygame, np = fix()
+pygame, np, pyaudio = fix(("pygame", "numpy", "pyaudio"))
 
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):
@@ -26,24 +26,24 @@ class AudioTree(NodeTree):
     bl_label = 'Audio nodes'
     # Icon identifier
     bl_icon = 'PLAY_AUDIO'
-    
+
     pygameInited =  [False]
-    
+
     ch = [None]
-    
+
     def setupPygame(self):
             SRATE=41000 # sample rate in Hz
             pygame.mixer.init(SRATE, -16, 1, 1024)
             self.ch[0]=pygame.mixer.Channel(0)
             self.pygameInited[0] = True
-        
+
     def play_chunk(self, inputData):
         if not self.pygameInited[0]:
             self.setupPygame()
         else:
             snd=pygame.sndarray.make_sound(np.int16(np.clip(inputData*(2**15), -2**15, 2**15-1)))
             self.ch[0].queue(snd)
-    
+
     def needsAudio(self):
         try:
             if self.ch[0].get_queue() == None:
@@ -52,7 +52,7 @@ class AudioTree(NodeTree):
                 return False
         except:
             return True
-    
+
 
 
 # Custom socket type
@@ -63,20 +63,20 @@ class RawAudioSocket(NodeSocket):
     bl_idname = 'RawAudioSocketType'
     # Label for nice name display
     bl_label = 'Raw Audio'
-    
+
     value_prop = bpy.props.FloatProperty()
     last_value = {}
-    
+
     cache = {}
-    
+
     def getData(self, timeData, rate, length):
-        
+
         if self.is_output and self.path_from_id() in self.cache.keys():
             if self.cache[self.path_from_id()]["time"] == timeData and self.cache[self.path_from_id()]["rate"] == rate and self.cache[self.path_from_id()]["length"] == length:
                 return self.cache[self.path_from_id()]["data"]
-        
+
         new_data = None
-        
+
         if self.is_output:
             new_data = self.node.callback(self, timeData, rate, length)
         elif self.is_linked:
@@ -88,19 +88,19 @@ class RawAudioSocket(NodeSocket):
             self.last_value[self.path_from_id()] = (self.value_prop, time.time())
             coeff = np.arange(int(length*rate))/(length*rate)
             new_data = (np.array([self.value_prop * coeff + last_value * (1-coeff)]), np.array([self.last_value[self.path_from_id()][1]]))
-        
+
         if self.is_output:
             self.cache[self.path_from_id()] = {"time":timeData, "rate":rate, "length":length, "data":new_data}
-        
+
         return new_data
-    
+
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
         else:
             layout.prop(self, "value_prop", text=text)
 
-    
+
     # Socket color
     def draw_color(self, context, node):
         return (0.607, 0.153, 0.702, 1.0)
@@ -115,7 +115,7 @@ class AudioTreeNode:
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'AudioTreeType'
-    
+
     def getTree(self):
         return self.id_data
 
@@ -125,49 +125,49 @@ class Oscillator(AudioTreeNode):
     '''Framework for an oscillator node. Just add a generator!'''
 
     oscillatorStates = {}
-    
+
     def callback(self, socket, timeData, rate, length):
         output = None
-        
+
         # Possible optimization:
-        
+
         #if np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0 or np.count_nonzero(self.inputs[0].getData(time, rate, length)) == 0:
         #    return np.full(int(rate*length), 0.0 + self.inputs[2].getData(time, rate, length))
 
         rebuildCache = False
 
         try:
-        
+
             if len(self.oscillatorStates[self.path_from_id()][0]) != len(self.inputs[0].getData(timeData, rate, length)[0]):
                 rebuildCache = True
 
         except KeyError:
             self.oscillatorStates[self.path_from_id()] = [np.array([]), np.array([])]
             rebuildCache = True
-        
+
         if rebuildCache:
-            
+
             # Remove extra shit
-            
+
             for key in self.oscillatorStates[self.path_from_id()][1]:
                 if not key in self.inputs[0].getData(timeData, rate, length)[1]:
                     index = np.where(self.oscillatorStates[self.path_from_id()][1]==key)
                     self.oscillatorStates[self.path_from_id()][1] = np.delete(self.oscillatorStates[self.path_from_id()][1], index)
                     self.oscillatorStates[self.path_from_id()][0] = np.delete(self.oscillatorStates[self.path_from_id()][0], index)
-            
+
             # Add signals that are lacking
             for index in range(len(self.inputs[0].getData(timeData, rate, length)[1])):
-                
+
                 if not (len(self.oscillatorStates[self.path_from_id()][1]) > index and self.oscillatorStates[self.path_from_id()][1][index] == self.inputs[0].getData(timeData, rate, length)[1][index]):
                     self.oscillatorStates[self.path_from_id()][0] = np.insert(self.oscillatorStates[self.path_from_id()][0], index, 0, axis=0)
                     self.oscillatorStates[self.path_from_id()][1] = np.insert(self.oscillatorStates[self.path_from_id()][1], index, self.inputs[0].getData(timeData, rate, length)[1][index], axis=0)
-            
-            
+
+
         freq = self.inputs[0].getData(timeData, rate, length)[0]
         phase = ((freq.cumsum(axis=1)/rate).transpose() + self.oscillatorStates[self.path_from_id()][0]).transpose()
         self.oscillatorStates[self.path_from_id()][0] = (phase[:,-1] % 1)
         return (self.generate(phase) * self.inputs[1].getData(timeData, rate, length)[0] + self.inputs[2].getData(timeData, rate, length)[0], self.oscillatorStates[self.path_from_id()][0])
-    
+
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.inputs.new('RawAudioSocketType', "Amplitude")
@@ -175,14 +175,24 @@ class Oscillator(AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Offset")
         self.outputs.new('RawAudioSocketType', "Audio")
 
+class Microphone(Node, AudioTreeNode):
+
+    '''Record from a live microphone'''
+
+    bl_idname = 'MicNode'
+
+    bl_label = 'Microphone'
+
+    def init(self,context):
+        self.outputs.new('RawAudioSocketType', 'Sound')
 
 class Piano(Node, AudioTreeNode):
     '''Map key presses to audio'''
-    
+
     bl_idname = 'PianoNode'
     # Label for nice name display
     bl_label = 'Piano'
-    
+
     keys = {}
     sustain = {}
     data = {}
@@ -202,7 +212,7 @@ class Piano(Node, AudioTreeNode):
         self.lock[self.path_from_id()].acquire() # No one but me shall touch the notes
 
         currentTime = self.data[self.path_from_id()]["time"]
-        
+
         if event["type"] == "key":
 
             if event["velocity"] != 0: # Press
@@ -254,11 +264,11 @@ class Piano(Node, AudioTreeNode):
 
     def clear(self):
         self.keys[self.path_from_id()] = []
-    
+
     def draw_buttons(self, context, layout):
         layout.label("Node settings")
         layout.operator("audionodes.piano").caller_id = self.path_from_id()
-    
+
     def callback(self, socket, timeIn, rate, length):
 
         if self.data[self.path_from_id()]["time"] != timeIn:
@@ -268,13 +278,13 @@ class Piano(Node, AudioTreeNode):
             if len(self.keys[self.path_from_id()]) == 0:
 
                 self.data[self.path_from_id()] = {
-                                                      
+
                                                   "id": [0],
                                                   "frequency": np.array([[0]*int(rate*length)]),
                                                   "startTime": np.array([[0]*int(rate*length)]),
                                                   "velocity": np.array([[0]*int(rate*length)]),
                                                   "time": timeIn
-                                                      
+
                                                   }
 
             else:
@@ -283,21 +293,21 @@ class Piano(Node, AudioTreeNode):
                 timeMap = []
                 velocityMap = []
                 stampMap = []
-                
+
                 for note in self.keys[self.path_from_id()]:
                     freqMap.append(note["frequency"])
                     timeMap.append(timeIn - note["startTime"])
                     velocityMap.append(note["velocity"]/127)
                     stampMap.append(note["id"])
-                    
+
                 self.data[self.path_from_id()] = {
-                                                      
+
                                                   "id": np.array(stampMap),
                                                   "frequency": np.tile(np.array([freqMap]).transpose(), int(length*rate)),
                                                   "startTime": np.tile(np.array([timeMap]).transpose(), int(length*rate)),
                                                   "velocity": np.tile(np.array([velocityMap]).transpose(), int(length*rate)),
                                                   "time": timeIn
-                                                      
+
                                                   }
 
             self.lock[self.path_from_id()].release()
