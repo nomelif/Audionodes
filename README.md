@@ -24,8 +24,7 @@ For this part, just follow the on-screen instructions.
 
 Here is a nifty little script that installs all it needs:
 
-```
-import pip
+```import pip
 print("Installing PyGame")
 pip.main(["install", "PyGame", "--user"])
 print("\nInstalling NumPy")
@@ -35,6 +34,7 @@ pip.main(["install", "pyaudio", "--user"])
 import sys
 import os
 import os.path
+from pathlib import Path
 
 with open(os.getenv('APPDATA')+"/ANPath.py", "w") as f:
     f.write("""
@@ -47,7 +47,7 @@ def importAll(modules):
     wd = os.getcwd()
     import sys
     sys.path.extend("""+str(sys.path)+""")
-    os.chdir(r'"""+os.pardir(sys.executable)+"""')
+    os.chdir(r'"""+str(Path(sys.executable).parent)+"""')
     import numpy as np
     import pygame as p
     import pygame.midi as midi
