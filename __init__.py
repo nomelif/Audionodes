@@ -76,6 +76,7 @@ node_categories = [
         NodeItem("TriangleOscillatorNode"),
         NodeItem("NoiseGeneratorNode"),
         NodeItem("PianoNode"),
+        NodeItem("MicNode"),
     ]),
     AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
         NodeItem("AudioSinkNode"),
@@ -94,7 +95,7 @@ node_categories = [
 
 
 def register():
-    
+
     try:
         unregister()
     except:
