@@ -30,30 +30,40 @@ print("Installing PyGame")
 pip.main(["install", "PyGame", "--user"])
 print("\nInstalling NumPy")
 pip.main(["install", "NumPy", "--user"])
+print("\nInstalling PyAudio")
+pip.main(["install", "pyaudio", "--user"])
 import sys
 import os
 import os.path
 
 with open(os.getenv('APPDATA')+"/ANPath.py", "w") as f:
-    f.write("def importAll(modules):\n")
-    f.write("    import os\n")
-    f.write("    wd = os.getcwd()\n")
-    f.write("    import sys\n")
-    f.write("    sys.path.extend("+str(sys.path)+")\n")
-    f.write("    os.chdir("+str([os.path.abspath(os.path.join(os.getenv('APPDATA'), os.pardir))+"\\Local\\Programs\\Python\\Python35"])[1:-1]+")\n")
-    f.write("    import numpy as np\n")
-    f.write("    import pygame as p\n")
-    f.write("    import pygame.midi as midi\n")
-    f.write("    os.chdir(wd)\n")
-    f.write("    result = []\n")
-    f.write("    for module in modules:\n")
-    f.write("        if module == 'pygame':\n")
-    f.write("            result.append(p)\n")
-    f.write("        elif module == 'numpy':\n")
-    f.write("            result.append(np)\n")
-    f.write("        elif module == 'pygame.midi':\n")
-    f.write("            result.append(midi)\n")
-    f.write("    return tuple(result)\n")
+    f.write("""
+
+# Auto-generated file; touch at your own risk
+
+
+def importAll(modules):
+    import os
+    wd = os.getcwd()
+    import sys
+    sys.path.extend("""+str(sys.path)+""")
+    os.chdir(r'"""+os.pardir(sys.executable)+"""')
+    import numpy as np
+    import pygame as p
+    import pygame.midi as midi
+    import pyaudio as pa
+    os.chdir(wd)
+    result = []
+    for module in modules:
+        if module == 'pygame':
+            result.append(p)
+        elif module == 'numpy':
+            result.append(np)
+        elif module == 'pygame.midi':
+            result.append(midi)
+        elif module == 'pyaudio':
+            result.append(pa)
+    return tuple(result)""")
 
 input("\nPress [enter] to exit")
 ```

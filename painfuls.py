@@ -16,6 +16,7 @@ def fix(modules = ("pygame", "numpy")):
         import numpy as np
         import pygame
         import pygame.midi
+        import pyaudio
 
         for module in modules:
             if module == "pygame":
@@ -24,5 +25,7 @@ def fix(modules = ("pygame", "numpy")):
                 result.append(np)
             elif module == "pygame.midi":
                 result.append(pygame.midi)
-            
+            elif module == "pyaudio":
+                result.append(pyaudio)
+
         return tuple(result)
