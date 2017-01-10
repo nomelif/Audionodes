@@ -10,11 +10,8 @@ from .node_tree import Oscillator
 
 
 class Sine(Node, Oscillator):
-    # Description string
     '''A sine wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'SineOscillatorNode'
-    # Label for nice name display
     bl_label = 'Sine'
     
     def generate(self, phase, **dataArgs):
@@ -22,12 +19,8 @@ class Sine(Node, Oscillator):
 
     
 class Saw(Node, Oscillator):
-    # === Basics ===
-    # Description string
     '''A saw wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'SawOscillatorNode'
-    # Label for nice name display
     bl_label = 'Saw'
     
     last_state = bpy.props.FloatProperty()
@@ -36,12 +29,8 @@ class Saw(Node, Oscillator):
         return phase * 2 % 2 - 1
     
 class Square(Node, Oscillator):
-    # === Basics ===
-    # Description string
     '''A square wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'SquareOscillatorNode'
-    # Label for nice name display
     bl_label = 'Square'
     
     def generate(self, phase, **dataArgs):
@@ -54,12 +43,8 @@ class Square(Node, Oscillator):
         self.inputs[3].value_prop = 0.5
 
 class Triangle(Node, Oscillator):
-    # === Basics ===
-    # Description string
     '''A triangle wave oscillator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'TriangleOscillatorNode'
-    # Label for nice name display
     bl_label = 'Triangle'
     
     def generate(self, phase, **dataArgs):

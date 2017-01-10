@@ -12,15 +12,10 @@ import threading
 from .node_tree import AudioTreeNode
 
 class Noise(Node, AudioTreeNode):
-    # === Basics ===
-    # Description string
     '''A white noise generator'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'NoiseGeneratorNode'
-    # Label for nice name display
     bl_label = 'Noise'
     
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
     def callback(self, socket, time, rate, length):
         return (np.array([np.random.rand(rate*length)]), np.array(self.stamps[self.path_from_id()]))
     
@@ -30,17 +25,11 @@ class Noise(Node, AudioTreeNode):
         self.stamps[self.path_from_id()] = time.time()
         self.outputs.new('RawAudioSocketType', "Audio")
 
-# Derived from the Node base type.
 class Sum(Node, AudioTreeNode):
-    # === Basics ===
-    # Description string
     '''The sum of two signals'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'SignalSumNode'
-    # Label for nice name display
     bl_label = 'Sum'
         
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
     def callback(self, socket, time, rate, length):
         data_1 = self.inputs[0].getData(time, rate, length)
         data_2 = self.inputs[1].getData(time, rate, length)
@@ -53,14 +42,9 @@ class Sum(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
 
-# Derived from the Node base type.
 class Mul(Node, AudioTreeNode):
-    # === Basics ===
-    # Description string
     '''Multiply two signals'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'SignalMulNode'
-    # Label for nice name display
     bl_label = 'Mul'
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
@@ -126,14 +110,9 @@ class Logic(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "C > 0")
         self.inputs.new('RawAudioSocketType', "C <= 0")
 
-# Derived from the Node base type.
 class Sink(Node, AudioTreeNode):
-    # === Basics ===
-    # Description string
     '''An audio sink'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'AudioSinkNode'
-    # Label for nice name display
     bl_label = 'Sink'
     # Icon identifier
     bl_icon = 'SOUND'
