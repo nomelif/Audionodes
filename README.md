@@ -24,7 +24,8 @@ For this part, just follow the on-screen instructions.
 
 Here is a nifty little script that installs all it needs:
 
-```import pip
+```python
+import pip
 print("Installing PyGame")
 pip.main(["install", "PyGame", "--user"])
 print("\nInstalling NumPy")
@@ -84,7 +85,9 @@ We have found that Audio Nodes has a greater chance of working (especially with 
 
 On Ubuntu run this command:
 
-`sudo apt-get install python3-numpy python3-pip`
+```
+sudo apt-get install python3-numpy python3-pip
+```
 
 On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`.
 
@@ -114,20 +117,20 @@ Download this repository as a zip and load that zip into Blender through `User P
 
 If there is an error when activating the addon, you are probably not using the right Python installation. To remedy this, open a terminal and run `python3`. There type:
 
-```
+```python
 import sys
 sys.path
 ```
 
 On my machine the output looks like:
 
-```
+```python
 ['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
 ```
 
-Copy the output of the command. In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
+Copy the output of the command. In Blender go to `Scripting` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
 
-```
+```python
 import sys
 sys.path.extend(whatever your output was)
 ```
@@ -147,20 +150,20 @@ Then download this repository as a zip. In Blender, go to `File > User Preferenc
 
 If there is an error when enabling the addon, you are probably not using the right Python installation. To remedy this, open a terminal and run `python3`. There type:
 
-```
+```python
 import sys
 sys.path
 ```
 
 On my machine the output looks like:
 
-```
+```python
 ['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
 ```
 
-Copy the output of the command. In Blender go to ```Scripting``` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
+Copy the output of the command. In Blender go to `Scripting` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
 
-```
+```python
 import sys
 sys.path.extend(whatever your output was)
 ```
