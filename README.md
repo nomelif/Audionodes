@@ -16,7 +16,7 @@ For now Audionodes doesn't come with the required libraries. You need to install
 
 ### Installing python
 
-We need a fresh Python interpreter on Windows. Grab the one that matches your architechture. Grab the one that matches Blender's Python. As of writing this, that is Python 3.5. If you are running a 64-bit copy of windows, download Python (here)[https://www.python.org/ftp/python/3.5.2/python-3.5.2-amd64-webinstall.exe]. If you are running a 32-bit one, (here)[https://www.python.org/ftp/python/3.5.2/python-3.5.2-webinstall.exe].
+We need a fresh Python interpreter on Windows. Grab the one that matches your architechture. Grab the one that matches Blender's Python. As of writing this, that is Python 3.5. If you are running a 64-bit copy of windows, download Python [here](https://www.python.org/ftp/python/3.5.2/python-3.5.2-amd64-webinstall.exe). If you are running a 32-bit one, [here](https://www.python.org/ftp/python/3.5.2/python-3.5.2-webinstall.exe).
 
 For this part, just follow the on-screen instructions.
 
@@ -98,14 +98,14 @@ On other systems, try to install similar packages.
 
 ### Aside on MIDI input
 
-You can use a MIDI keyboard with Audio Nodes. It is possible that it may work out of the box, but we recommend installing Alsaseq. It is available through `pip`, but I never got it to build right. This slightly modified version of an older release seems to work fine, though. Download (this)[https://drive.google.com/file/d/0B0nfZWGohnB7MG4wMnZ6RzUyb0E/view?usp=sharing] zip file and unpack it where you want. Navigate into it and run:
+You can use a MIDI keyboard with Audio Nodes. It is possible that it may work out of the box, but we recommend installing Alsaseq. It is available through `pip`, but I never got it to build right. This slightly modified version of an older release seems to work fine, though. Download [this](https://drive.google.com/file/d/0B0nfZWGohnB7MG4wMnZ6RzUyb0E/view?usp=sharing) zip file and unpack it where you want. Navigate into it and run:
 
 ```
 sudo python3 setup.py build
 sudo python3 setup.py install
 ```
 
-The archive is an old version (only one that I got to build) of alsaseq, see here: (Alsaseq home site)[http://pp.com.mx/python/alsaseq/]
+The archive is an old version (only one that I got to build) of alsaseq, see here: [Alsaseq home site](http://pp.com.mx/python/alsaseq/)
 
 To connect to a midi keyboard, add a `Piano` node and hit `Keyboard capture`. This should create an alsa socket to connect a MIDI device to. A nice GUI tool to do this is QjackCtl. After launching it go to `Connect > Alsa [tab]` and hook up the USB midi on the left to Audionodes on the right. To kill the sound from the piano node quickly, hit escape on the keyboard.
 
