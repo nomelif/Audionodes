@@ -49,6 +49,47 @@ import bpy
 
 from . import node_tree, piano_capture, oscillators, ugen_operators, effects
 
+from bpy.types import Operator, AddonPreferences
+from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
+
+### Preferences ###
+
+
+class ExampleAddonPreferences(AddonPreferences):
+    bl_idname = __package__
+
+    test_items = [
+    ("PYGAME", "PyGame", "", 1),
+    ("PYAUDIO", "PyAudio", "", 2)
+    ]
+
+
+    backend = EnumProperty(
+            items=test_items
+            )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Backend to use for audio playback. (Networks need to be recreated for this to take effect)")
+        layout.prop(self, "backend")
+
+class OBJECT_OT_addon_prefs_example(Operator):
+    """Display example preferences"""
+    bl_idname = "nodes.audionodes_prefs"
+    bl_label = "Audionodes Preferenecs"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        user_preferences = context.user_preferences
+        addon_prefs = user_preferences.addons[__package__].preferences
+
+        #info = ("Path: %s, Number: %d, Boolean %r" %
+        #        (addon_prefs.filepath, addon_prefs.number, addon_prefs.boolean))
+
+        #self.report({'INFO'}, info)
+        #print(info)
+
+        return {'FINISHED'}
 
 ### Node Categories ###
 # Node categories are a python system for automatically

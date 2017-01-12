@@ -10,6 +10,9 @@ import time
 
 import bpy
 
+from struct import pack
+from array import array
+
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 from threading import Lock
 from .painfuls import fix
@@ -28,25 +31,77 @@ class AudioTree(NodeTree):
     bl_icon = 'PLAY_AUDIO'
 
     pygameInited =  [False]
+    pyaudioInited = [False]
+    backendInited = [False]
 
     ch = [None]
 
+    stream = [None]
+    audioDevice = [None]
+
+    def init(self):
+        user_preferences = bpy.context.user_preferences
+        if user_preferences.addons[__package__].preferences.backend == "PYGAME":
+            self.setupPygame()
+        else:
+            self.setupPyAudio()
+
+    def setupPyAudio(self):
+        print("Creating node network with PyAudio as backend")
+        self.audioDevice[0] = pyaudio.PyAudio()
+        self.stream[0] = self.audioDevice[0].open(format=pyaudio.paInt16,
+                                            channels=1,
+                                            rate=41000,
+                                            output=True,
+                                            frames_per_buffer=1024)
+        self.backendInited[0] = True
+        self.pyaudioInited[0] = True
+
     def setupPygame(self):
+            print("Creating node network with PyGame as backend.")
             SRATE=41000 # sample rate in Hz
             pygame.mixer.init(SRATE, -16, 1, 1024)
             self.ch[0]=pygame.mixer.Channel(0)
             self.pygameInited[0] = True
+            self.backendInited[0] = True
 
     def play_chunk(self, inputData):
-        if not self.pygameInited[0]:
-            self.setupPygame()
-        else:
+        if not self.backendInited[0]:
+            self.init()
+        elif self.pygameInited[0]:
             snd=pygame.sndarray.make_sound(np.int16(np.clip(inputData*(2**15), -2**15, 2**15-1)))
             self.ch[0].queue(snd)
+        else:
+            if self.stream[0].is_stopped():
+                self.stream[0] = self.audioDevice[0].open(format=pyaudio.paInt16,
+                                                    channels=1,
+                                                    rate=41000,
+                                                    output=True,
+                                                    frames_per_buffer=1024)
+
+            output = array('h')
+
+            for i in range(len(inputData)):
+                # Check for Clips
+                if int(inputData[i]*32768) < -32767:
+                    output.append(-32767)
+                    print("clip at "+str(i))
+                elif int(inputData[i]*32768) > 32767:
+                    output.append(32767)
+                    print("clip at "+str(i))
+                else:
+                    output.append(int(inputData[i]*32767))
+
+            # Converts to bitstream for output
+            output = pack('<' + ('h'*len(output)), *output)
+
+            self.stream[0].write(output)
 
     def needsAudio(self):
         try:
-            if self.ch[0].get_queue() == None:
+            if self.pyaudioInited[0]:
+                return True
+            elif self.ch[0].get_queue() == None:
                 return True
             else:
                 return False
