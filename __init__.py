@@ -58,14 +58,12 @@ from bpy.props import StringProperty, IntProperty, BoolProperty, EnumProperty
 class ExampleAddonPreferences(AddonPreferences):
     bl_idname = __package__
 
-    test_items = [
-    ("PYGAME", "PyGame", "", 1),
-    ("PYAUDIO", "PyAudio", "", 2)
-    ]
-
 
     backend = EnumProperty(
-            items=test_items
+            items=[
+            ("PYGAME", "PyGame", "", 1),
+            ("PYAUDIO", "PyAudio", "", 2)
+            ]
             )
 
     def draw(self, context):
