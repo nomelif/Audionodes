@@ -1,10 +1,3 @@
-"""
-Class using Pyaudio for simple playback of raw audio-data represented by a float array.
-The user only needs to create an object and call the play_chunk method.
-
-"""
-
-
 
 import time
 
