@@ -20,22 +20,23 @@ pygame, np, pyaudio = fix(("pygame", "numpy", "pyaudio"))
 
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):
-    # Description string
+
     '''Node tree for audio mixer'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
+
     bl_idname = 'AudioTreeType'
-    # Label for nice name display
     bl_label = 'Audio nodes'
-    # Icon identifier
     bl_icon = 'PLAY_AUDIO'
 
     pygameInited =  [False]
 
     ch = [None]
 
+    sample_rate = 44100
+    chunk_size = 1024
+
+
     def setupPygame(self):
-            SRATE=41000 # sample rate in Hz
-            pygame.mixer.init(SRATE, -16, 1, 1024)
+            pygame.mixer.init(self.sample_rate, -16, 1, self.chunk_size)
             self.ch[0]=pygame.mixer.Channel(0)
             self.pygameInited[0] = True
 
@@ -180,7 +181,8 @@ class MicrophoneGen():
 
     data = deque()
 
-    def __init__(self, bufferlen = 4):
+    def __init__(self, bufferlen = 4, tree):
+        self.tree = tree
         self.bufferlen = bufferlen
         self.alive = True
         Thread(target=self.listen).start()
@@ -190,9 +192,9 @@ class MicrophoneGen():
 
     def listen(self):
         p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16, channels=1, rate=41000, input=True, frames_per_buffer=1024)
+        stream = p.open(format=pyaudio.paInt16, channels=1, rate=self.tree.sample_rate, input=True, frames_per_buffer=self.tree.chunk_size)
         while self.alive:
-            data = stream.read(1024)
+            data = stream.read(self.tree.chunk_size)
             self.data.append(np.fromstring(data, dtype=np.int16).astype(np.float64)/65536)
 
     def __iter__(self):
@@ -218,7 +220,7 @@ class Microphone(Node, AudioTreeNode):
     def init(self,context):
         self.outputs.new('RawAudioSocketType', 'Sound')
         self.data[self.path_from_id()] = {}
-        self.data[self.path_from_id()]["generator"] = MicrophoneGen()
+        self.data[self.path_from_id()]["generator"] = MicrophoneGen(self.getTree())
         self.data[self.path_from_id()]["stamp"] = time.time()
 
     def free(self):
