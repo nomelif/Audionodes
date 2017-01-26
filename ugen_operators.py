@@ -121,27 +121,31 @@ class Sink(Node, AudioTreeNode):
     
     running = [True]
     
-    def updateSound(self, internalTime):
+    def updateSound(self, internalTime, order):
         if self.running[0]:
-            try:
-                self.getTree().play_chunk(self.inputs[0].getData(internalTime, self.getTree().sample_rate, self.getTree().chunk_size/self.getTree().sample_rate)[0].sum(axis=0))
-            except IndexError:
-                pass
+            self.getTree().play_chunk(internalTime, order, self.name)
     t1 = None
 
     def updateLoop(self):
         internalTime = time.time()
+        order = []
+        needsReconstruct = True
         while self.running[0]:
             needsUpdate = False
-
+            
             try:
                 needsUpdate = self.getTree().needsAudio()
             except AttributeError: # A random error sometimes gets thrown here
                 pass
-
+            
+            needsReconstruct = self.getTree().needsReconstruct()
+            if needsReconstruct:
+                self.getTree().reconstruct(order)
+                needsReconstruct = False
+            
             if needsUpdate:
                 internalTime = internalTime + self.getTree().chunk_size/self.getTree().sample_rate
-                self.updateSound(internalTime)
+                self.updateSound(internalTime, order)
             
             time.sleep(0.01)
     

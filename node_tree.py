@@ -23,7 +23,9 @@ class AudioTree(NodeTree):
     pygameInited =  [False]
 
     ch = [None]
-
+    
+    structureChanged = [False]
+    
     sample_rate = 44100
     chunk_size = 1024
 
@@ -33,12 +35,34 @@ class AudioTree(NodeTree):
             self.ch[0]=pygame.mixer.Channel(0)
             self.pygameInited[0] = True
 
-    def play_chunk(self, inputData):
+    def play_chunk(self, internalTime, order, outputNode):
         if not self.pygameInited[0]:
             self.setupPygame()
         else:
-            snd=pygame.sndarray.make_sound(np.int16(np.clip(inputData*(2**15), -2**15, 2**15-1)))
+            outputData = np.zeros(self.chunk_size)
+            snd=pygame.sndarray.make_sound(np.int16(np.clip(outputData*(2**15), -2**15, 2**15-1)))
             self.ch[0].queue(snd)
+    
+    def reconstruct(self, order):
+        order.clear()
+        # Construct topological order of the node graph
+        nodes = {}
+        for node in self.nodes:
+            connectedInputs = 0
+            for socket in node.inputs:
+                if socket.is_linked:
+                    connectedInputs += 1
+            nodes[node.name] = [node, connectedInputs]
+            if connectedInputs == 0:
+                order.append(node.name)
+        
+        for nodeName in order:
+            node = nodes[nodeName][0]
+            for socket in node.outputs:
+                for link in socket.links:
+                    nodes[link.to_node.name][1] -= 1
+                    if nodes[link.to_node.name][1] == 0:
+                        order.append(link.to_node.name)
 
     def needsAudio(self):
         try:
@@ -48,8 +72,16 @@ class AudioTree(NodeTree):
                 return False
         except:
             return True
-
-
+    
+    def needsReconstruct(self):
+        if self.structureChanged[0]:
+            self.structureChanged[0] = False
+            return True
+        else:
+            return False
+    
+    def update(self):
+       self.structureChanged[0] = True
 
 # Custom socket type
 class RawAudioSocket(NodeSocket):
