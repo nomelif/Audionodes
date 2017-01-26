@@ -181,7 +181,7 @@ class MicrophoneGen():
 
     data = deque()
 
-    def __init__(self, bufferlen = 4, tree):
+    def __init__(self, tree, bufferlen = 4):
         self.tree = tree
         self.bufferlen = bufferlen
         self.alive = True
