@@ -16,24 +16,24 @@ from .node_tree import AudioTreeNode
 class DelayNode(Node, AudioTreeNode):
     '''Add a delayed echo to sound input'''
     
-    def callback(self, socket, timeData, rate, length):
+    def callback(self, inputSocketsData, timeData, rate, length):
 
-        inputData = self.inputs[0].getData(timeData, rate, length)[0].sum(axis=0)
+        inputData = self.inputs[0].getData(inputSocketsData)[0].sum(axis=0)
 
         self.data[self.path_from_id()].append(inputData)
-        while (len(self.data[self.path_from_id()])-1)*length > self.inputs[1].getData(timeData, rate, length)[0][0][0]:
+        while (len(self.data[self.path_from_id()])-1)*length > self.inputs[1].getData(inputSocketsData)[0][0][0]:
 
             self.data[self.path_from_id()].popleft()
 
-        if len(self.data[self.path_from_id()])*length < self.inputs[1].getData(timeData, rate, length)[0][0][0]:
+        if len(self.data[self.path_from_id()])*length < self.inputs[1].getData(inputSocketsData)[0][0][0]:
 
             self.data[self.path_from_id()].append(inputData)
-            return (np.array([inputData * (1-self.inputs[1].getData(timeData, rate, length)[0][0][0])]), np.array([self.stamp[self.path_from_id()]]))
+            return (np.array([inputData * (1-self.inputs[1].getData(inputSocketsData)[0][0][0])]), np.array([self.stamp[self.path_from_id()]]))
         else:
             newData = self.data[self.path_from_id()].popleft()
-            result = newData * self.inputs[1].getData(timeData, rate, length)[0][0][0] + inputData * (1 - self.inputs[1].getData(timeData, rate, length)[0][0][0])
+            result = newData * self.inputs[1].getData(inputSocketsData)[0][0][0] + inputData * (1 - self.inputs[1].getData(inputSocketsData)[0][0][0])
             self.data[self.path_from_id()].append(result)
-            return (np.array([result]), np.array([self.stamp[self.path_from_id()]]))
+            return ((np.array([result]), np.array([self.stamp[self.path_from_id()]])), )
                     
     
     bl_idname = 'DelayNode'

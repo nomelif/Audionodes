@@ -16,8 +16,8 @@ class Noise(Node, AudioTreeNode):
     bl_idname = 'NoiseGeneratorNode'
     bl_label = 'Noise'
     
-    def callback(self, socket, time, rate, length):
-        return (np.array([np.random.rand(rate*length)]), np.array(self.stamps[self.path_from_id()]))
+    def callback(self, inputSocketData, time, rate, length):
+        return ((np.array([np.random.rand(rate*length)]), np.array(self.stamps[self.path_from_id()])), )
     
     stamps = {}
     
@@ -30,11 +30,11 @@ class Sum(Node, AudioTreeNode):
     bl_idname = 'SignalSumNode'
     bl_label = 'Sum'
         
-    def callback(self, socket, time, rate, length):
-        data_1 = self.inputs[0].getData(time, rate, length)
-        data_2 = self.inputs[1].getData(time, rate, length)
+    def callback(self, inputSocketsData, time, rate, length):
+        data_1 = self.inputs[0].getData(inputSocketsData)
+        data_2 = self.inputs[1].getData(inputSocketsData)
         
-        return (data_1[0] + data_2[0], data_1[1])
+        return ((data_1[0] + data_2[0], data_1[1]), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -48,11 +48,11 @@ class Mul(Node, AudioTreeNode):
     bl_label = 'Mul'
     
     # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, socketId, time, rate, length):
-        data_1 = self.inputs[0].getData(time, rate, length)
-        data_2 = self.inputs[1].getData(time, rate, length)
+    def callback(self, inputSocketsData, time, rate, length):
+        data_1 = self.inputs[0].getData(inputSocketsData)
+        data_2 = self.inputs[1].getData(inputSocketsData)
         
-        return (data_1[0] * data_2[0], data_1[1])
+        return ((data_1[0] * data_2[0], data_1[1]), )
     
     def init(self, context):
         
@@ -66,10 +66,10 @@ class Max(Node, AudioTreeNode):
     bl_idname = 'SignalMaxNode'
     bl_label = 'Max'
     
-    def callback(self, socketId, time, rate, length):
-        data_1 = self.inputs[0].getData(time, rate, length)
-        data_2 = self.inputs[1].getData(time, rate, length)
-        return (np.maximum(data_1[0], data_2[0]), data_1[1])
+    def callback(self, inputSocketsData, time, rate, length):
+        data_1 = self.inputs[0].getData(inputSocketsData)
+        data_2 = self.inputs[1].getData(inputSocketsData)
+        return ((np.maximum(data_1[0], data_2[0]), data_1[1]), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -81,10 +81,10 @@ class Min(Node, AudioTreeNode):
     bl_idname = 'SignalMinNode'
     bl_label = 'Min'
     
-    def callback(self, socketId, time, rate, length):
-        data_1 = self.inputs[0].getData(time, rate, length)
-        data_2 = self.inputs[1].getData(time, rate, length)
-        return (np.minimum(data_1[0], data_2[0]), data_1[1])
+    def callback(self, inputSocketsData, time, rate, length):
+        data_1 = self.inputs[0].getData(inputSocketsData)
+        data_2 = self.inputs[1].getData(inputSocketsData)
+        return ((np.minimum(data_1[0], data_2[0]), data_1[1]), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -96,13 +96,13 @@ class Logic(Node, AudioTreeNode):
     bl_idname = 'SignalLogicNode'
     bl_label = 'Logic'
     
-    def callback(self, socketId, time, rate, length):
-        data_condition = self.inputs[0].getData(time, rate, length)
+    def callback(self, inputSocketsData, time, rate, length):
+        data_condition = self.inputs[0].getData(inputSocketsData)
         condition = data_condition[0] > 0
-        data_a = self.inputs[1].getData(time, rate, length)
-        data_b = self.inputs[2].getData(time, rate, length)
+        data_a = self.inputs[1].getData(inputSocketsData)
+        data_b = self.inputs[2].getData(inputSocketsData)
         result = condition * data_a[0] + (1-condition) * data_b[0]
-        return (result, data_condition[1])
+        return ((result, data_condition[1]), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -117,31 +117,32 @@ class Sink(Node, AudioTreeNode):
     # Icon identifier
     bl_icon = 'SOUND'
     
-    
+    is_output = True
     
     running = [True]
     
+    def callback(self, inputSocketsData, timeData, rate, length):
+        self.getTree().play_chunk(self.inputs[0].getData(inputSocketsData)[0].sum(axis=0))
+    
     def updateSound(self, internalTime, order):
         if self.running[0]:
-            self.getTree().play_chunk(internalTime, order, self.name)
+            self.getTree().evaluate_graph(internalTime, order)
     t1 = None
-
+    
     def updateLoop(self):
         internalTime = time.time()
         order = []
-        needsReconstruct = True
         while self.running[0]:
             needsUpdate = False
             
+            self.getTree().setupPygame()
             try:
                 needsUpdate = self.getTree().needsAudio()
             except AttributeError: # A random error sometimes gets thrown here
                 pass
             
-            needsReconstruct = self.getTree().needsReconstruct()
-            if needsReconstruct:
+            if self.getTree().needsReconstruct():
                 self.getTree().reconstruct(order)
-                needsReconstruct = False
             
             if needsUpdate:
                 internalTime = internalTime + self.getTree().chunk_size/self.getTree().sample_rate
