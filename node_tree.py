@@ -186,7 +186,6 @@ class Oscillator(AudioTreeNode):
         rebuildCache = False
 
         try:
-
             if len(self.oscillatorStates[self.path_from_id()][0]) != len(self.inputs[0].getData(inputSocketsData)[0]):
                 rebuildCache = True
 

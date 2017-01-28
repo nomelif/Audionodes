@@ -34,7 +34,8 @@ class Sum(Node, AudioTreeNode):
         data_1 = self.inputs[0].getData(inputSocketsData)
         data_2 = self.inputs[1].getData(inputSocketsData)
         
-        return ((data_1[0] + data_2[0], data_1[1]), )
+        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
+        return ((data_1[0] + data_2[0], stamps), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -52,7 +53,8 @@ class Mul(Node, AudioTreeNode):
         data_1 = self.inputs[0].getData(inputSocketsData)
         data_2 = self.inputs[1].getData(inputSocketsData)
         
-        return ((data_1[0] * data_2[0], data_1[1]), )
+        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
+        return ((data_1[0] * data_2[0], stamps), )
     
     def init(self, context):
         
@@ -69,7 +71,9 @@ class Max(Node, AudioTreeNode):
     def callback(self, inputSocketsData, time, rate, length):
         data_1 = self.inputs[0].getData(inputSocketsData)
         data_2 = self.inputs[1].getData(inputSocketsData)
-        return ((np.maximum(data_1[0], data_2[0]), data_1[1]), )
+        
+        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
+        return ((np.maximum(data_1[0], data_2[0]), stamps), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -84,7 +88,9 @@ class Min(Node, AudioTreeNode):
     def callback(self, inputSocketsData, time, rate, length):
         data_1 = self.inputs[0].getData(inputSocketsData)
         data_2 = self.inputs[1].getData(inputSocketsData)
-        return ((np.minimum(data_1[0], data_2[0]), data_1[1]), )
+        
+        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
+        return ((np.minimum(data_1[0], data_2[0]), stamps), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
@@ -102,7 +108,14 @@ class Logic(Node, AudioTreeNode):
         data_a = self.inputs[1].getData(inputSocketsData)
         data_b = self.inputs[2].getData(inputSocketsData)
         result = condition * data_a[0] + (1-condition) * data_b[0]
-        return ((result, data_condition[1]), )
+        
+        if len(data_condition[1]) >= len(data_a[1]) and len(data_condition[1]) >= len(data_b[1]):
+            stamps = data_condition[1]
+        elif len(data_a[1]) >= len(data_b[1]):
+            stamps = data_a[1]
+        else:
+            stamps = data_b[1]
+        return ((result, stamps), )
     
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
