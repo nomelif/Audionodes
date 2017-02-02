@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import NodeTree, Node # , NodeSocket, NodeSocketFloat
 
+from bpy.props import EnumProperty, BoolProperty
+
 from .painfuls import fix
 
 pygame, np = fix()
@@ -42,6 +44,106 @@ class Sum(Node, AudioTreeNode):
         
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
+
+class Math(Node, AudioTreeNode):
+    '''A general math node'''
+    bl_idname = 'MathNode'
+    bl_label = 'Math'
+
+    clamp = BoolProperty(
+    
+        name = "Clamp",
+        description = "Limit output range to 0..1"
+
+    )
+
+    opEnum = EnumProperty(
+    
+    items = [('SUM', 'Add', '', 1),
+             ('SUB', 'Substract', '', 2),
+	     ('MUL', 'Multiply', '', 3),
+	     ('DIV', 'Divide', '', 4),
+	     ('SIN', 'Sine', '', 5),
+	     ('COS', 'Cosine', '', 6),
+	     ('TAN', 'Tangent', '', 7),
+	     ('ASIN', 'Arcsine', '', 8),
+	     ('ACOS', 'Arccosine', '', 9),
+	     ('ATAN', 'Arctangent', '', 10),
+	     ('POW', 'Power', '', 11),
+	     ('LOG', 'Logarithm', '', 12),
+	     ('MIN', 'Minimum', '', 13),
+	     ('MAX', 'Maximum', '', 14),
+	     ('RND', 'Round', '', 15),
+	     ('LT', 'Less Than', '', 16),
+	     ('GT', 'Greater Than', '', 17),
+	     ('MOD', 'Modulo', '', 18),
+	     ('ABS', 'Absolute', '', 19)
+    ]
+    
+    )
+
+    def callback(self, inputSocketsData, time, rate, length):
+        data_1 = self.inputs[0].getData(inputSocketsData)
+        data_2 = self.inputs[1].getData(inputSocketsData)
+
+        result = None
+
+        if self.opEnum == 'SUM':
+            result = data_1[0] + data_2[0]
+        elif self.opEnum == 'SUB':
+            result = data_1[0] - data_2[0]
+        elif self.opEnum == 'MUL':
+            result = data_1[0] * data_2[0]
+        elif self.opEnum == 'DIV':
+            result = data_1[0] / data_2[0] # NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN Batman!
+        elif self.opEnum == 'SIN':
+            result = np.sin(data_1[0])
+        elif self.opEnum == 'COS':
+            result = np.cos(data_1[0])
+        elif self.opEnum == 'TAN':
+            result = np.tan(data_1[0])
+        elif self.opEnum == 'ASIN':
+            result = np.arcsin(data_1[0])
+        elif self.opEnum == 'ACOS':
+            result = np.arccos(data_1[0])
+        elif self.opEnum == 'ATAN':
+            result = np.arctan(data_1[0])
+        elif self.opEnum == 'POW':
+            result = data_1[0] ** data_2[0]
+        elif self.opEnum == 'LOG':
+            result = np.log2(data_1[0]) / np.log2(data_2[0])
+        elif self.opEnum == 'MIN':
+            result = np.minimum(data_1[0], data_2[0])
+        elif self.opEnum == 'MAX':
+            result = np.maximum(data_1[0], data_2[0])
+        elif self.opEnum == 'RND':
+            result = np.round(data_1[0])
+        elif self.opEnum == 'LT':
+            result = np.zeros(len(data_1[0]))
+            result[np.where(data_1[0] < data_2[0])] = 1.0
+        elif self.opEnum == 'GT':
+            result = np.zeros(len(data_1[0]))
+            result[np.where(data_1[0] > data_2[0])] = 1.0
+        elif self.opEnum == 'MOD':
+            result = data_1[0] % data_2[0]
+        elif self.opEnum == 'ABS':
+            result = np.abs(data_1[0])
+
+        if self.clamp:
+            result = np.clip(result, 0, 1)
+
+        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
+        return ((result, data_1[1]),)
+
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Result")
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+
+    def draw_buttons(self, context, layout):
+
+        layout.prop(self, 'clamp')
+        layout.prop(self, 'opEnum', text='')
 
 class Mul(Node, AudioTreeNode):
     '''Multiply two signals'''
