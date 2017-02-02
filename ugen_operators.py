@@ -133,7 +133,7 @@ class Math(Node, AudioTreeNode):
             result = np.clip(result, 0, 1)
 
         stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((result, data_1[1]),)
+        return ((result, stamps),)
 
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Result")
