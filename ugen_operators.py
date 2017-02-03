@@ -95,7 +95,7 @@ class Math(Node, AudioTreeNode):
         elif self.opEnum == 'MUL':
             result = data_1[0] * data_2[0]
         elif self.opEnum == 'DIV':
-            result = data_1[0] / data_2[0] # NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN Batman!
+            result = data_1[0] / data_2[0]
         elif self.opEnum == 'SIN':
             result = np.sin(data_1[0])
         elif self.opEnum == 'COS':
@@ -129,8 +129,11 @@ class Math(Node, AudioTreeNode):
         elif self.opEnum == 'ABS':
             result = np.abs(data_1[0])
 
+        result[np.abs(result) == np.inf] = 0
+
         if self.clamp:
             result = np.clip(result, 0, 1)
+
 
         stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
         return ((result, stamps),)
