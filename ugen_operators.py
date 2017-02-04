@@ -111,6 +111,10 @@ class Math(Node, AudioTreeNode):
         elif self.opEnum == 'POW':
             result = data_1[0] ** data_2[0]
         elif self.opEnum == 'LOG':
+
+            data_1[0][data_1[0] <= 0] = 1 # log2 of 1 is zero
+            data_2[0][data_2[0] <= 0] = 1 # NaNs this engenders are caught later on
+
             result = np.log2(data_1[0]) / np.log2(data_2[0])
         elif self.opEnum == 'MIN':
             result = np.minimum(data_1[0], data_2[0])
@@ -129,11 +133,12 @@ class Math(Node, AudioTreeNode):
         elif self.opEnum == 'ABS':
             result = np.abs(data_1[0])
 
-        result[np.abs(result) == np.inf] = 0
+        # Fix infinite and nan values
+
+        result[np.logical_not(np.isfinite(result))] = 0
 
         if self.clamp:
             result = np.clip(result, 0, 1)
-
 
         stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
         return ((result, stamps),)
