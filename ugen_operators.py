@@ -101,60 +101,6 @@ class Math(Node, AudioTreeNode):
     #     print("asd")
     #     self.title = self.operations_lookup[self.opEnum][0]
 
-class Mul(Node, AudioTreeNode):
-    '''Multiply two signals'''
-    bl_idname = 'SignalMulNode'
-    bl_label = 'Mul'
-    
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((data_1[0] * data_2[0], stamps), )
-    
-    def init(self, context):
-        
-        self.outputs.new('RawAudioSocketType', "Audio")
-        
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-
-class Max(Node, AudioTreeNode):
-    '''Maximum of two signals'''
-    bl_idname = 'SignalMaxNode'
-    bl_label = 'Max'
-    
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((np.maximum(data_1[0], data_2[0]), stamps), )
-    
-    def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-
-class Min(Node, AudioTreeNode):
-    '''Minimum of two signals'''
-    bl_idname = 'SignalMinNode'
-    bl_label = 'Min'
-    
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((np.minimum(data_1[0], data_2[0]), stamps), )
-    
-    def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-
 class Logic(Node, AudioTreeNode):
     '''Output A or B depending on a condition signal'''
     bl_idname = 'SignalLogicNode'
