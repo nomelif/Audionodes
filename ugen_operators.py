@@ -38,89 +38,52 @@ class Math(Node, AudioTreeNode):
         description = "Limit output range to 0..1"
 
     )
-
-    opEnum = EnumProperty(
     
-    items = [('SUM', 'Add', '', 1),
-             ('SUB', 'Substract', '', 2),
-	     ('MUL', 'Multiply', '', 3),
-	     ('DIV', 'Divide', '', 4),
-	     ('SIN', 'Sine', '', 5),
-	     ('COS', 'Cosine', '', 6),
-	     ('TAN', 'Tangent', '', 7),
-	     ('ASIN', 'Arcsine', '', 8),
-	     ('ACOS', 'Arccosine', '', 9),
-	     ('ATAN', 'Arctangent', '', 10),
-	     ('POW', 'Power', '', 11),
-	     ('LOG', 'Logarithm', '', 12),
-	     ('MIN', 'Minimum', '', 13),
-	     ('MAX', 'Maximum', '', 14),
-	     ('RND', 'Round', '', 15),
-	     ('LT', 'Less Than', '', 16),
-	     ('GT', 'Greater Than', '', 17),
-	     ('MOD', 'Modulo', '', 18),
-	     ('ABS', 'Absolute', '', 19)
+    operations = [
+        ('SUM', ('Add', lambda a, b: a + b)),
+        ('SUB', ('Substract', lambda a, b: a - b)),
+        ('MUL', ('Multiply', lambda a, b: a * b)),
+        ('DIV', ('Divide', lambda a, b: a / b)),
+        ('SIN', ('Sine', lambda a, b: np.sin(a))),
+        ('COS', ('Cosine', lambda a, b: np.cos(a))),
+        ('TAN', ('Tangent', lambda a, b: np.tan(a))),
+        ('ASIN', ('Arcsine', lambda a, b: np.arcsin(a))),
+        ('ACOS', ('Arccosine', lambda a, b: np.arccos(a))),
+        ('ATAN', ('Arctangent', lambda a, b: np.arctan(a))),
+        ('POW', ('Power', lambda a, b: a ** b)),
+        ('LOG', ('Logarithm', lambda a, b: np.log(a) / np.log(b))),
+        ('MIN', ('Minimum', lambda a, b: np.minimum(a, b))),
+        ('MAX', ('Maximum', lambda a, b: np.maximum(a, b))),
+        ('RND', ('Round', lambda a, b: np.round(a))),
+        ('LT', ('Less Than', lambda a, b: (a < b).astype(float))),
+        ('GT', ('Greater Than', lambda a, b: (a > b).astype(float))),
+        ('MOD', ('Modulo', lambda a, b: a % b)),
+        ('ABS', ('Absolute', lambda a, b: np.abs(a))),
     ]
     
+    operations_lookup = dict(operations)
+    
+    opEnum = EnumProperty(
+        items = [(identifier, name, '', index+1) for index, (identifier, (name, ev)) in enumerate(operations)]
     )
 
     def callback(self, inputSocketsData, time, rate, length):
         data_1 = self.inputs[0].getData(inputSocketsData)
         data_2 = self.inputs[1].getData(inputSocketsData)
-
-        result = None
-
-        if self.opEnum == 'SUM':
-            result = data_1[0] + data_2[0]
-        elif self.opEnum == 'SUB':
-            result = data_1[0] - data_2[0]
-        elif self.opEnum == 'MUL':
-            result = data_1[0] * data_2[0]
-        elif self.opEnum == 'DIV':
-            result = data_1[0] / data_2[0]
-        elif self.opEnum == 'SIN':
-            result = np.sin(data_1[0])
-        elif self.opEnum == 'COS':
-            result = np.cos(data_1[0])
-        elif self.opEnum == 'TAN':
-            result = np.tan(data_1[0])
-        elif self.opEnum == 'ASIN':
-            result = np.arcsin(data_1[0])
-        elif self.opEnum == 'ACOS':
-            result = np.arccos(data_1[0])
-        elif self.opEnum == 'ATAN':
-            result = np.arctan(data_1[0])
-        elif self.opEnum == 'POW':
-            result = data_1[0] ** data_2[0]
-        elif self.opEnum == 'LOG':
-
-            data_1[0][data_1[0] <= 0] = 1 # log2 of 1 is zero
+        
+        if self.opEnum == 'LOG':
+            data_1[0][data_1[0] <= 0] = 1 # log of 1 is zero
             data_2[0][data_2[0] <= 0] = 1 # NaNs this engenders are caught later on
-
-            result = np.log2(data_1[0]) / np.log2(data_2[0])
-        elif self.opEnum == 'MIN':
-            result = np.minimum(data_1[0], data_2[0])
-        elif self.opEnum == 'MAX':
-            result = np.maximum(data_1[0], data_2[0])
-        elif self.opEnum == 'RND':
-            result = np.round(data_1[0])
-        elif self.opEnum == 'LT':
-            result = np.zeros(len(data_1[0]))
-            result[np.where(data_1[0] < data_2[0])] = 1.0
-        elif self.opEnum == 'GT':
-            result = np.zeros(len(data_1[0]))
-            result[np.where(data_1[0] > data_2[0])] = 1.0
-        elif self.opEnum == 'MOD':
-            result = data_1[0] % data_2[0]
-        elif self.opEnum == 'ABS':
-            result = np.abs(data_1[0])
-
+        
+        result = self.operations_lookup[self.opEnum][1](data_1[0], data_2[0])
+        
         # Fix infinite and nan values
-
+        
         result[np.logical_not(np.isfinite(result))] = 0
 
         if self.clamp:
             result = np.clip(result, 0, 1)
+
 
         stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
         return ((result, stamps),)
@@ -131,9 +94,12 @@ class Math(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "Audio")
 
     def draw_buttons(self, context, layout):
-
-        layout.prop(self, 'clamp')
         layout.prop(self, 'opEnum', text='')
+        layout.prop(self, 'clamp')
+    
+    # def socket_value_update(self, context):
+    #     print("asd")
+    #     self.title = self.operations_lookup[self.opEnum][0]
 
 class Mul(Node, AudioTreeNode):
     '''Multiply two signals'''
