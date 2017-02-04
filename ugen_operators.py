@@ -27,24 +27,6 @@ class Noise(Node, AudioTreeNode):
         self.stamps[self.path_from_id()] = time.time()
         self.outputs.new('RawAudioSocketType', "Audio")
 
-class Sum(Node, AudioTreeNode):
-    '''The sum of two signals'''
-    bl_idname = 'SignalSumNode'
-    bl_label = 'Sum'
-        
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((data_1[0] + data_2[0], stamps), )
-    
-    def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
-        
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-
 class Math(Node, AudioTreeNode):
     '''A general math node'''
     bl_idname = 'MathNode'
