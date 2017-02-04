@@ -214,7 +214,7 @@ class Oscillator(AudioTreeNode):
         freq = self.inputs[0].getData(inputSocketsData)[0]
         phase = ((freq.cumsum(axis=1)/rate).transpose() + self.oscillatorStates[self.path_from_id()][0]).transpose()
         self.oscillatorStates[self.path_from_id()][0] = (phase[:,-1] % 1)
-        output = (self.generate(phase, timeData=timeData, rate=rate, length=length) * self.inputs[1].getData(inputSocketsData)[0] + self.inputs[2].getData(inputSocketsData)[0], self.oscillatorStates[self.path_from_id()][0])
+        output = (self.generate(phase, inputSocketsData=inputSocketsData) * self.inputs[1].getData(inputSocketsData)[0] + self.inputs[2].getData(inputSocketsData)[0], self.oscillatorStates[self.path_from_id()][0])
         return (output,)
     
     def init(self, context):
