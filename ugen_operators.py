@@ -22,7 +22,7 @@ class Noise(Node, AudioTreeNode):
     stamps = {}
     
     def init(self, context):
-        self.stamps[self.path_from_id()] = time.time()
+        self.stamps[self.path_from_id()] = [time.time()]
         self.outputs.new('RawAudioSocketType', "Audio")
 
 class Sum(Node, AudioTreeNode):
