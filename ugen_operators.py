@@ -63,8 +63,12 @@ class Math(Node, AudioTreeNode):
     
     operations_lookup = dict(operations)
     
+    def change_operation(self, context):
+        self.label = self.operations_lookup[self.opEnum][0]
+    
     opEnum = EnumProperty(
-        items = [(identifier, name, '', index+1) for index, (identifier, (name, ev)) in enumerate(operations)]
+        items = [(identifier, name, '', index+1) for index, (identifier, (name, ev)) in enumerate(operations)],
+        update = change_operation
     )
 
     def callback(self, inputSocketsData, time, rate, length):
@@ -92,15 +96,12 @@ class Math(Node, AudioTreeNode):
         self.outputs.new('RawAudioSocketType', "Result")
         self.inputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
+        self.change_operation(context)
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'opEnum', text='')
         layout.prop(self, 'clamp')
     
-    # def socket_value_update(self, context):
-    #     print("asd")
-    #     self.title = self.operations_lookup[self.opEnum][0]
-
 class Logic(Node, AudioTreeNode):
     '''Output A or B depending on a condition signal'''
     bl_idname = 'SignalLogicNode'
