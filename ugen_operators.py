@@ -67,7 +67,7 @@ class Math(Node, AudioTreeNode):
         self.label = self.operations_lookup[self.opEnum][0]
     
     opEnum = EnumProperty(
-        items = [(identifier, name, '', index+1) for index, (identifier, (name, ev)) in enumerate(operations)],
+        items = [(identifier, name, '', index) for index, (identifier, (name, ev)) in enumerate(operations)],
         update = change_operation
     )
 
