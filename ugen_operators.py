@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import NodeTree, Node # , NodeSocket, NodeSocketFloat
 
+from bpy.props import EnumProperty, BoolProperty
+
 from .painfuls import fix
 
 pygame, np = fix()
@@ -25,78 +27,81 @@ class Noise(Node, AudioTreeNode):
         self.stamps[self.path_from_id()] = [time.time()]
         self.outputs.new('RawAudioSocketType', "Audio")
 
-class Sum(Node, AudioTreeNode):
-    '''The sum of two signals'''
-    bl_idname = 'SignalSumNode'
-    bl_label = 'Sum'
-        
+class Math(Node, AudioTreeNode):
+    '''A general math node'''
+    bl_idname = 'MathNode'
+    bl_label = 'Math'
+
+    clamp = BoolProperty(
+    
+        name = "Clamp",
+        description = "Limit output range to 0..1"
+
+    )
+    
+    operations = [
+        ('SUM', ('Add', lambda a, b: a + b)),
+        ('SUB', ('Substract', lambda a, b: a - b)),
+        ('MUL', ('Multiply', lambda a, b: a * b)),
+        ('DIV', ('Divide', lambda a, b: a / b)),
+        ('SIN', ('Sine', lambda a, b: np.sin(a))),
+        ('COS', ('Cosine', lambda a, b: np.cos(a))),
+        ('TAN', ('Tangent', lambda a, b: np.tan(a))),
+        ('ASIN', ('Arcsine', lambda a, b: np.arcsin(a))),
+        ('ACOS', ('Arccosine', lambda a, b: np.arccos(a))),
+        ('ATAN', ('Arctangent', lambda a, b: np.arctan(a))),
+        ('POW', ('Power', lambda a, b: a ** b)),
+        ('LOG', ('Logarithm', lambda a, b: np.log(a) / np.log(b))),
+        ('MIN', ('Minimum', lambda a, b: np.minimum(a, b))),
+        ('MAX', ('Maximum', lambda a, b: np.maximum(a, b))),
+        ('RND', ('Round', lambda a, b: np.round(a))),
+        ('LT', ('Less Than', lambda a, b: (a < b).astype(float))),
+        ('GT', ('Greater Than', lambda a, b: (a > b).astype(float))),
+        ('MOD', ('Modulo', lambda a, b: a % b)),
+        ('ABS', ('Absolute', lambda a, b: np.abs(a))),
+    ]
+    
+    operations_lookup = dict(operations)
+    
+    def change_operation(self, context):
+        self.label = self.operations_lookup[self.opEnum][0]
+    
+    opEnum = EnumProperty(
+        items = [(identifier, name, '', index) for index, (identifier, (name, ev)) in enumerate(operations)],
+        update = change_operation
+    )
+
     def callback(self, inputSocketsData, time, rate, length):
         data_1 = self.inputs[0].getData(inputSocketsData)
         data_2 = self.inputs[1].getData(inputSocketsData)
         
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((data_1[0] + data_2[0], stamps), )
-    
-    def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
+        if self.opEnum == 'LOG':
+            data_1[0][data_1[0] <= 0] = 1 # log of 1 is zero
+            data_2[0][data_2[0] <= 0] = 1 # NaNs this engenders are caught later on
         
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
+        result = self.operations_lookup[self.opEnum][1](data_1[0], data_2[0])
+        
+        # Fix infinite and nan values
+        
+        result[np.logical_not(np.isfinite(result))] = 0
 
-class Mul(Node, AudioTreeNode):
-    '''Multiply two signals'''
-    bl_idname = 'SignalMulNode'
-    bl_label = 'Mul'
-    
-    # This method gets the current time as a parameter as well as the socket input is wanted for.
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((data_1[0] * data_2[0], stamps), )
-    
-    def init(self, context):
-        
-        self.outputs.new('RawAudioSocketType', "Audio")
-        
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
+        if self.clamp:
+            result = np.clip(result, 0, 1)
 
-class Max(Node, AudioTreeNode):
-    '''Maximum of two signals'''
-    bl_idname = 'SignalMaxNode'
-    bl_label = 'Max'
-    
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
-        stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((np.maximum(data_1[0], data_2[0]), stamps), )
-    
-    def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
 
-class Min(Node, AudioTreeNode):
-    '''Minimum of two signals'''
-    bl_idname = 'SignalMinNode'
-    bl_label = 'Min'
-    
-    def callback(self, inputSocketsData, time, rate, length):
-        data_1 = self.inputs[0].getData(inputSocketsData)
-        data_2 = self.inputs[1].getData(inputSocketsData)
-        
         stamps = data_1[1] if len(data_1[1]) >= len(data_2[1]) else data_2[1]
-        return ((np.minimum(data_1[0], data_2[0]), stamps), )
-    
-    def init(self, context):
-        self.outputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Audio")
+        return ((result, stamps),)
 
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Result")
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.change_operation(context)
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'opEnum', text='')
+        layout.prop(self, 'clamp')
+    
 class Logic(Node, AudioTreeNode):
     '''Output A or B depending on a condition signal'''
     bl_idname = 'SignalLogicNode'

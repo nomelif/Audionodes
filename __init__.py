@@ -82,10 +82,18 @@ node_categories = [
         NodeItem("AudioSinkNode"),
     ]),
     AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
-        NodeItem("SignalSumNode"),
-        NodeItem("SignalMulNode"),
-        NodeItem("SignalMaxNode"),
-        NodeItem("SignalMinNode"),
+        
+	# Legacy operators
+	
+	#NodeItem("SignalSumNode"),
+        #NodeItem("SignalMulNode"),
+        #NodeItem("SignalMaxNode"),
+        #NodeItem("SignalMinNode"),
+
+	# New math node
+
+	NodeItem("MathNode"),
+	
         NodeItem("SignalLogicNode"),
     ]),
     AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
