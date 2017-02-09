@@ -398,7 +398,7 @@ class Piano(Node, AudioTreeNode):
 
                                                   "id": np.array(stampMap),
                                                   "frequency": np.tile(np.array([freqMap]).transpose(), int(length*rate)),
-                                                  "startTime": np.tile(np.array([timeMap]).transpose(), int(length*rate)),
+                                                  "startTime": np.tile(np.array([timeMap]).transpose(), int(length*rate)) + np.arange(int(length*rate))/rate,
                                                   "velocity": np.tile(np.array([velocityMap]).transpose(), int(length*rate)),
                                                   "time": timeIn
 
