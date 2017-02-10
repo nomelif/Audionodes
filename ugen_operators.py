@@ -41,7 +41,7 @@ class Math(Node, AudioTreeNode):
     
     operations = [
         ('SUM', ('Add', lambda a, b: a + b)),
-        ('SUB', ('Substract', lambda a, b: a - b)),
+        ('SUB', ('Subtract', lambda a, b: a - b)),
         ('MUL', ('Multiply', lambda a, b: a * b)),
         ('DIV', ('Divide', lambda a, b: a / b)),
         ('SIN', ('Sine', lambda a, b: np.sin(a))),
