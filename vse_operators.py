@@ -14,6 +14,6 @@ class VSERecord(bpy.types.Operator):
     bl_label = "Record to sequencer"
 
     def execute(self, context):
-        tree = context.active_node.getTree()
+        tree = context.node.getTree()
         tree.toggleRecording()
         return {'FINISHED'}
