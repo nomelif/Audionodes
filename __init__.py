@@ -47,7 +47,7 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree, piano_capture, oscillators, ugen_operators, effects
+from . import node_tree, piano_capture, oscillators, ugen_operators, effects, filters
 
 
 ### Node Categories ###
@@ -98,6 +98,9 @@ node_categories = [
     ]),
     AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
         NodeItem("DelayNode"),
+    ]),
+    AudioNodeCategory("SIGNAL_FILTERS", "Filters", items=[
+        NodeItem("FIRPassNode"),
     ]),
 ]
 
