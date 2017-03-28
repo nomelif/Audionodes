@@ -25,17 +25,44 @@ class FIRPass(Node, AudioTreeNode):
     
     
     def callback(self, inputSocketData, time, rate, length):
-        pass
+        N = int(rate*length)
+        signal = np.sum(self.inputs[0].getData(inputSocketData)[0], axis=0)
+        signal_fft = np.fft.rfft(np.append(signal, np.zeros(N)))
+        fr_fft = self.frequency_response[self.path_from_id()]
+        result = np.split(np.fft.irfft(signal_fft * fr_fft, N*2), 2)
+        
+        now_output = result[0] + self.memory[self.path_from_id()]
+        self.memory[self.path_from_id()] = result[1]
+        
+        return ((np.reshape(now_output, (1, N)), self.stamps[self.path_from_id()]), )
+        
         
     stamps = {}
+    frequency_response = {}
+    memory = {}
     
     def init(self, context):
         self.stamps[self.path_from_id()] = [time.time()]
+        self.memory[self.path_from_id()] = np.zeros(1024)
         self.outputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Audio")
+        self.recalculate_kernel(context)
     
     def recalculate_kernel(self, context):
-        pass
+        # Windowed sinc
+        N = 1024 # TODO: get from NodeTree!
+        SF = 44100
+        
+        ktime = (np.arange(N)-N/2)*2/N
+        kernel = np.sinc(ktime*self.cutoff/SF*N) * np.blackman(N)
+        kernel /= np.sum(kernel)
+        
+        if self.lohiEnum == 'HIGH':
+            # Spectral inversion
+            kernel = -kernel
+            kernel[N//2] += 1
+        frequency_response = np.fft.rfft(np.append(kernel, np.zeros(N)))
+        self.frequency_response[self.path_from_id()] = frequency_response
     
     lohiEnum = EnumProperty(
         name = 'Type',
@@ -46,7 +73,7 @@ class FIRPass(Node, AudioTreeNode):
         update = recalculate_kernel
     )
     
-    cutoffEnum = FloatProperty(
+    cutoff = FloatProperty(
         name = 'Cutoff frequency',
         update = recalculate_kernel,
         default = 200, min = 0, max = 22050 # Nyqist limit, calculate from sampling fq?
@@ -54,4 +81,4 @@ class FIRPass(Node, AudioTreeNode):
     
     def draw_buttons(self, context, layout):
         layout.prop(self, 'lohiEnum', text='')
-        layout.prop(self, 'cutoffEnum')
+        layout.prop(self, 'cutoff')
