@@ -21,10 +21,21 @@ class FIRPass(Node, AudioTreeNode):
     
     def callback(self, inputSocketData, time, rate, length):
         N = int(rate*length)
-        signal = np.sum(self.inputs[0].getData(inputSocketData)[0], axis=0)
+        cutoff = np.clip(np.average(self.inputs[0].getData(inputSocketData)[0]), 0, rate/2)
+        signal = np.sum(self.inputs[1].getData(inputSocketData)[0], axis=0)
         signal_fft = np.fft.rfft(np.append(signal, np.zeros(N)))
-        fr_fft = self.frequency_response[self.path_from_id()]
-        result = np.split(np.fft.irfft(signal_fft * fr_fft, N*2), 2)
+        
+        ktime = (np.arange(N)-N/2)*2/N
+        kernel = np.sinc(ktime*cutoff/rate*N) * np.blackman(N)
+        kernel /= np.sum(kernel)
+        
+        if self.lohiEnum == 'HIGH':
+            # Spectral inversion
+            kernel = -kernel
+            kernel[N//2] += 1
+        frequency_response = np.fft.rfft(np.append(kernel, np.zeros(N)))
+        
+        result = np.split(np.fft.irfft(signal_fft * frequency_response, N*2), 2)
         
         now_output = result[0] + self.memory[self.path_from_id()]
         self.memory[self.path_from_id()] = result[1]
@@ -33,47 +44,22 @@ class FIRPass(Node, AudioTreeNode):
         
         
     stamps = {}
-    frequency_response = {}
     memory = {}
     
     def init(self, context):
         self.stamps[self.path_from_id()] = [time.time()]
-        self.memory[self.path_from_id()] = np.zeros(1024)
+        self.memory[self.path_from_id()] = 0
         self.outputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Cutoff (Hz)")
         self.inputs.new('RawAudioSocketType', "Audio")
-        self.recalculate_kernel(context)
-    
-    def recalculate_kernel(self, context):
-        # Windowed sinc
-        N = 1024 # TODO: get from NodeTree!
-        SF = 44100
-        
-        ktime = (np.arange(N)-N/2)*2/N
-        kernel = np.sinc(ktime*self.cutoff/SF*N) * np.blackman(N)
-        kernel /= np.sum(kernel)
-        
-        if self.lohiEnum == 'HIGH':
-            # Spectral inversion
-            kernel = -kernel
-            kernel[N//2] += 1
-        frequency_response = np.fft.rfft(np.append(kernel, np.zeros(N)))
-        self.frequency_response[self.path_from_id()] = frequency_response
     
     lohiEnum = EnumProperty(
         name = 'Type',
         items = (
             ('LOW', 'Low pass', 'Allow frequencies lower than cutoff'),
             ('HIGH', 'High pass', 'Allow frequencies higher than cutoff'),
-        ),
-        update = recalculate_kernel
-    )
-    
-    cutoff = FloatProperty(
-        name = 'Cutoff frequency',
-        update = recalculate_kernel,
-        default = 200, min = 0, max = 22050 # Nyqist limit, calculate from sampling fq?
+        )
     )
     
     def draw_buttons(self, context, layout):
         layout.prop(self, 'lohiEnum', text='')
-        layout.prop(self, 'cutoff')
