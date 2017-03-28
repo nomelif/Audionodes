@@ -12,11 +12,6 @@ from .node_tree import AudioTreeNode
 
 # This file should always use np.fft.rfft, because we are not dealing with complex numbers
 # np.fft.fft is slightly slower to compute
-def fftconvolve(a, b, N):
-    z = np.zeros(N)
-    a = np.fft.rfft(np.append(a, z))
-    b = np.fft.rfft(np.append(b, z))
-    return np.fft.irfft(a * b, 2*N)
 
 class FIRPass(Node, AudioTreeNode):
     '''A low or high pass FIR filter'''
