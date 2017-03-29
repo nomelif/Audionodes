@@ -11,40 +11,51 @@ from threading import Thread
 
 pygame, np, pyaudio = fix(("pygame", "numpy", "pyaudio"))
 
+import sfml
+
+class AudioStream(sfml.audio.SoundStream):
+    def __init__(self, sample_rate, tree):
+        sfml.audio.SoundStream.__init__(self)
+        
+        self.initialize(1, sample_rate)
+        
+        self.tree = tree
+    
+    def on_get_data(self, data):
+        output = self.tree.evaluate_graph(self.playing_offset.seconds)
+        data.data = np.int16(np.clip(output*(2**15), -2**15, 2**15-1)).tobytes()
+        return True
+    
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):
-
+    
     '''Node tree for audio mixer'''
-
+    
     bl_idname = 'AudioTreeType'
     bl_label = 'Audio nodes'
     bl_icon = 'PLAY_AUDIO'
-
-    pygameInited =  [False]
-
-    ch = [None]
     
+    order = [[]]
     structureChanged = [True]
+    audioStream = [None]
     
     sample_rate = 44100
     chunk_size = 1024
-
-
-    def setupPygame(self):
-        if not self.pygameInited[0]:
-            pygame.mixer.init(self.sample_rate, -16, 1, self.chunk_size)
-            self.ch[0]=pygame.mixer.Channel(0)
-            self.pygameInited[0] = True
-
-    def play_chunk(self, outputData):
-        snd=pygame.sndarray.make_sound(np.int16(np.clip(outputData*(2**15), -2**15, 2**15-1)))
-        self.ch[0].queue(snd)
     
-    def evaluate_graph(self, internalTime, order):
+    def init(self):
+        self.audioStream[0] = AudioStream(self.sample_rate, self)
+        self.audioStream[0].play()
+
+    def evaluate_graph(self, internalTime):
+        order = self.order[0]
+        if self.needsReconstruct():
+            self.reconstruct(order)
+        
         inputSocketsData = {}
         for nodeName in order:
             inputSocketsData[nodeName] = {}
         
+        outputData = np.zeros(self.chunk_size)
         for nodeName in order:
             node = self.nodes.get(nodeName)
             if node == None: # Safeguard, may be unnecessary
@@ -55,12 +66,16 @@ class AudioTree(NodeTree):
                 self.evaluate_graph(internalTime, order, outputNode)
                 return
             outputSocketsData = node.callback(inputSocketsData[nodeName], internalTime, self.sample_rate, self.chunk_size/self.sample_rate)
-            for i in range(len(node.outputs)):
-                socket = node.outputs[i]
-                data = outputSocketsData[i]
-                for link in socket.links:
-                    if link.to_node.name in inputSocketsData:
-                        inputSocketsData[link.to_node.name][link.to_socket.identifier] = data
+            if node.is_sink:
+                outputData = outputSocketsData
+            else:
+                for i in range(len(node.outputs)):
+                    socket = node.outputs[i]
+                    data = outputSocketsData[i]
+                    for link in socket.links:
+                        if link.to_node.name in inputSocketsData:
+                            inputSocketsData[link.to_node.name][link.to_socket.identifier] = data
+        return outputData
     
     def reconstruct(self, order):
         self.structureChanged[0] = False
@@ -95,20 +110,13 @@ class AudioTree(NodeTree):
                         if nodes[link.to_node.name][1] == 0:
                             order.append(link.to_node.name)
     
-    def needsAudio(self):
-        try:
-            if self.ch[0].get_queue() == None:
-                return True
-            else:
-                return False
-        except:
-            return True
-    
     def needsReconstruct(self):
         return self.structureChanged[0]
     
     def update(self):
        self.structureChanged[0] = True
+       if self.audioStream[0] == None:
+           self.init()
 
 # Custom socket type
 class RawAudioSocket(NodeSocket):
@@ -160,6 +168,7 @@ class AudioTreeNode:
 
     bl_icon = 'SOUND'
     is_output = False
+    is_sink = False
 
     @classmethod
     def poll(cls, ntree):

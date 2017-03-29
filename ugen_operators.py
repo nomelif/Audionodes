@@ -136,44 +136,15 @@ class Sink(Node, AudioTreeNode):
     bl_icon = 'SOUND'
     
     is_output = True
-    
-    running = [True]
+    is_sink = True
     
     def callback(self, inputSocketsData, timeData, rate, length):
-        self.getTree().play_chunk(self.inputs[0].getData(inputSocketsData)[0].sum(axis=0))
-    
-    def updateSound(self, internalTime, order):
-        if self.running[0]:
-            self.getTree().evaluate_graph(internalTime, order)
-    t1 = None
-    
-    def updateLoop(self):
-        internalTime = time.time()
-        order = []
-        while self.running[0]:
-            needsUpdate = False
-            
-            self.getTree().setupPygame()
-            try:
-                needsUpdate = self.getTree().needsAudio()
-            except AttributeError: # A random error sometimes gets thrown here
-                pass
-            
-            if self.getTree().needsReconstruct():
-                self.getTree().reconstruct(order)
-            
-            if needsUpdate:
-                internalTime = internalTime + self.getTree().chunk_size/self.getTree().sample_rate
-                self.updateSound(internalTime, order)
-            
-            time.sleep(0.01)
+        return self.inputs[0].getData(inputSocketsData)[0].sum(axis=0)
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
-        self.running[0] = True
-        self.t1 = threading.Thread(target=self.updateLoop)
-        self.t1.start()
+        self.getTree().audioStream[0].play()
     
-    # Free function to clean up on removal.
     def free(self):
-        self.running[0] = False
+        self.getTree().audioStream[0].pause()
+    
