@@ -143,8 +143,4 @@ class Sink(Node, AudioTreeNode):
     
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
-        self.getTree().audioStream[0].play()
-    
-    def free(self):
-        self.getTree().audioStream[0].pause()
     

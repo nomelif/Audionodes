@@ -44,7 +44,6 @@ class AudioTree(NodeTree):
     
     def init(self):
         self.audioStream[0] = AudioStream(self.sample_rate, self)
-        self.audioStream[0].play()
 
     def evaluate_graph(self, internalTime):
         order = self.order[0]
@@ -109,14 +108,21 @@ class AudioTree(NodeTree):
                         nodes[link.to_node.name][1] -= 1
                         if nodes[link.to_node.name][1] == 0:
                             order.append(link.to_node.name)
+        
+        if len(order) == 0:
+            self.audioStream[0].pause()
     
     def needsReconstruct(self):
         return self.structureChanged[0]
     
     def update(self):
-       self.structureChanged[0] = True
-       if self.audioStream[0] == None:
-           self.init()
+        self.structureChanged[0] = True
+        if self.audioStream[0] == None:
+            self.init()
+        if self.audioStream[0].status != sfml.audio.SoundSource.PLAYING:
+            self.reconstruct(self.order[0])
+            if len(self.order[0]):
+                self.audioStream[0].play()
 
 # Custom socket type
 class RawAudioSocket(NodeSocket):
