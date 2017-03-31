@@ -26,6 +26,9 @@ class AudioStream(sfml.audio.SoundStream):
         data.data = np.int16(np.clip(output*(2**15), -2**15, 2**15-1)).tobytes()
         return True
     
+    def on_seek(self, time_offset):
+        pass
+    
 # Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
 class AudioTree(NodeTree):
     
