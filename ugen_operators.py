@@ -177,3 +177,11 @@ class Sink(Node, AudioTreeNode):
     # Free function to clean up on removal.
     def free(self):
         self.running[0] = False
+
+
+    def draw_buttons(self, context, layout):
+        if not self.getTree().recording[0]:
+            layout.operator('audionodes.record', icon='REC',  text='Record')
+        else:
+            layout.operator('audionodes.record', icon='PAUSE', text='Stop')
+ 
