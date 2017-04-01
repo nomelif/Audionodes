@@ -144,3 +144,9 @@ class Sink(Node, AudioTreeNode):
     def init(self, context):
         self.inputs.new('RawAudioSocketType', "Audio")
     
+    def draw_buttons(self, context, layout):
+        if not self.getTree().recording[0]:
+            layout.operator('audionodes.record', icon='REC',  text='Record')
+        else:
+            layout.operator('audionodes.record', icon='PAUSE', text='Stop')
+    

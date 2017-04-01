@@ -8,6 +8,12 @@ from threading import Lock
 from .painfuls import fix
 from collections import deque
 from threading import Thread
+from os.path import expanduser
+import os
+import wave, struct, tempfile
+import time
+import uuid
+
 
 pygame, np, pyaudio = fix(("pygame", "numpy", "pyaudio"))
 
@@ -45,6 +51,69 @@ class AudioTree(NodeTree):
     sample_rate = 44100
     chunk_size = 1024
     
+    recording = [False]
+    wfile = {"name":None, "file":None, "path":None, "tempstrip":None}
+
+    wavelock = [Lock()]
+
+    def toggleRecording(self):
+        self.recording[0] = not self.recording[0]
+        if self.recording[0]:
+
+            self.wavelock[0].acquire()
+
+            # Create a visible directory in the user's home folder to store sound files
+
+            storage_dir = expanduser('~/Audionodes clips')
+
+            if not os.path.exists(storage_dir):
+                os.makedirs(storage_dir)
+
+            self.wfile["name"] = str(uuid.uuid4()) + ".wav"
+
+            self.wfile["path"] = storage_dir + "/" + self.wfile["name"]
+
+            open(self.wfile["path"], "wb+").close()
+
+            self.wfile["file"] = wave.open(self.wfile["path"], "wb")
+            self.wfile["file"].setnchannels(1)
+            self.wfile["file"].setsampwidth(2)
+            self.wfile["file"].setframerate(self.sample_rate)
+
+            type_backup = bpy.context.area.type
+            bpy.context.area.type = 'SEQUENCE_EDITOR'
+            bpy.ops.sequencer.effect_strip_add(frame_start=bpy.context.scene.frame_current, frame_end=bpy.context.scene.frame_current+1, channel=1, type='COLOR', color=(0.1607843, 0.5411765, 0.5411765))
+            self.wfile["tempstrip"] = bpy.context.scene.sequence_editor.sequences_all["Color"]
+            self.wfile["tempstrip"].name = "Recording..."
+            bpy.context.area.type = type_backup
+            bpy.ops.screen.animation_play()
+            self.wavelock[0].release()
+        else:
+
+            self.wavelock[0].acquire()
+
+            self.wfile["file"].writeframes(b'')
+            self.wfile["file"].close()
+
+            bpy.ops.screen.animation_cancel()
+
+            type_backup = bpy.context.area.type
+
+            bpy.context.area.type = 'SEQUENCE_EDITOR'
+
+            # Remove the temporary beast
+
+            bpy.ops.sequencer.delete()
+
+            # Create the actual strip
+
+            bpy.ops.sequencer.sound_strip_add(filepath=self.wfile["path"], relative_path=True, frame_start=bpy.context.scene.frame_current, channel=1)
+            bpy.context.scene.sequence_editor.sequences_all[self.wfile["name"]].show_waveform = True
+            bpy.context.scene.sequence_editor.sequences_all[self.wfile["name"]].name = "Record"
+            bpy.context.area.type = type_backup
+
+            self.wavelock[0].release()
+    
     def init(self):
         self.audioStream[0] = AudioStream(self.sample_rate, self)
 
@@ -77,6 +146,15 @@ class AudioTree(NodeTree):
                     for link in socket.links:
                         if link.to_node.name in inputSocketsData:
                             inputSocketsData[link.to_node.name][link.to_socket.identifier] = data
+        
+        if self.recording[0]:
+            self.wavelock[0].acquire()
+            for sample in np.int16(np.clip(outputData*(2**15), -2**15, 2**15-1)):
+                data = struct.pack(b'<h', sample)
+                self.wfile["file"].writeframesraw(data)
+            self.wfile["tempstrip"].frame_final_end = bpy.context.scene.frame_current
+            self.wavelock[0].release()
+        
         return outputData
     
     def reconstruct(self, order):
