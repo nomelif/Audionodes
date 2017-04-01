@@ -35,7 +35,7 @@ if "bpy" in locals():
         import importlib
 
         try:
-            modules = (node_tree, piano_capture, oscillators, ugen_operators, effects, vse_operators, sequencer)
+            modules = (node_tree, piano_capture, oscillators, ugen_operators, effects, vse_operators, sequencer, filters)
             for m in modules:
                 importlib.reload(m)
             print("audio_nodes: reloaded modules, all systems operational")
@@ -47,7 +47,7 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree, piano_capture, oscillators, ugen_operators, effects, vse_operators, sequencer
+from . import node_tree, piano_capture, oscillators, ugen_operators, effects, vse_operators, sequencer, filters
 
 
 ### Node Categories ###
@@ -99,6 +99,9 @@ node_categories = [
     ]),
     AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
         NodeItem("DelayNode"),
+    ]),
+    AudioNodeCategory("SIGNAL_FILTERS", "Filters", items=[
+        NodeItem("FIRPassNode"),
     ]),
 ]
 
