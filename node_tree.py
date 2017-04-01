@@ -134,7 +134,7 @@ class AudioTree(NodeTree):
                 # Reconstruct & retry
                 print("Unexpected change in structure; retrying")
                 self.reconstruct(order)
-                self.evaluate_graph(internalTime, order, outputNode)
+                self.evaluate_graph(internalTime)
                 return
             outputSocketsData = node.callback(inputSocketsData[nodeName], internalTime, self.sample_rate, self.chunk_size/self.sample_rate)
             if node.is_sink:
