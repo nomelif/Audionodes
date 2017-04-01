@@ -18,13 +18,14 @@ class Noise(Node, AudioTreeNode):
     bl_idname = 'NoiseGeneratorNode'
     bl_label = 'Noise'
     
-    def callback(self, inputSocketData, time, rate, length):
+    def callback(self, inputSocketData, timeOffset, rate, length):
+        if not self.path_from_id() in self.stamps: # "Init" new node
+            self.stamps[self.path_from_id()] = [time.time()]
         return ((np.array([np.random.rand(rate*length)]), np.array(self.stamps[self.path_from_id()])), )
     
     stamps = {}
     
     def init(self, context):
-        self.stamps[self.path_from_id()] = [time.time()]
         self.outputs.new('RawAudioSocketType', "Audio")
 
 class Math(Node, AudioTreeNode):

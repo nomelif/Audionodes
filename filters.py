@@ -18,8 +18,14 @@ class FIRPass(Node, AudioTreeNode):
     bl_idname = 'FIRPassNode'
     bl_label = 'FIR Pass'
     
+    stamps = {}
+    memory = {}
     
-    def callback(self, inputSocketData, time, rate, length):
+    def callback(self, inputSocketData, timeOffset, rate, length):
+        if not self.path_from_id() in self.stamps: # "Init" new node
+            self.stamps[self.path_from_id()] = [time.time()]
+            self.memory[self.path_from_id()] = 0
+        
         N = int(rate*length)
         cutoff = np.clip(np.average(self.inputs[0].getData(inputSocketData)[0]), 0, rate/2)
         signal = np.sum(self.inputs[1].getData(inputSocketData)[0], axis=0)
@@ -41,14 +47,8 @@ class FIRPass(Node, AudioTreeNode):
         self.memory[self.path_from_id()] = result[1]
         
         return ((np.reshape(now_output, (1, N)), self.stamps[self.path_from_id()]), )
-        
-        
-    stamps = {}
-    memory = {}
-    
+     
     def init(self, context):
-        self.stamps[self.path_from_id()] = [time.time()]
-        self.memory[self.path_from_id()] = 0
         self.outputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Cutoff (Hz)")
         self.inputs.new('RawAudioSocketType', "Audio")
