@@ -117,6 +117,14 @@ class AudioTree(NodeTree):
     def init(self):
         self.audioStream[0] = AudioStream(self.sample_rate, self)
 
+        # Ugly hack of the century; On some machines the constant sfml.audio.SoundSource.PLAYING mysteriously seems not to exist. As of writing this it had a value of 2.
+
+        self.PLAYING_CONST = 2
+        try:
+            self.PLAING_CONST = sfml.audio.SoundSource.PLAYING
+        except AttributeError:
+            print("Warning: Couldn't load constant sfml.audio.SoundSource.PLAYING; Used an older value.")
+
     def evaluate_graph(self, internalTime):
         order = self.order[0]
         if self.needsReconstruct():
@@ -195,12 +203,13 @@ class AudioTree(NodeTree):
     
     def needsReconstruct(self):
         return self.structureChanged[0]
-    
+
     def update(self):
         self.structureChanged[0] = True
         if self.audioStream[0] == None:
             self.init()
-        if self.audioStream[0].status != sfml.audio.SoundSource.PLAYING:
+
+        if self.audioStream[0].status != self.PLAYING_CONST:
             self.reconstruct(self.order[0])
             if len(self.order[0]):
                 self.audioStream[0].play()
