@@ -114,6 +114,8 @@ class AudioTree(NodeTree):
 
             self.wavelock[0].release()
     
+    PLAYING_CONST = 2
+
     def init(self):
         self.audioStream[0] = AudioStream(self.sample_rate, self)
 
@@ -121,7 +123,7 @@ class AudioTree(NodeTree):
 
         self.PLAYING_CONST = 2
         try:
-            self.PLAING_CONST = sfml.audio.SoundSource.PLAYING
+            self.PLAYING_CONST = sfml.audio.SoundSource.PLAYING
         except AttributeError:
             print("Warning: Couldn't load constant sfml.audio.SoundSource.PLAYING; Used an older value.")
 
@@ -154,7 +156,7 @@ class AudioTree(NodeTree):
                     for link in socket.links:
                         if link.to_node.name in inputSocketsData:
                             inputSocketsData[link.to_node.name][link.to_socket.identifier] = data
-        
+
         if self.recording[0]:
             self.wavelock[0].acquire()
             for sample in np.int16(np.clip(outputData*(2**15), -2**15, 2**15-1)):
@@ -164,7 +166,7 @@ class AudioTree(NodeTree):
             self.wavelock[0].release()
         
         return outputData
-    
+        
     def reconstruct(self, order):
         self.structureChanged[0] = False
         order.clear()
@@ -174,11 +176,11 @@ class AudioTree(NodeTree):
         for node in self.nodes:
             if node.is_output:
                 bfsQ.append(node)
-        
+    
         for node in bfsQ:
             if node.name in nodes:
                 continue
-            
+        
             connectedInputs = 0
             for socket in node.inputs:
                 if socket.is_linked:
@@ -187,7 +189,7 @@ class AudioTree(NodeTree):
             nodes[node.name] = [node, connectedInputs]
             if connectedInputs == 0:
                 order.append(node.name)
-        
+    
         # Construct topological order of the node graph
         for nodeName in order:
             node = nodes[nodeName][0]
@@ -197,10 +199,10 @@ class AudioTree(NodeTree):
                         nodes[link.to_node.name][1] -= 1
                         if nodes[link.to_node.name][1] == 0:
                             order.append(link.to_node.name)
-        
+    
         if len(order) == 0:
             self.audioStream[0].pause()
-    
+
     def needsReconstruct(self):
         return self.structureChanged[0]
 
@@ -225,10 +227,10 @@ class RawAudioSocket(NodeSocket):
 
     value_prop = bpy.props.FloatProperty()
     last_value = {}
- 
- 
+
+
     def getData(self, inputSocketsData):
-        
+    
         if self.identifier in inputSocketsData:
             return inputSocketsData[self.identifier]
         else:
@@ -244,7 +246,7 @@ class RawAudioSocket(NodeSocket):
             self.last_value[self.path_from_id()] = (self.value_prop, time.time())
             coeff = np.arange(size)/size
             return (np.array([self.value_prop * coeff + last_value * (1-coeff)]), np.array([self.last_value[self.path_from_id()][1]]))
-    
+
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
             layout.label(text)
@@ -272,6 +274,20 @@ class AudioTreeNode:
 
     def getTree(self):
         return self.id_data
+
+    def serialize(self):
+        
+        return {"type":self.bl_idname, "id":self.name, "x":self.location[0], "y":self.location[1], "inputs":[
+               {"value": nodeInput.value_prop, "links":[{"from_node":link.from_node.name, "from_socket":link.from_socket.identifier} for link in nodeInput.links]}
+               for nodeInput in self.inputs]}
+
+    def inflate(self, data):
+        self.name = data["id"]
+        self.location[0] = data["x"]
+        self.location[1] = data["y"]
+        self.name = data["id"]
+        for input_data, input_socket in zip(data["inputs"], self.inputs):
+            input_socket.value_prop = input_data["value"]
 
 
 

@@ -43,3 +43,16 @@ class Sequencer(Node, AudioTreeNode):
             else:
                 result += (np.floor(current_step*self.steps) == (i-1))*self.inputs[i].getData(inputSocketsData)[0]
         return ((result, stamps), )
+
+    def serialize(self):
+        base = super(Sequencer, self).serialize()
+        base["steps"] = self.steps
+        base["interpolate"] = self.interpolate
+        return base
+
+    def inflate(self, data):
+        self.steps = data["steps"]
+        self.interpolate = data["interpolate"]
+        super(Sequencer, self).inflate(data)
+
+

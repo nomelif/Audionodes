@@ -63,3 +63,14 @@ class FIRPass(Node, AudioTreeNode):
     
     def draw_buttons(self, context, layout):
         layout.prop(self, 'lohiEnum', text='')
+
+    def serialize(self):
+        base = super(FIRPass, self).serialize()
+        base["operation"] = self.lohiEnum
+        return base
+
+    def inflate(self, data):
+        self.lohiEnum = data["operation"]
+        super(FIRPass, self).inflate(data)
+
+

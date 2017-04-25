@@ -61,7 +61,18 @@ class Math(Node, AudioTreeNode):
         ('MOD', ('Modulo', lambda a, b: a % b)),
         ('ABS', ('Absolute', lambda a, b: np.abs(a))),
     ]
-    
+
+    def serialize(self):
+        base = super(Math, self).serialize()
+        base["operation"] = self.opEnum
+        base["clamp"] = self.clamp
+        return base
+
+    def inflate(self, data):
+        self.opEnum = data["operation"]
+        self.clamp = data["clamp"]
+        super(Math, self).inflate(data)
+
     operations_lookup = dict(operations)
     
     def change_operation(self, context):
