@@ -417,6 +417,8 @@ class Piano(Node, AudioTreeNode):
         self.outputs.new('RawAudioSocketType', "Frequency")
         self.outputs.new('RawAudioSocketType', "Runtimes")
         self.outputs.new('RawAudioSocketType', "Velocities")
+        self.outputs.new('RawAudioSocketType', "Decays")
+        self.inputs.new('RawAudioSocketType', "Decay time")
         self.keys[self.path_from_id()] = []
         self.sustain[self.path_from_id()] = False
         self.data[self.path_from_id()] = {"time":-1}
@@ -440,21 +442,29 @@ class Piano(Node, AudioTreeNode):
                     found = False
                     while i < len(self.keys[self.path_from_id()]):
                         if self.keys[self.path_from_id()][i]["note"] == event["note"]:
-                            self.keys[self.path_from_id()][i] = {"frequency":event["frequency"], "startTime":currentTime, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time()}
+                            self.keys[self.path_from_id()][i] = {"frequency":event["frequency"], "startTime":0, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time(), "deadOn":None}
                             found = True
                         i = i + 1
 
                     if not found: # If no note is found, create a new one
-                        self.keys[self.path_from_id()].append({"frequency":event["frequency"], "startTime":currentTime, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time()})
+                        self.keys[self.path_from_id()].append({"frequency":event["frequency"], "startTime":0, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time(), "deadOn":None})
                 else:
 
-                    self.keys[self.path_from_id()].append({"frequency":event["frequency"], "startTime":currentTime, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time()})
+                    self.keys[self.path_from_id()].append({"frequency":event["frequency"], "startTime":0, "note":event["note"], "velocity":event["velocity"], "type":"pressed", "id":time.time(), "deadOn":None})
 
             else: # Release
 
                 if not self.sustain[self.path_from_id()]:
 
-                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key["note"] != event["note"]])
+                    # Mark as dead
+
+                    def treat(key):
+                        if key["note"] == event["note"]:
+                            return {"frequency":key["frequency"], "startTime":key["startTime"], "note":key["note"], "velocity":key["velocity"], "type":key["type"], "id":key["id"], "deadOn":1}
+                        else:
+                            return key
+
+                    self.keys[self.path_from_id()] = list([treat(key) for key in self.keys[self.path_from_id()]])
 
                 elif self.sustain[self.path_from_id()]:
 
@@ -472,7 +482,13 @@ class Piano(Node, AudioTreeNode):
 
                     # Remove sustained notes
 
-                    self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key["type"] != "sustain"])
+                    def treat(key):
+                        if key["type"] == "sustain":
+                            return {"frequency":key["frequency"], "startTime":key["startTime"], "note":key["note"], "velocity":key["velocity"], "type":key["type"], "id":key["id"], "deadOn":1}
+                        else:
+                            return key
+
+                    self.keys[self.path_from_id()] = list([treat(key) for key in self.keys[self.path_from_id()]])
 
 
         self.lock[self.path_from_id()].release()
@@ -490,6 +506,8 @@ class Piano(Node, AudioTreeNode):
 
             self.lock[self.path_from_id()].acquire() # No one but me shall touch the notes
 
+            self.keys[self.path_from_id()] = list([key for key in self.keys[self.path_from_id()] if key["deadOn"] == None or key["deadOn"] > 0])
+
             if len(self.keys[self.path_from_id()]) == 0:
 
                 self.data[self.path_from_id()] = {
@@ -498,38 +516,49 @@ class Piano(Node, AudioTreeNode):
                                                   "frequency": np.array([[0]*int(rate*length)]),
                                                   "startTime": np.array([[0]*int(rate*length)]),
                                                   "velocity": np.array([[0]*int(rate*length)]),
-                                                  "time": timeIn
+                                                  "time": timeIn,
+                                                  "decay": np.array([[0]*int(rate*length)])
 
                                                   }
 
             else:
 
+                
+
                 freqMap = []
                 timeMap = []
                 velocityMap = []
                 stampMap = []
+                decayMap = []
 
                 for note in self.keys[self.path_from_id()]:
                     freqMap.append(note["frequency"])
-                    timeMap.append(timeIn - note["startTime"])
+                    timeMap.append(list(note["startTime"]+np.arange(int(length*rate))/rate))
+                    note["startTime"] = note["startTime"] + length
                     velocityMap.append(note["velocity"]/127)
                     stampMap.append(note["id"])
-
+                    if note["deadOn"] == None:
+                        decayMap.append([1]*int(length*rate))
+                    else:
+                        delta = length / self.inputs[0].getData(inputSocketData)[0][0][0]
+                        decayMap.append(list(np.maximum(note["deadOn"]-(np.arange(int(length*rate))/(int(length*rate)))*delta, 0)))
+                        note["deadOn"] = max(note["deadOn"] - delta, 0)
                 self.data[self.path_from_id()] = {
 
                                                   "id": np.array(stampMap),
                                                   "frequency": np.tile(np.array([freqMap]).transpose(), int(length*rate)),
-                                                  "startTime": np.tile(np.array([timeMap]).transpose(), int(length*rate)) + np.arange(int(length*rate))/rate,
+                                                  "startTime": np.array(timeMap),
                                                   "velocity": np.tile(np.array([velocityMap]).transpose(), int(length*rate)),
-                                                  "time": timeIn
-
+                                                  "time": timeIn,
+                                                  "decay": np.array(decayMap),
                                                   }
 
             self.lock[self.path_from_id()].release()
         return (
                 (self.data[self.path_from_id()]["frequency"], self.data[self.path_from_id()]["id"]),
                 (self.data[self.path_from_id()]["startTime"], self.data[self.path_from_id()]["id"]),
-                (self.data[self.path_from_id()]["velocity"], self.data[self.path_from_id()]["id"])
+                (self.data[self.path_from_id()]["velocity"], self.data[self.path_from_id()]["id"]),
+                (self.data[self.path_from_id()]["decay"], self.data[self.path_from_id()]["id"])
                )
     
 
