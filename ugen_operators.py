@@ -140,6 +140,42 @@ class Logic(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "C > 0")
         self.inputs.new('RawAudioSocketType', "C <= 0")
 
+class Flatten(Node, AudioTreeNode):
+    '''Flatten multiple audio channels into one'''
+    bl_idname = 'FlattenNode'
+    bl_label = 'Flatten'
+    
+    operations = [
+        ('SUM', ('Sum', lambda a: a.sum(axis=0))),
+        ('MAX', ('Max', lambda a: a.max(axis=0))),
+        ('MIN', ('Min', lambda a: a.min(axis=0))),
+    ]
+    
+    operations_lookup = dict(operations)
+    
+    opEnum = EnumProperty(
+        items = [(identifier, name, '', index) for index, (identifier, (name, ev)) in enumerate(operations)]
+    )
+    
+    def callback(self, inputSocketsData, timeOffset, rate, length):
+        channels = self.inputs[0].getData(inputSocketsData)[0]
+        channel = self.operations_lookup[self.opEnum][1](channels)
+        channels = np.expand_dims(channel, axis=0)
+        
+        if not self.path_from_id() in self.stamps: # "Init" new node
+            self.stamps[self.path_from_id()] = [time.time()]
+        
+        return ((channels, self.stamps), )
+    
+    stamps = {}
+    
+    def init(self, context):
+        self.outputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Multi-channel audio")
+    
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'opEnum', text='')
+
 class Sink(Node, AudioTreeNode):
     '''An audio sink'''
     bl_idname = 'AudioSinkNode'

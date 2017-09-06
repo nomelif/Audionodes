@@ -96,6 +96,7 @@ node_categories = [
 	
         NodeItem("SignalLogicNode"),
         NodeItem("SequencerNode"),
+        NodeItem("FlattenNode"),
     ]),
     AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
         NodeItem("DelayNode"),
