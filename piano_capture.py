@@ -101,7 +101,7 @@ class PianoCapture(bpy.types.Operator):
             self.caller[0].parseEvent(event)
 
     def invoke(self, context, event):
-        tree = context.active_node.getTree()
+        tree = context.node.getTree()
 
         caller = None
         for node in tree.nodes:
