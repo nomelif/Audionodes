@@ -169,6 +169,15 @@ class Flatten(Node, AudioTreeNode):
     
     stamps = {}
     
+    def serialize(self):
+        base = super(Flatten, self).serialize()
+        base["operation"] = self.opEnum
+        return base
+
+    def inflate(self, data):
+        self.opEnum = data["operation"]
+        super(Flatten, self).inflate(data)
+    
     def init(self, context):
         self.outputs.new('RawAudioSocketType', "Audio")
         self.inputs.new('RawAudioSocketType', "Multi-channel audio")
