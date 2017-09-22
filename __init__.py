@@ -66,6 +66,12 @@ class AudioNodeCategory(NodeCategory):
     def poll(cls, context):
         return context.space_data.tree_type == 'AudioTreeType'
 
+node_categories = [
+
+    # identifier, label, items list
+    AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[]),
+]
+
 def register():
 
     try:
@@ -73,12 +79,10 @@ def register():
     except:
         pass
 
-    bpy.utils.register_module(__name__)
-
+    nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
 def unregister():
     nodeitems_utils.unregister_node_categories("AUDIONODES")
-    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
