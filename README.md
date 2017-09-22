@@ -1,81 +1,12 @@
 # Audionodes
 
-Audio generation in blender nodes.
-
-We now support MIDI keyboards on both Linux and Windows.
-
-_We support Windows now! Testing and reporting back of errors is highly encouraged!_
+Audio generation in blender nodes under Linux.
 
 Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Install
 
-For now Audionodes doesn't come with the required libraries. You need to install `PyGame` and `NumPy` for it to work.
-
-### I am running Windows
-
-### Installing python
-
-We need a fresh Python interpreter on Windows. Grab the one that matches your architechture. Grab the one that matches Blender's Python. As of writing this, that is Python 3.5. If you are running a 64-bit copy of windows, download Python [here](https://www.python.org/ftp/python/3.5.2/python-3.5.2-amd64-webinstall.exe). If you are running a 32-bit one, [here](https://www.python.org/ftp/python/3.5.2/python-3.5.2-webinstall.exe).
-
-For this part, just follow the on-screen instructions.
-
-### Installing dependences.
-
-Here is a nifty little script that installs all it needs:
-
-```python
-import pip
-print("Installing PyGame")
-pip.main(["install", "PyGame", "--user"])
-print("\nInstalling NumPy")
-pip.main(["install", "NumPy", "--user"])
-print("\nInstalling PyAudio")
-pip.main(["install", "pyaudio", "--user"])
-import sys
-import os
-import os.path
-from pathlib import Path
-
-with open(os.getenv('APPDATA')+"/ANPath.py", "w") as f:
-    f.write("""
-
-# Auto-generated file; touch at your own risk
-
-
-def importAll(modules):
-    import os
-    wd = os.getcwd()
-    import sys
-    sys.path.extend("""+str(sys.path)+""")
-    os.chdir(r'"""+str(Path(sys.executable).parent)+"""')
-    import numpy as np
-    import pygame as p
-    import pygame.midi as midi
-    import pyaudio as pa
-    os.chdir(wd)
-    result = []
-    for module in modules:
-        if module == 'pygame':
-            result.append(p)
-        elif module == 'numpy':
-            result.append(np)
-        elif module == 'pygame.midi':
-            result.append(midi)
-        elif module == 'pyaudio':
-            result.append(pa)
-    return tuple(result)""")
-
-input("\nPress [enter] to exit")
-```
-
-It also spits a `ANPath.py` file that the addon uses to import the third party modules.
-
-Anyway, save the script somewhere as `dependencysetup.py` and double-click it to run.
-
-### Install Audio Nodes
-
-Download the AudioNodes addon as a zip. Then go to `User Preferences > Addons > Install from File ...` and pick the archive. Enable the addon and you should be good to go. Midi keyboards should be autodetected.
+For now Audionodes doesn't come with the required libraries. You need to install `pyalsaaudio` and `NumPy` for it to work.
 
 ### I am running Linux
 
@@ -92,7 +23,7 @@ sudo apt-get install python3-numpy python3-pip
 On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`.
 
 
-Regardless of your distribution, install `PyGame` from `pip` with `pip3 install PyGame --user`.
+Regardless of your distribution, install `pyalsaaudio` from `pip` with `pip3 install PyGame --user`.
 
 On other systems, try to install similar packages.
 
@@ -138,13 +69,6 @@ sys.path.extend(whatever your output was)
 This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
 
 Now go and enable the addon, it should work.
-
-### I am running macOS
-
-With `Homebrew` installed, run `brew install python3` to (among other things) setup `pip`correctly. Then install NumPy with `pip3 install numpy --user` and PyGame with `pip3 install PyGame --user`.
-
-
-Then download this repository as a zip. In Blender, go to `File > User Preferences > Addons > Install from File...`. Pick the downloaded archuve and then check the checkbox to enable the addon.
 
 ### Troubleshooting
 
