@@ -6,7 +6,7 @@ import bpy
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 from threading import Lock
 import numpy as np
-import pyalsaaudio
+import alsaaudio
 from collections import deque
 from threading import Thread
 from os.path import expanduser
