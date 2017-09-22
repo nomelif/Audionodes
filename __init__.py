@@ -35,7 +35,7 @@ if "bpy" in locals():
         import importlib
 
         try:
-            modules = (node_tree, piano_capture, oscillators, ugen_operators, effects, vse_operators, sequencer, filters, fileops)
+            modules = (node_tree,)
             for m in modules:
                 importlib.reload(m)
             print("audio_nodes: reloaded modules, all systems operational")
@@ -47,7 +47,7 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree, piano_capture, oscillators, ugen_operators, effects, vse_operators, sequencer, filters, fileops
+from . import node_tree
 
 
 ### Node Categories ###
@@ -65,47 +65,6 @@ class AudioNodeCategory(NodeCategory):
     @classmethod
     def poll(cls, context):
         return context.space_data.tree_type == 'AudioTreeType'
-
-# all categories in a list
-node_categories = [
-    # identifier, label, items list
-    AudioNodeCategory("AUDIO_IN", "Inputs", items=[
-        NodeItem("SineOscillatorNode"),
-        NodeItem("SawOscillatorNode"),
-        NodeItem("SquareOscillatorNode"),
-        NodeItem("TriangleOscillatorNode"),
-        NodeItem("NoiseGeneratorNode"),
-        NodeItem("PianoNode"),
-        NodeItem("MicNode"),
-    ]),
-    AudioNodeCategory("AUDIO_OUT", "Outputs", items=[
-        NodeItem("AudioSinkNode"),
-    ]),
-    AudioNodeCategory("AUDIO_OPERATORS", "Operators", items=[
-        
-	# Legacy operators
-	
-	#NodeItem("SignalSumNode"),
-        #NodeItem("SignalMulNode"),
-        #NodeItem("SignalMaxNode"),
-        #NodeItem("SignalMinNode"),
-
-	# New math node
-
-	NodeItem("MathNode"),
-	
-        NodeItem("SignalLogicNode"),
-        NodeItem("SequencerNode"),
-        NodeItem("FlattenNode"),
-    ]),
-    AudioNodeCategory("AUDIO_EFFECTS", "Effects", items=[
-        NodeItem("DelayNode"),
-    ]),
-    AudioNodeCategory("SIGNAL_FILTERS", "Filters", items=[
-        NodeItem("FIRPassNode"),
-    ]),
-]
-
 
 def register():
 
