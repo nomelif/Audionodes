@@ -74,7 +74,6 @@ def register():
         pass
 
     bpy.utils.register_module(__name__)
-    nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
 
 def unregister():
