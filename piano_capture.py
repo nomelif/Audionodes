@@ -59,9 +59,12 @@ class PianoCapture(bpy.types.Operator):
             while True:
                 if alsaseq.inputpending():
                     inputData = alsaseq.input()
+                    print(inputData)
                     if inputData[0] in (6, 7): # Key
                         f = 440*(2**((inputData[-1][1]-48)/12))
-                        yield {"type": "key", "frequency":f, "velocity":inputData[-1][2], "note":inputData[-1][1]}
+                        velocity = inputData[-1][2]
+                        if inputData[0] == 7: velocity = 0
+                        yield {"type": "key", "frequency":f, "velocity":velocity, "note":inputData[-1][1]}
                     elif inputData[0] in (10,): # Sustain
                         yield {"type": "sustain","velocity":inputData[-1][-1]}
                 time.sleep(0.01)
