@@ -47,8 +47,8 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree
-
+from . import node_tree, ffi
+C = ffi.C
 
 ### Node Categories ###
 # Node categories are a python system for automatically
@@ -78,11 +78,13 @@ def register():
         unregister()
     except:
         pass
-
+    
+    bpy.utils.register_module(__name__)
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
 
 def unregister():
     nodeitems_utils.unregister_node_categories("AUDIONODES")
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()

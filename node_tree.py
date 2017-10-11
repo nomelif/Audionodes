@@ -6,7 +6,6 @@ import bpy
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
 from threading import Lock
 import numpy as np
-import alsaaudio
 from collections import deque
 from threading import Thread
 from os.path import expanduser
@@ -15,7 +14,8 @@ import wave, struct, tempfile
 import time
 import uuid
 
-# Derived from the NodeTree base type, similar to Menu, Operator, Panel, etc.
+from . import ffi
+
 class AudioTree(NodeTree):
     
     '''Node tree for audio mixer'''
@@ -24,8 +24,12 @@ class AudioTree(NodeTree):
     bl_label = 'Audio nodes'
     bl_icon = 'PLAY_AUDIO'
 
-    sample_rate = 44100
-    chunk_size = 1024
+    def init(self):
+        pass
+    
+    def update(self):
+        ffi.C.push(ffi.queue, 123)
+    
        
 # Custom socket type
 class RawAudioSocket(NodeSocket):
@@ -52,9 +56,6 @@ class RawAudioSocket(NodeSocket):
     def draw_color(self, context, node):
         return (0.607, 0.153, 0.702, 1.0)
 
-
-# Mix-in class for all custom nodes in this tree type.
-# Defines a poll function to enable instantiation.
 
 
 def register():
