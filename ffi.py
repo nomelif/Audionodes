@@ -2,15 +2,17 @@
 import cffi, os
 
 ffi = cffi.FFI()
-ffi.cdef("void push(void * target, int value);")
-ffi.cdef("void * allocate();")
-ffi.cdef("void main_loop(void * queue);")
+# ffi.cdef("void push(void * target, int value);")
+# ffi.cdef("void * allocate();")
+# ffi.cdef("void main_loop(void * queue);")
+ffi.cdef("void initialize();")
+ffi.cdef("void cleanup();")
 
-C = ffi.dlopen(os.path.join(os.path.dirname(__file__), "test.so"))
+C = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"))
 
-queue = C.allocate()
+# queue = C.allocate()
 
-from threading import Thread
+# from threading import Thread
 
-thread = Thread(target=C.main_loop, args=[queue]).start()
+# thread = Thread(target=C.main_loop, args=[queue]).start()
 

@@ -81,10 +81,17 @@ def register():
     
     bpy.utils.register_module(__name__)
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
+    C.initialize();
 
 def unregister():
+    C.cleanup()
     nodeitems_utils.unregister_node_categories("AUDIONODES")
     bpy.utils.unregister_module(__name__)
+
+import atexit
+def exit_handler():
+    C.cleanup()
+atexit.register(exit_handler)
 
 if __name__ == "__main__":
     register()
