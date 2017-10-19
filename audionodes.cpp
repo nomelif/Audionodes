@@ -80,14 +80,21 @@ class Sink : public Node {
   }
 };
 
-// Nodes addressed by unique integer pointer-values
-// (in Blender these are is from .as_pointer())
-std::map<intptr_t, Node*> node_storage;
+// Nodes addressed by unique integers
+typedef int node_uid;
+std::map<node_uid, Node*> node_storage;
+node_uid node_storage_alloc() {
+  if (node_storage.size()) {
+    return node_storage.rbegin()->first+1;
+  } else {
+    return 0;
+  }
+}
 
 class NodeTree {
   public:
   struct ConstructionLink { // Used when building a new NodeTree on update
-    intptr_t from_node, to_node;
+    node_uid from_node, to_node;
     size_t from_socket, to_socket;
   };
   struct Link { // Used during execution
@@ -195,12 +202,9 @@ extern "C" {
     delete main_node_tree;
   }
   
-  void create_node(intptr_t id, int type) {
+  node_uid create_node(int type) {
+    node_uid id = node_storage_alloc();
     Node *node;
-    if (node_storage.count(id)) {
-      std::cerr << "Audionodes native: Node identifier already reserved" << std::endl;
-      return;
-    }
     switch (type) {
       case SineOscillator::type_id:
         node = new SineOscillator();
@@ -210,27 +214,29 @@ extern "C" {
         break;
       default:
         std::cerr << "Audionodes native: Tried to create invalid node type" << std::endl;
-        return;
+        return -1;
     }
     node_storage[id] = node;
+    return id;
   }
   
-  void copy_node(intptr_t old_id, intptr_t new_id, int type) {
-    create_node(new_id, type);
+  node_uid copy_node(node_uid old_id, int type) {
+    node_uid new_id = create_node(type);
     node_storage[new_id]->copy_input_values(node_storage[old_id]);
+    return new_id;
   }
   
-  void remove_node(intptr_t id) {
+  void remove_node(node_uid id) {
     if (!node_storage.count(id)) {
-      std::cerr << "Audionodes native: Tried to remove non-existent node" << std::endl;
+      std::cerr << "Audionodes native: Tried to remove non-existent node " << id << std::endl;
       return;
     }
     node_storage[id]->mark_deletion = true;
   }
   
-  void update_node_input_value(intptr_t id, int input_index, float value) {
+  void update_node_input_value(node_uid id, int input_index, float value) {
     if (!node_storage.count(id)) {
-      std::cerr << "Audionodes native: Tried to update input value of non-existent node" << std::endl;
+      std::cerr << "Audionodes native: Tried to update input value of non-existent node " << id << std::endl;
       return;
     }
     node_storage[id]->set_input_value(input_index, value);
@@ -242,23 +248,23 @@ extern "C" {
     return links;
   }
   
-  void add_tree_update_link(std::vector<NodeTree::ConstructionLink> *links, intptr_t from_node, intptr_t to_node, size_t from_socket, size_t to_socket) {
+  void add_tree_update_link(std::vector<NodeTree::ConstructionLink> *links, node_uid from_node, node_uid to_node, size_t from_socket, size_t to_socket) {
     if (!node_storage.count(from_node) || !node_storage.count(to_node)) {
-      std::cerr << "Audionodes native: Tried to create a link to/from non-existent node" << std::endl;
+      std::cerr << "Audionodes native: Tried to create a link to/from non-existent node " << id << std::endl;
     }
     links->push_back({from_node, to_node, from_socket, to_socket});
   }
   
   void finish_tree_update(std::vector<NodeTree::ConstructionLink> *links) {
-    std::map<intptr_t, std::vector<NodeTree::ConstructionLink>> links_to;
-    std::map<intptr_t, int> links_from_count;
+    std::map<node_uid, std::vector<NodeTree::ConstructionLink>> links_to;
+    std::map<node_uid, int> links_from_count;
     for (auto link : *links) {
       links_to[link.to_node].push_back(link);
       links_from_count[link.from_node]++;
     }
     // Breadth first search from sinks to find reverse topological order
-    std::vector<intptr_t> q;
-    std::vector<intptr_t> marked_for_deletion;
+    std::vector<node_uid> q;
+    std::vector<node_uid> marked_for_deletion;
     for (auto &id_node_pair : node_storage) {
       if (id_node_pair.second->mark_deletion) {
         marked_for_deletion.push_back(id_node_pair.first);
@@ -268,7 +274,7 @@ extern "C" {
       }
     }
     for (size_t i = 0; i < q.size(); ++i) {
-      intptr_t id = q[i];
+      node_uid id = q[i];
       for (auto link : links_to[id]) {
         if (node_storage[link.from_node]->mark_deletion) continue;
         links_from_count[link.from_node]--;
@@ -283,9 +289,9 @@ extern "C" {
     // Collect final evaluation order and links
     std::vector<Node*> final_order(q.size());
     std::vector<std::vector<NodeTree::Link>> final_links(q.size());
-    std::map<intptr_t, size_t> node_index;
+    std::map<node_uid, size_t> node_index;
     for (size_t i = 0; i < q.size(); ++i) {
-      intptr_t id = q[i];
+      node_uid id = q[i];
       node_index[id] = i;
       Node *node = node_storage[id];
       final_order[i] = node;
@@ -304,7 +310,7 @@ extern "C" {
     SDL_UnlockAudio();
     
     // Lastly, we clean up the removed nodes
-    for (intptr_t id : marked_for_deletion) {
+    for (node_uid id : marked_for_deletion) {
       Node *node = node_storage[id];
       delete node;
       node_storage.erase(id);

@@ -30,11 +30,11 @@ class AudioTree(NodeTree):
     def update(self):
         links = ffi.native.begin_tree_update()
         for link in self.links:
-            ffi.native.add_tree_update_link(links, link.from_node.as_pointer(), link.to_node.as_pointer(), link.from_socket.get_index(), link.to_socket.get_index())
+            ffi.native.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
         ffi.native.finish_tree_update(links)
     
     def send_value_update(self, node, index, value):
-        ffi.native.update_node_input_value(node.as_pointer(), index, value)
+        ffi.native.update_node_input_value(node.get_uid(), index, value)
        
 # Custom socket type
 class RawAudioSocket(NodeSocket):
@@ -70,7 +70,7 @@ class RawAudioSocket(NodeSocket):
 # Defines a poll function to enable instantiation.
 class AudioTreeNode:
     bl_icon = 'SOUND'
-
+    
     @classmethod
     def poll(cls, ntree):
         return ntree.bl_idname == 'AudioTreeType'
@@ -79,14 +79,16 @@ class AudioTreeNode:
         return self.id_data
     
     def send_create_node(self):
-        ffi.native.create_node(self.as_pointer(), self.native_type_id)
+        self["unique_id"] = ffi.native.create_node(self.native_type_id)
     
     def copy(self, node):
-        ffi.native.copy_node(node.as_pointer(), self.as_pointer(), self.native_type_id)
-        
+        self["unique_id"] = ffi.native.copy_node(node.get_uid(), self.native_type_id)
+    
+    def get_uid(self):
+        return self["unique_id"];
     
     def send_remove_node(self):
-        ffi.native.remove_node(self.as_pointer())
+        ffi.native.remove_node(self.get_uid())
 
 # Proof-of-concept state, remake and move these to another file ASAP
 class SineOscillator(Node, AudioTreeNode):
