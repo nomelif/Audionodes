@@ -2,17 +2,15 @@
 import cffi, os
 
 ffi = cffi.FFI()
-# ffi.cdef("void push(void * target, int value);")
-# ffi.cdef("void * allocate();")
-# ffi.cdef("void main_loop(void * queue);")
 ffi.cdef("void initialize();")
 ffi.cdef("void cleanup();")
+ffi.cdef("void create_node(intptr_t id, int type);")
+ffi.cdef("void remove_node(intptr_t id);")
+ffi.cdef("void copy_node(intptr_t old_id, intptr_t new_id, int type);")
+ffi.cdef("void update_node_input_value(intptr_t id, int input_index, float value);")
+ffi.cdef("void* begin_tree_update();")
+ffi.cdef("void add_tree_update_link(void *links, intptr_t from_node, intptr_t to_node, size_t from_socket, size_t to_socket);")
+ffi.cdef("void finish_tree_update(void *links);")
 
-C = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"))
-
-# queue = C.allocate()
-
-# from threading import Thread
-
-# thread = Thread(target=C.main_loop, args=[queue]).start()
+native = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"))
 

@@ -48,7 +48,6 @@ if "bpy" in locals():
 import bpy
 
 from . import node_tree, ffi
-C = ffi.C
 
 ### Node Categories ###
 # Node categories are a python system for automatically
@@ -69,7 +68,10 @@ class AudioNodeCategory(NodeCategory):
 node_categories = [
 
     # identifier, label, items list
-    AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[]),
+    AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[
+        NodeItem("SineOscillatorNode"),
+        NodeItem("SinkNode")
+    ]),
 ]
 
 def register():
@@ -81,16 +83,16 @@ def register():
     
     bpy.utils.register_module(__name__)
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
-    C.initialize();
+    ffi.native.initialize();
 
 def unregister():
-    C.cleanup()
+    ffi.native.cleanup()
     nodeitems_utils.unregister_node_categories("AUDIONODES")
     bpy.utils.unregister_module(__name__)
 
 import atexit
 def exit_handler():
-    C.cleanup()
+    ffi.native.cleanup()
 atexit.register(exit_handler)
 
 if __name__ == "__main__":
