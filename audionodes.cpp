@@ -155,7 +155,7 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
   len /= 2;
   if (len != N) {
     // Horrible failure
-    std::cerr << "Audionodes native: Unexpected sample count: " << " " << len << std::endl;
+    std::cerr << "Audionodes native: Unexpected sample count: " << len << std::endl;
     return;
   }
   if (main_node_tree == nullptr) {
@@ -250,7 +250,7 @@ extern "C" {
   
   void add_tree_update_link(std::vector<NodeTree::ConstructionLink> *links, node_uid from_node, node_uid to_node, size_t from_socket, size_t to_socket) {
     if (!node_storage.count(from_node) || !node_storage.count(to_node)) {
-      std::cerr << "Audionodes native: Tried to create a link to/from non-existent node " << id << std::endl;
+      std::cerr << "Audionodes native: Tried to create a link to/from non-existent node " << from_node << " " << to_node << std::endl;
     }
     links->push_back({from_node, to_node, from_socket, to_socket});
   }
