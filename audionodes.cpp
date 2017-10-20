@@ -36,7 +36,7 @@ class Node {
     input_values = old_node->input_values;
     old_input_values = old_node->old_input_values;
   }
-  virtual std::vector<Chunk> process(std::vector<Chunk>);
+  virtual std::vector<Chunk> process(std::vector<Chunk>) = 0;
   Node(size_t input_count, size_t output_count, bool is_sink=false) :
       is_sink(is_sink),
       input_count(input_count),
