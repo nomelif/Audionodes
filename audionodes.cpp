@@ -176,6 +176,8 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
   }
 }
 
+SDL_AudioDeviceID dev;
+
 // Methods to be used through the FFI
 extern "C" {
   void initialize() {
@@ -189,12 +191,16 @@ extern "C" {
 		spec.callback = audio_callback;
 		spec.userdata = nullptr;
 		SDL_AudioSpec obtainedSpec;
-		SDL_OpenAudio(&spec, &obtainedSpec);
-		SDL_PauseAudio(0); 
+    dev = SDL_OpenAudioDevice(NULL, 0, &spec, &obtainedSpec, 0);
+    if (dev == 0) {
+      std::clog << "Audionides Native: Unable to open audio device" << std::endl;
+      return;
+    }
+		SDL_PauseAudioDevice(dev, 0); 
   }
   
   void cleanup() {
-    SDL_CloseAudio();
+    SDL_CloseAudioDevice(dev);
     for (auto &id_node_pair : node_storage) {
       delete id_node_pair.second;
     }
