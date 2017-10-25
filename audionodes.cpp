@@ -321,5 +321,7 @@ extern "C" {
       delete node;
       node_storage.erase(id);
     }
+    
+    delete links;
   }
 }
