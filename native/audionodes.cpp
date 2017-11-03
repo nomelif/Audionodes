@@ -59,7 +59,7 @@ extern "C" {
       std::clog << "Audionides Native: Unable to open audio device" << std::endl;
       return;
     }
-		SDL_PauseAudioDevice(dev, 0); 
+    SDL_PauseAudioDevice(dev, 0); 
   }
   
   void cleanup() {
