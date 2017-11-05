@@ -56,7 +56,7 @@ extern "C" {
 		SDL_AudioSpec obtainedSpec;
     dev = SDL_OpenAudioDevice(NULL, 0, &spec, &obtainedSpec, 0);
     if (dev == 0) {
-      std::clog << "Audionides Native: Unable to open audio device" << std::endl;
+      std::clog << "Audionides Native: Unable to open audio device: " << SDL_GetError() << std::endl;
       return;
     }
     SDL_PauseAudioDevice(dev, 0); 

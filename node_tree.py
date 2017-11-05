@@ -97,7 +97,6 @@ class Oscillator(Node, AudioTreeNode):
     native_type_id = 0
     
     def change_func(self, context):
-        print(context)
         ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
     
     func_enum_items = [
