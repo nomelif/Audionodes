@@ -69,7 +69,7 @@ node_categories = [
 
     # identifier, label, items list
     AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[
-        NodeItem("SineOscillatorNode"),
+        NodeItem("OscillatorNode"),
         NodeItem("SinkNode")
     ]),
 ]

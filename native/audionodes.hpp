@@ -3,7 +3,7 @@
 #define AUDIONODES_HPP
 
 #include "common.hpp"
-#include "sine_oscillator.hpp"
+#include "oscillator.hpp"
 #include "sink.hpp"
 #include "node_tree.hpp"
 

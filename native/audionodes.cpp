@@ -25,8 +25,8 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
     for (int i = 0; i < len; ++i) stream[i] = 0;
     return;
   }
-  const Sint16 maximum_value = (1 << 15)-1;
-  const Sint16 minimum_value = -(1 << 15);
+  const static Sint16 maximum_value = (1 << 15)-1;
+  const static Sint16 minimum_value = -(1 << 15);
   Chunk result = main_node_tree->evaluate();
   for (int i = 0; i < len; ++i) {
     if (result[i] < -1) {
@@ -75,8 +75,8 @@ extern "C" {
     node_uid id = node_storage_alloc();
     Node *node;
     switch (type) {
-      case SineOscillator::type_id:
-        node = new SineOscillator();
+      case Oscillator::type_id:
+        node = new Oscillator();
         break;
       case Sink::type_id:
         node = new Sink();
@@ -109,6 +109,14 @@ extern "C" {
       return;
     }
     node_storage[id]->set_input_value(input_index, value);
+  }
+  
+  void update_node_property_value(node_uid id, int enum_index, int value) {
+    if (!node_storage.count(id)) {
+      std::cerr << "Audionodes native: Tried to update property value of non-existent node " << id << std::endl;
+      return;
+    }
+    node_storage[id]->set_property_value(enum_index, value);
   }
   
   std::vector<NodeTree::ConstructionLink>* begin_tree_update() {

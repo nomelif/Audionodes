@@ -78,7 +78,7 @@ class AudioTreeNode:
     def get_tree(self):
         return self.id_data
     
-    def send_create_node(self):
+    def init(self, context):
         self["unique_id"] = ffi.native.create_node(self.native_type_id)
     
     def copy(self, node):
@@ -87,36 +87,53 @@ class AudioTreeNode:
     def get_uid(self):
         return self["unique_id"];
     
-    def send_remove_node(self):
+    def free(self):
         ffi.native.remove_node(self.get_uid())
-
+    
 # Proof-of-concept state, remake and move these to another file ASAP
-class SineOscillator(Node, AudioTreeNode):
-    bl_idname = 'SineOscillatorNode'
-    bl_label = 'Sine'
+class Oscillator(Node, AudioTreeNode):
+    bl_idname = 'OscillatorNode'
+    bl_label = 'Oscillator'
     native_type_id = 0
+    
+    def change_func(self, context):
+        print(context)
+        ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
+    
+    func_enum_items = [
+        ('SIN', 'Sine', '', 0),
+        ('SAW', 'Saw', '', 1),
+        ('SQR', 'Square', '', 2),
+        ('TRI', 'Triangle', '', 3),
+    ]
+    
+    func_enum_to_native = { item[0]: item[3] for item in func_enum_items }
+    
+    func_enum = bpy.props.EnumProperty(
+        items = func_enum_items,
+        update = change_func
+    )
+    
     def init(self, context):
-        self.send_create_node()
+        AudioTreeNode.init(self, context)
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.inputs.new('RawAudioSocketType', "Amplitude")
         self.inputs[1].value_prop = 1.0
         self.inputs.new('RawAudioSocketType', "Offset")
+        self.inputs.new('RawAudioSocketType', "Parameter")
+        self.inputs[3].value_prop = 0.5
         self.outputs.new('RawAudioSocketType', "Audio")
-        
-    def free(self):
-        self.send_remove_node()
+    
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'func_enum', text='')
 
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'
-    bl_icon = 'SOUND'
     native_type_id = 1
     def init(self, context):
-        self.send_create_node()
+        AudioTreeNode.init(self, context)
         self.inputs.new('RawAudioSocketType', "Audio")
-    
-    def free(self):
-        self.send_remove_node()
 
 
 def register():
