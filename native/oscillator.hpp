@@ -7,7 +7,7 @@
 #include <functional>
 
 class Oscillator : public Node {
-  float state;
+  SigT state;
   enum InputSockets {
     frequency, amplitude, offset, param
   };
