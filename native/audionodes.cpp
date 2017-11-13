@@ -56,8 +56,21 @@ extern "C" {
 		SDL_AudioSpec obtainedSpec;
     dev = SDL_OpenAudioDevice(NULL, 0, &spec, &obtainedSpec, 0);
     if (dev == 0) {
-      std::clog << "Audionides Native: Unable to open audio device: " << SDL_GetError() << std::endl;
+      std::cerr << "Audionides Native: Unable to open audio device: " << SDL_GetError() << std::endl;
       return;
+    }
+    if (obtainedSpec.samples == N/2) {
+      // The sample rate gets halved on some systems for some reason
+      // -> correct for that
+      std::cerr << "Audionodes Native: SDL halved sample rate... trying to correct" << std::endl;
+      SDL_CloseAudioDevice(dev);
+      spec.samples = 2*N;
+      obtainedSpec = SDL_AudioSpec();
+      dev = SDL_OpenAudioDevice(NULL, 0, &spec, &obtainedSpec, 0);
+      if (obtainedSpec.samples != N || dev == 0) {
+        std::cerr << "Audionodes Native: Halving correction failed " << SDL_GetError() << std::endl; 
+        return;
+      }
     }
     SDL_PauseAudioDevice(dev, 0); 
   }
