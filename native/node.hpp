@@ -27,7 +27,7 @@ class Node {
   void copy_input_values(Node*);
   virtual std::vector<Chunk> process(std::vector<Chunk>) = 0;
   Node(size_t, size_t, size_t, bool is_sink=false);
-  virtual ~Node() {}
+  virtual ~Node() = 0;
 };
 
 #endif

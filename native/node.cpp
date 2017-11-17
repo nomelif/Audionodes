@@ -12,6 +12,8 @@ Node::Node(size_t input_count, size_t output_count, size_t property_count, bool 
   old_input_values.resize(input_count);
 }
 
+Node::~Node() {}
+
 bool Node::get_is_sink() { return is_sink; }
 size_t Node::get_input_count() { return input_count; }
 
