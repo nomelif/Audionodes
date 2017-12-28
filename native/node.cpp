@@ -39,3 +39,17 @@ void Node::copy_input_values(Node *old_node) {
   old_input_values = old_node->old_input_values;
 }
 
+Universe::Descriptor Node::infer_polyphony_operation(std::vector<Universe::Pointer> inputs) {
+  Universe::Descriptor result;
+  // Universes will be the first polyphonic universe found in the inputs,
+  // otherwise monophonic
+  for (auto uni : inputs) {
+    if (uni->is_polyphonic()) {
+      result.set_all(uni);
+      break;
+    }
+  }
+  return result;
+}
+
+void Node::apply_bundle_universe_changes(const Universe&) {}

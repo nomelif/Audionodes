@@ -193,11 +193,12 @@ extern "C" {
     
     // Make a new node tree with the newly acquired evaluation parameters
     NodeTree *new_node_tree = new NodeTree(final_order, final_links);
+    NodeTree *old_node_tree = main_node_tree;
     // Substitute the active node tree safely
-    SDL_LockAudio();
-    delete main_node_tree;
+    SDL_LockAudioDevice(dev);
     main_node_tree = new_node_tree;
-    SDL_UnlockAudio();
+    SDL_UnlockAudioDevice(dev);
+    delete old_node_tree;
     
     // Lastly, we clean up the removed nodes
     for (node_uid id : marked_for_deletion) {

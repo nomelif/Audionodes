@@ -3,6 +3,8 @@
 #define NODE_HPP
 
 #include "common.hpp"
+#include "polyphony.hpp"
+#include "data_windows.hpp"
 #include <mutex>
 
 class Node {
@@ -13,6 +15,11 @@ class Node {
   std::vector<int> property_values;
   std::mutex input_values_mutex;
   public:
+  virtual Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
+  
+  // Override if the node has to manage bundles
+  virtual void apply_bundle_universe_changes(const Universe&);
+  
   bool mark_deletion;
   std::vector<SigT> old_input_values;
   
@@ -25,7 +32,7 @@ class Node {
   int get_property_value(int);
   
   void copy_input_values(Node*);
-  virtual std::vector<Chunk> process(std::vector<Chunk>) = 0;
+  virtual NodeOutputWindow process(NodeInputWindow&) = 0;
   Node(size_t, size_t, size_t, bool is_sink=false);
   virtual ~Node() = 0;
 };

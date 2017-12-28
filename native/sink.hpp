@@ -9,7 +9,7 @@ class Sink : public Node {
   public:
   const static int type_id = 1;
   Sink();
-  std::vector<Chunk> process(std::vector<Chunk>);
+  NodeOutputWindow process(NodeInputWindow&);
 };
 
 #endif

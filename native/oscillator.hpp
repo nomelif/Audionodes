@@ -7,21 +7,24 @@
 #include <functional>
 
 class Oscillator : public Node {
-  SigT state;
   enum InputSockets {
     frequency, amplitude, offset, param
   };
   enum Properties {
     oscillation_func
   };
-  typedef std::function<SigT(SigT, SigT)> OscillationFuncType;
-  typedef std::vector<OscillationFuncType> OscillationFuncListType;
-  const static OscillationFuncListType oscillation_funcs;
+  std::vector<SigT> bundles;
+  
+  typedef std::function<SigT(SigT, SigT)> OscillationFunc;
+  typedef std::vector<OscillationFunc> OscillationFuncList;
+  const static OscillationFuncList oscillation_funcs;
   public:
   const static int type_id = 0;
   Oscillator();
   void reset_state();
-  std::vector<Chunk> process(std::vector<Chunk>);
+  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
+  void apply_bundle_universe_changes(const Universe&);
+  NodeOutputWindow process(NodeInputWindow&);
 };
 
 #endif

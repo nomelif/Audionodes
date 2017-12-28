@@ -2,15 +2,16 @@
 
 
 Oscillator::Oscillator() :
-    Node(4, 1, 1),
-    state(0.)
+    Node(4, 1, 1)
 {}
 
 void Oscillator::reset_state() {
-  state = 0.;
+  for (SigT &state : bundles) {
+    state = 0;
+  }
 }
 
-const Oscillator::OscillationFuncListType Oscillator::oscillation_funcs = {
+const Oscillator::OscillationFuncList Oscillator::oscillation_funcs = {
   // 0: Sine
   [](SigT phase, SigT) { return std::sin(phase*2*M_PI); },
   // 1: Saw
@@ -21,16 +22,57 @@ const Oscillator::OscillationFuncListType Oscillator::oscillation_funcs = {
   [](SigT phase, SigT) { return std::fabs(phase * 4 - 2) - 1; }
 };
 
-std::vector<Chunk> Oscillator::process(std::vector<Chunk> input) {
-  auto output = std::vector<Chunk>(1, Chunk());
-  const OscillationFuncType &func =
-    oscillation_funcs[get_property_value(Properties::oscillation_func)];
-  for (size_t i = 0; i < N; ++i) {
-    state = std::fmod(state + input[InputSockets::frequency][i]/rate, 1);
-    output[0][i] =
-      func(state, input[InputSockets::param][i]) * input[InputSockets::amplitude][i]
-      + input[InputSockets::offset][i];
+Universe::Descriptor Oscillator::infer_polyphony_operation(std::vector<Universe::Pointer> inputs) {
+  Universe::Descriptor result;
+  // Prioritize frequency input
+  if (inputs[InputSockets::frequency]->is_polyphonic()) {
+    result.set_all(inputs[InputSockets::frequency]);
+  } else {
+    result.bundles = inputs[InputSockets::frequency];
+    for (auto uni : inputs) {
+      if (uni->is_polyphonic()) {
+        result.input = uni;
+        result.output = uni;
+        break;
+      }
+    }
   }
-  return output;
+  return result;
+}
+
+void Oscillator::apply_bundle_universe_changes(const Universe &universe) {
+  universe.apply_delta(bundles);
+}
+
+NodeOutputWindow Oscillator::process(NodeInputWindow &input) {
+  size_t n = input.get_channel_amount();
+  AudioData::PolyList output(n);
+  const OscillationFunc &func =
+    oscillation_funcs[get_property_value(Properties::oscillation_func)];
+  
+  bool frequency_is_poly = input.universes.bundles->is_polyphonic();
+  AudioData::PolyList states(bundles.size());
+  for (size_t i = 0; i < bundles.size(); ++i) {
+    const Chunk &frequency = input[InputSockets::frequency][i];
+    SigT state = bundles[i];
+    Chunk &channel = states[i];
+    for (size_t j = 0; j < N; ++j) {
+      state = std::fmod(state + frequency[j]/rate, 1);
+      channel[j] = state;
+    }
+    bundles[i] = state;
+  }
+  for (size_t i = 0; i < n; ++i) {
+    const Chunk
+      &state = states[frequency_is_poly ? i : 0],
+      &amplitude = input[InputSockets::amplitude][i],
+      &offset    = input[InputSockets::offset][i],
+      &param     = input[InputSockets::param][i];
+    Chunk &channel = output[i];
+    for (size_t j = 0; j < N; ++j) {
+      channel[j] = func(state[j], param[j]) * amplitude[j] + offset[j];
+    }
+  }
+  return NodeOutputWindow({new AudioData(output)});
 }
 

@@ -4,6 +4,8 @@
 
 #include "common.hpp"
 #include "node.hpp"
+#include "polyphony.hpp"
+#include "data_windows.hpp"
 
 class NodeTree {
   public:
@@ -18,8 +20,11 @@ class NodeTree {
   };
   
   private:
+  size_t amount;
   std::vector<Node*> node_evaluation_order;
   std::vector<std::vector<Link>> links; // Link-edges to each node
+  std::vector<Universe::Descriptor> node_polyphony_descriptors;
+  void prepare_polyphony_universes();
   
   public:
   NodeTree(std::vector<Node*>, std::vector<std::vector<Link>>);
