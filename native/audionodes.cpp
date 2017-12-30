@@ -45,7 +45,7 @@ SDL_AudioDeviceID dev;
 extern "C" {
   void initialize() {
     SDL_Init(SDL_INIT_AUDIO);
-    
+
 		SDL_AudioSpec spec;
 		spec.freq     = rate;
 		spec.format   = AUDIO_S16SYS;
@@ -68,13 +68,13 @@ extern "C" {
       obtainedSpec = SDL_AudioSpec();
       dev = SDL_OpenAudioDevice(NULL, 0, &spec, &obtainedSpec, 0);
       if (obtainedSpec.samples != N || dev == 0) {
-        std::cerr << "Audionodes Native: Halving correction failed " << SDL_GetError() << std::endl; 
+        std::cerr << "Audionodes Native: Halving correction failed " << SDL_GetError() << std::endl;
         return;
       }
     }
-    SDL_PauseAudioDevice(dev, 0); 
+    SDL_PauseAudioDevice(dev, 0);
   }
-  
+
   void cleanup() {
     SDL_CloseAudioDevice(dev);
     for (auto &id_node_pair : node_storage) {
@@ -83,13 +83,16 @@ extern "C" {
     node_storage.clear();
     delete main_node_tree;
   }
-  
+
   node_uid create_node(int type) {
     node_uid id = node_storage_alloc();
     Node *node;
     switch (type) {
       case Oscillator::type_id:
         node = new Oscillator();
+        break;
+      case Math::type_id:
+        node = new Math();
         break;
       case Sink::type_id:
         node = new Sink();
@@ -101,13 +104,13 @@ extern "C" {
     node_storage[id] = node;
     return id;
   }
-  
+
   node_uid copy_node(node_uid old_id, int type) {
     node_uid new_id = create_node(type);
     node_storage[new_id]->copy_input_values(node_storage[old_id]);
     return new_id;
   }
-  
+
   void remove_node(node_uid id) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to remove non-existent node " << id << std::endl;
@@ -115,7 +118,7 @@ extern "C" {
     }
     node_storage[id]->mark_deletion = true;
   }
-  
+
   void update_node_input_value(node_uid id, int input_index, float value) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to update input value of non-existent node " << id << std::endl;
@@ -123,7 +126,7 @@ extern "C" {
     }
     node_storage[id]->set_input_value(input_index, value);
   }
-  
+
   void update_node_property_value(node_uid id, int enum_index, int value) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to update property value of non-existent node " << id << std::endl;
@@ -131,20 +134,20 @@ extern "C" {
     }
     node_storage[id]->set_property_value(enum_index, value);
   }
-  
+
   std::vector<NodeTree::ConstructionLink>* begin_tree_update() {
     std::vector<NodeTree::ConstructionLink> *links;
     links = new std::vector<NodeTree::ConstructionLink>();
     return links;
   }
-  
+
   void add_tree_update_link(std::vector<NodeTree::ConstructionLink> *links, node_uid from_node, node_uid to_node, size_t from_socket, size_t to_socket) {
     if (!node_storage.count(from_node) || !node_storage.count(to_node)) {
       std::cerr << "Audionodes native: Tried to create a link to/from non-existent node " << from_node << " " << to_node << std::endl;
     }
     links->push_back({from_node, to_node, from_socket, to_socket});
   }
-  
+
   void finish_tree_update(std::vector<NodeTree::ConstructionLink> *links) {
     std::map<node_uid, std::vector<NodeTree::ConstructionLink>> links_to;
     std::map<node_uid, int> links_from_count;
@@ -175,7 +178,7 @@ extern "C" {
     }
     // Reverse the resulting vector to have the correct evaluation order
     std::reverse(q.begin(), q.end());
-    
+
     // Collect final evaluation order and links
     std::vector<Node*> final_order(q.size());
     std::vector<std::vector<NodeTree::Link>> final_links(q.size());
@@ -190,7 +193,7 @@ extern "C" {
         final_links[i][link.to_socket] = NodeTree::Link(true, node_index[link.from_node], link.from_socket);
       }
     }
-    
+
     // Make a new node tree with the newly acquired evaluation parameters
     NodeTree *new_node_tree = new NodeTree(final_order, final_links);
     NodeTree *old_node_tree = main_node_tree;
@@ -199,14 +202,14 @@ extern "C" {
     main_node_tree = new_node_tree;
     SDL_UnlockAudioDevice(dev);
     delete old_node_tree;
-    
+
     // Lastly, we clean up the removed nodes
     for (node_uid id : marked_for_deletion) {
       Node *node = node_storage[id];
       delete node;
       node_storage.erase(id);
     }
-    
+
     delete links;
   }
 }

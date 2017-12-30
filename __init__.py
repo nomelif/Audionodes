@@ -70,6 +70,7 @@ node_categories = [
     # identifier, label, items list
     AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[
         NodeItem("OscillatorNode"),
+        NodeItem("MathNode"),
         NodeItem("SinkNode")
     ]),
 ]
@@ -80,7 +81,7 @@ def register():
         unregister()
     except:
         pass
-    
+
     bpy.utils.register_module(__name__)
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
     ffi.native.initialize();

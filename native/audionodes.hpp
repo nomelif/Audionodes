@@ -4,6 +4,7 @@
 
 #include "common.hpp"
 #include "oscillator.hpp"
+#include "math.hpp"
 #include "sink.hpp"
 #include "node_tree.hpp"
 
