@@ -153,7 +153,6 @@ extern "C" {
     std::map<node_uid, int> links_from_count;
     for (auto link : *links) {
       links_to[link.to_node].push_back(link);
-      links_from_count[link.from_node]++;
     }
     // Breadth first search from sinks to find reverse topological order
     std::vector<node_uid> q;
@@ -161,9 +160,11 @@ extern "C" {
     for (auto &id_node_pair : node_storage) {
       if (id_node_pair.second->mark_deletion) {
         marked_for_deletion.push_back(id_node_pair.first);
-      }
-      if (id_node_pair.second->get_is_sink() && !id_node_pair.second->mark_deletion) {
+      } else if (id_node_pair.second->get_is_sink()) {
         q.push_back(id_node_pair.first);
+        for (auto add_link : links_to[id_node_pair.first]) {
+          links_from_count[add_link.from_node]++;
+        }
       }
     }
     for (size_t i = 0; i < q.size(); ++i) {
@@ -173,6 +174,9 @@ extern "C" {
         links_from_count[link.from_node]--;
         if (links_from_count[link.from_node] == 0) {
           q.push_back(link.from_node);
+          for (auto add_link : links_to[link.from_node]) {
+            links_from_count[add_link.from_node]++;
+          }
         }
       }
     }
