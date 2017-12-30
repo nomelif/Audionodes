@@ -31,7 +31,7 @@ class Node {
   void set_property_value(int, int);
   int get_property_value(int);
   
-  void copy_input_values(Node*);
+  void copy_input_values(const Node&);
   virtual NodeOutputWindow process(NodeInputWindow&) = 0;
   Node(size_t, size_t, size_t, bool is_sink=false);
   virtual ~Node() = 0;

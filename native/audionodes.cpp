@@ -107,7 +107,7 @@ extern "C" {
 
   node_uid copy_node(node_uid old_id, int type) {
     node_uid new_id = create_node(type);
-    node_storage[new_id]->copy_input_values(node_storage[old_id]);
+    node_storage[new_id]->copy_input_values(*node_storage[old_id]);
     return new_id;
   }
 

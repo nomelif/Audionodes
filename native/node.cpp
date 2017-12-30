@@ -34,9 +34,10 @@ int Node::get_property_value(int index) {
   return property_values[index];
 }
 
-void Node::copy_input_values(Node *old_node) {
-  input_values = old_node->input_values;
-  old_input_values = old_node->old_input_values;
+void Node::copy_input_values(const Node &old_node) {
+  input_values = old_node.input_values;
+  old_input_values = old_node.old_input_values;
+  property_values = old_node.property_values;
 }
 
 Universe::Descriptor Node::infer_polyphony_operation(std::vector<Universe::Pointer> inputs) {
