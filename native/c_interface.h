@@ -1,7 +1,7 @@
 void initialize();
 void cleanup();
-int create_node(int);
-int copy_node(int, int);
+int create_node(const char*);
+int copy_node(int, const char*);
 void remove_node(int);
 void update_node_input_value(int, int, float);
 void update_node_property_value(int, int, int);

@@ -68,10 +68,10 @@ class AudioTreeNode:
         return self.id_data
 
     def init(self, context):
-        self["unique_id"] = ffi.native.create_node(self.native_type_id)
+        self["unique_id"] = ffi.native.create_node(self.bl_idname.encode('ascii'))
 
     def copy(self, node):
-        self["unique_id"] = ffi.native.copy_node(node.get_uid(), self.native_type_id)
+        self["unique_id"] = ffi.native.copy_node(node.get_uid(), self.bl_idname.encode('ascii'))
 
     def get_uid(self):
         return self["unique_id"];
@@ -83,7 +83,6 @@ class AudioTreeNode:
 class Oscillator(Node, AudioTreeNode):
     bl_idname = 'OscillatorNode'
     bl_label = 'Oscillator'
-    native_type_id = 0
 
     def change_func(self, context):
         ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
@@ -118,7 +117,6 @@ class Oscillator(Node, AudioTreeNode):
 class Math(Node, AudioTreeNode):
     bl_idname = 'MathNode'
     bl_label = 'Math'
-    native_type_id = 2
 
     def change_func(self, context):
         ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
@@ -164,7 +162,6 @@ class Math(Node, AudioTreeNode):
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'
-    native_type_id = 1
     def init(self, context):
         AudioTreeNode.init(self, context)
         self.inputs.new('RawAudioSocketType', "Audio")

@@ -1,5 +1,14 @@
 #include "audionodes.hpp"
 
+#include "oscillator.hpp"
+#include "sink.hpp"
+#include "math.hpp"
+const static std::map<std::string, NodeCreator> node_types = {
+  NodeType(Oscillator, "OscillatorNode"),
+  NodeType(Sink, "SinkNode"),
+  NodeType(Math, "MathNode")
+};
+
 // Nodes addressed by unique integers
 std::map<node_uid, Node*> node_storage;
 node_uid node_storage_alloc() {
@@ -84,29 +93,22 @@ extern "C" {
     delete main_node_tree;
   }
 
-  node_uid create_node(int type) {
+  node_uid create_node(const char* type_c) {
+    const std::string type = type_c;
     node_uid id = node_storage_alloc();
-    Node *node;
-    switch (type) {
-      case Oscillator::type_id:
-        node = new Oscillator();
-        break;
-      case Math::type_id:
-        node = new Math();
-        break;
-      case Sink::type_id:
-        node = new Sink();
-        break;
-      default:
-        std::cerr << "Audionodes native: Tried to create invalid node type" << std::endl;
-        return -1;
+    if (node_types.count(type)) {
+      Node *node = node_types.at(type)();
+      node_storage[id] = node;
+      return id;
+    } else {
+      std::cerr << "Audionodes native: Tried to create invalid node type" << std::endl;
+      return -1;
     }
-    node_storage[id] = node;
-    return id;
   }
 
-  node_uid copy_node(node_uid old_id, int type) {
-    node_uid new_id = create_node(type);
+  node_uid copy_node(node_uid old_id, const char* type_c) {
+    node_uid new_id = create_node(type_c);
+    if (new_id == -1) return -1;
     node_storage[new_id]->copy_input_values(*node_storage[old_id]);
     return new_id;
   }
