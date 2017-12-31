@@ -7,7 +7,7 @@
 
 struct Data {
   virtual ~Data();
-  
+
   template<class T>
   T& extract() {
     T *p = dynamic_cast<T*>(this);
@@ -18,7 +18,7 @@ struct Data {
       return T::dummy;
     }
   }
-  
+
   template<class T>
   const T& extract() const {
     const T *p = dynamic_cast<const T*>(this);
@@ -42,7 +42,7 @@ struct AudioData : public Data {
 };
 
 struct MidiData : public Data {
-  std::multimap<size_t, std::vector<unsigned char>> events;
+  std::multimap<size_t, std::vector<MidiMSG>> events;
   static MidiData dummy;
 };
 
