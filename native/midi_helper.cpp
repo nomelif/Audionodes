@@ -22,37 +22,37 @@ EvtType getType(MidiMSG msg){
 }
 
 int getChannel(MidiMSG msg){
-  return (msg >> 16) % 16;
+  return (msg >> 16) &0x0f; // sic.
 }
 
 int getNote(MidiMSG msg){
-  return (msg >> 8) % 256;
+  return (msg >> 8) &0xff;
 }
 
 int getVelocity(MidiMSG msg){
-  return msg % 256;
+  return msg &0xff;
 }
 
 int getBend(MidiMSG msg){
-  return msg % 256;
+  return msg &0xff;
 }
 
 int getAftertouch(MidiMSG msg){
   if(getType(msg) == EvtType::POLYPHONIC_AFTERTOUCH){
-    return msg % 256;
+    return msg &0xff;
   }else{
-    return (msg >> 8) % 256;
+    return (msg >> 8) &0xff;
   }
 }
 
 bool isPanic(MidiMSG msg){
-  return (getType(msg) == EvtType::CONTROL) && ((msg >> 8) % 256 == 0x7b);
+  return (getType(msg) == EvtType::CONTROL) && (((msg >> 8) &0xff) == 0x7b);
 }
 
 bool isSustain(MidiMSG msg){
-  return (getType(msg) == EvtType::CONTROL) && ((msg >> 8) % 256 == 0x40);
+  return (getType(msg) == EvtType::CONTROL) && (((msg >> 8) &0xff) == 0x40);
 }
 
 bool isSustainEnable(MidiMSG msg){
-  return isSustain(msg) && ((msg % 256) > 0x40);
+  return isSustain(msg) && ((msg &0xff) > 0x40);
 }
