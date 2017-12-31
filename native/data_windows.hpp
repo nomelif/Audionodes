@@ -16,8 +16,9 @@ class NodeInputWindow {
     bool temporary_data;
     public:
     Socket(Data&, bool, bool temporary_data=false);
-    inline const Data& get() {
-      return *data;
+    template<class T = Data>
+    inline const T& get() {
+      return data->extract<T>();
     }
     const Chunk& operator[](size_t idx);
     void delete_temporary_data();

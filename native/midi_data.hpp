@@ -30,7 +30,8 @@ struct MidiData : public Data {
     bool is_sustain_enable();
   };
   
-  std::multimap<size_t, Event> events;
+  typedef std::multimap<size_t, Event> EventSeries;
+  EventSeries events;
   static MidiData dummy;
 };
 

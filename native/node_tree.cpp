@@ -77,7 +77,7 @@ Chunk NodeTree::evaluate() {
     node->apply_bundle_universe_changes(*node_polyphony_descriptors[i].bundles);
     node_outputs.push_back(std::move(node->process(input_window)));
     if (node->get_is_sink()) {
-      const AudioData &data = inputs[0].get().extract<AudioData>();
+      const AudioData &data = inputs[0].get<AudioData>();
       for (size_t j = 0; j < N; ++j) {
         output[j] += data.mono[j];
       }
