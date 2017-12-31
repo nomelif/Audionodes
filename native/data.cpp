@@ -28,4 +28,3 @@ AudioData::AudioData(Chunk mono) :
 
 AudioData AudioData::dummy = AudioData();
 
-MidiData MidiData::dummy = MidiData();

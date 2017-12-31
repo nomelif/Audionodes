@@ -1,0 +1,38 @@
+#ifndef MIDI_DATA_HPP
+#define MIDI_DATA_HPP
+
+#include "common.hpp"
+#include "data.hpp"
+
+struct MidiData : public Data {
+  struct Event {
+    enum class Type {
+      note_off,
+      note_on,
+      polyphonic_aftertouch,
+      control,
+      program,
+      channel_aftertouch,
+      pitch_bend,
+      undef
+    };
+    unsigned char raw_type, raw_channel;
+    unsigned int param1, param2;
+    
+    Type get_type();
+    int get_channel();
+    int get_note();
+    int get_velocity();
+    int get_bend();
+    int get_aftertouch();
+    bool is_panic();
+    bool is_sustain();
+    bool is_sustain_enable();
+  };
+  
+  std::multimap<size_t, Event> events;
+  static MidiData dummy;
+};
+
+
+#endif

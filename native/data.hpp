@@ -41,9 +41,4 @@ struct AudioData : public Data {
   static AudioData dummy;
 };
 
-struct MidiData : public Data {
-  std::multimap<size_t, std::vector<MidiMSG>> events;
-  static MidiData dummy;
-};
-
 #endif
