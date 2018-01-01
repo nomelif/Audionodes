@@ -30,7 +30,7 @@ struct MidiData : public Data {
     bool is_panic();
     bool is_sustain();
     bool is_sustain_enable();
-    Event(size_t, unsigned char, unsigned char, unsigned int, unsigned int);
+    Event(unsigned char, unsigned char, unsigned int, unsigned int, size_t time = 0);
   };
   
   typedef std::vector<Event> EventSeries;

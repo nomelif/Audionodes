@@ -26,12 +26,16 @@ class AudioTree(NodeTree):
         ffi.native.update_node_input_value(node.get_uid(), index, value)
 
 # Custom socket type
-class RawAudioSocket(NodeSocket):
-    # Description string
+class AudioTreeNodeSocket:
+    def get_tree(self):
+        return self.id_data
+    
+    def get_index(self):
+        return int(self.path_from_id().split('[')[-1][:-1])
+
+class RawAudioSocket(NodeSocket, AudioTreeNodeSocket):
     '''Socket for raw audio'''
-    # Optional identifier string. If not explicitly defined, the python class name is used.
     bl_idname = 'RawAudioSocketType'
-    # Label for nice name display
     bl_label = 'Raw Audio'
 
     def update_value(self, context):
@@ -45,15 +49,19 @@ class RawAudioSocket(NodeSocket):
         else:
             layout.prop(self, "value_prop", text=text)
 
-    def get_tree(self):
-        return self.id_data
-
-    def get_index(self):
-        return int(self.path_from_id().split('[')[-1][:-1])
-
-    # Socket color
     def draw_color(self, context, node):
         return (0.607, 0.153, 0.702, 1.0)
+
+class MidiSocket(NodeSocket, AudioTreeNodeSocket):
+    '''Socket for MIDI events'''
+    bl_idname = 'MidiSocketType'
+    bl_label = 'MIDI'
+
+    def draw(self, context, layout, node, text):
+        layout.label(text)
+    
+    def draw_color(self, context, node):
+        return (0.9, 0.86, 0.14, 1.0)
 
 # Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
@@ -161,11 +169,11 @@ class Math(Node, AudioTreeNode):
 
 class MidiIn(Node, AudioTreeNode):
     bl_idname = 'MidiInNode'
-    bl_label = 'Midi'
+    bl_label = 'MIDI input'
 
     def init(self, context):
         AudioTreeNode.init(self, context)
-        self.outputs.new('RawAudioSocketType', "Result")
+        self.outputs.new('MidiSocketType', "Stream")
 
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
