@@ -28,10 +28,15 @@ struct MidiData : public Data {
     bool is_panic();
     bool is_sustain();
     bool is_sustain_enable();
+    Event(unsigned char, unsigned char, unsigned int, unsigned int);
   };
   
   typedef std::multimap<size_t, Event> EventSeries;
   EventSeries events;
+  
+  MidiData(EventSeries);
+  MidiData();
+  
   static MidiData dummy;
 };
 

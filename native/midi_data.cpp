@@ -57,4 +57,18 @@ bool MidiData::Event::is_sustain_enable() {
   return is_sustain() && (param2 > 0x40);
 }
 
+MidiData::Event::Event(
+  unsigned char type, unsigned char channel, unsigned int param1, unsigned int param2) :
+  raw_type(type),
+  raw_channel(channel),
+  param1(param1),
+  param2(param2)
+{}
+
+MidiData::MidiData(EventSeries events) :
+  events(events)
+{}
+
+MidiData::MidiData() {}
+
 MidiData MidiData::dummy = MidiData();
