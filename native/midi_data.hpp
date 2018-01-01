@@ -16,6 +16,7 @@ struct MidiData : public Data {
       pitch_bend,
       undef
     };
+    size_t time;
     unsigned char raw_type, raw_channel;
     unsigned int param1, param2;
     
@@ -28,10 +29,10 @@ struct MidiData : public Data {
     bool is_panic();
     bool is_sustain();
     bool is_sustain_enable();
-    Event(unsigned char, unsigned char, unsigned int, unsigned int);
+    Event(size_t, unsigned char, unsigned char, unsigned int, unsigned int);
   };
   
-  typedef std::multimap<size_t, Event> EventSeries;
+  typedef std::vector<Event> EventSeries;
   EventSeries events;
   
   MidiData(EventSeries);

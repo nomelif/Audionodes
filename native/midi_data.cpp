@@ -58,7 +58,8 @@ bool MidiData::Event::is_sustain_enable() {
 }
 
 MidiData::Event::Event(
-  unsigned char type, unsigned char channel, unsigned int param1, unsigned int param2) :
+  size_t time, unsigned char type, unsigned char channel, unsigned int param1, unsigned int param2) :
+  time(time),
   raw_type(type),
   raw_channel(channel),
   param1(param1),
