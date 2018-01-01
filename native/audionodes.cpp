@@ -3,10 +3,13 @@
 #include "oscillator.hpp"
 #include "sink.hpp"
 #include "math.hpp"
+#include "midi_in.hpp"
+
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
   NodeType(Sink, "SinkNode"),
-  NodeType(Math, "MathNode")
+  NodeType(Math, "MathNode"),
+  NodeType(MidiIn, "MidiInNode")
 };
 
 // Nodes addressed by unique integers

@@ -159,6 +159,14 @@ class Math(Node, AudioTreeNode):
     def draw_buttons(self, context, layout):
         layout.prop(self, 'func_enum', text='')
 
+class MidiIn(Node, AudioTreeNode):
+    bl_idname = 'MidiInNode'
+    bl_label = 'Midi'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.outputs.new('RawAudioSocketType', "Result")
+
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'

@@ -71,7 +71,8 @@ node_categories = [
     AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[
         NodeItem("OscillatorNode"),
         NodeItem("MathNode"),
-        NodeItem("SinkNode")
+        NodeItem("SinkNode"),
+        NodeItem("MidiInNode")
     ]),
 ]
 
