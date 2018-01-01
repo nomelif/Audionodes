@@ -1,5 +1,9 @@
 #include "midi_data.hpp"
 
+bool MidiData::Event::operator<(const Event other) const {
+  return time < other.time;
+}
+
 MidiData::Event::Type MidiData::Event::get_type() {
   switch (raw_type) {
     case 0x8:

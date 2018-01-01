@@ -17,6 +17,7 @@ struct MidiData : public Data {
       undef
     };
     size_t time;
+    bool operator<(const Event) const;
     unsigned char raw_type, raw_channel;
     unsigned int param1, param2;
     
