@@ -14,12 +14,11 @@ class Oscillator : public Node {
     oscillation_func
   };
   std::vector<SigT> bundles;
-  
+
   typedef std::function<SigT(SigT, SigT)> OscillationFunc;
   typedef std::vector<OscillationFunc> OscillationFuncList;
   const static OscillationFuncList oscillation_funcs;
   public:
-  const static int type_id = 0;
   Oscillator();
   void reset_state();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);

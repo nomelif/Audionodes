@@ -18,7 +18,6 @@ class Math : public Node {
   typedef std::vector<MathOperator> MathOperatorList;
   const static MathOperatorList math_operators;
   public:
-  const static int type_id = 2;
   Math();
   NodeOutputWindow process(NodeInputWindow&);
 };

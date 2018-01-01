@@ -7,7 +7,6 @@
 
 class Sink : public Node {
   public:
-  const static int type_id = 1;
   Sink();
   NodeOutputWindow process(NodeInputWindow&);
 };
