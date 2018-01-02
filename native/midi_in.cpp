@@ -26,6 +26,7 @@ MidiIn::MidiIn() :
   Node(0, 1, 0)
 {
   fluid_settings_t* settings = new_fluid_settings();
+  fluid_settings_setstr(settings, "midi.portname", "Audionodes");
   driver = new_fluid_midi_driver(settings, handle_midi_event, this);
   last_process = Clock::time_point();
 }
