@@ -2,6 +2,7 @@
 
 
 int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
+  using namespace std::chrono;
   MidiIn *node = (MidiIn*)_node;
   if (!node->accept_events()) return 0;
   MidiData::Event our_event(
@@ -12,14 +13,16 @@ int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
     // Corresponds to param2
     fluid_midi_event_get_velocity(event)
   );
-  Clock::time_point time = Clock::now();
   std::lock_guard<std::mutex> lock(node->event_buffer_mutex);
-  node->event_buffer.push_back({time, our_event});
+  Clock::time_point time = Clock::now();
+  our_event.time = duration_cast<SampleDuration>(time - node->last_process).count();
+  our_event.time = std::min(std::max(our_event.time, size_t(0)), N-1);
+  node->event_buffer.push_back(our_event);
   return 0;
 }
 
 bool MidiIn::accept_events() {
-  return (Clock::now() - last_process).count() < 2*double(N)/rate;
+  return std::chrono::duration_cast<SampleDuration>(Clock::now() - last_process).count() < 2*N;
 }
 
 MidiIn::MidiIn() :
@@ -36,23 +39,12 @@ MidiIn::~MidiIn()
   delete_fluid_midi_driver(driver);
 }
 
-
-
 NodeOutputWindow MidiIn::process(NodeInputWindow &input) {
-  EventBuffer buffer_copy;
-  {
-    std::lock_guard<std::mutex> lock(event_buffer_mutex);
-    buffer_copy = std::move(event_buffer);
-    event_buffer = EventBuffer();
-  }
   MidiData::EventSeries events;
-  events.reserve(buffer_copy.size());
-  Clock::time_point this_process = Clock::now();
-  for (auto p : buffer_copy) {
-    p.second.time = std::round((p.first - last_process).count()*rate);
-    p.second.time = std::min(std::max(p.second.time, size_t(0)), N-1);
-    events.push_back(p.second);
+  { std::lock_guard<std::mutex> lock(event_buffer_mutex);
+    events = std::move(event_buffer);
+    event_buffer = MidiData::EventSeries();
+    last_process = Clock::now();
   }
-  last_process = this_process;
   return NodeOutputWindow({new MidiData(events)});
 }
