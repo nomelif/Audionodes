@@ -4,7 +4,7 @@
 int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
   using namespace std::chrono;
   MidiIn *node = (MidiIn*)_node;
-  if (!node->accept_events()) return 0;
+  if (!node->mark_connected) return 0;
   MidiData::Event our_event(
     fluid_midi_event_get_type(event),
     fluid_midi_event_get_channel(event),
@@ -19,10 +19,6 @@ int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
   our_event.time = std::min(std::max(our_event.time, size_t(0)), N-1);
   node->event_buffer.push_back(our_event);
   return 0;
-}
-
-bool MidiIn::accept_events() {
-  return std::chrono::duration_cast<SampleDuration>(Clock::now() - last_process).count() < 2*N;
 }
 
 MidiIn::MidiIn() :

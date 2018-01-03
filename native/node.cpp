@@ -4,8 +4,7 @@ Node::Node(size_t input_count, size_t output_count, size_t property_count, bool 
     is_sink(is_sink),
     input_count(input_count),
     output_count(output_count),
-    property_count(property_count),
-    mark_deletion(false)
+    property_count(property_count)
 {
   input_values.resize(input_count);
   property_values.resize(property_count);
@@ -33,6 +32,9 @@ int Node::get_property_value(int index) {
   std::lock_guard<std::mutex> lock(input_values_mutex);
   return property_values[index];
 }
+
+void Node::connect_callback() {}
+void Node::disconnect_callback() {}
 
 void Node::copy_input_values(const Node &old_node) {
   input_values = old_node.input_values;

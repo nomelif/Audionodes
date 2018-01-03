@@ -17,7 +17,6 @@ class MidiIn : public Node {
   MidiData::EventSeries event_buffer;
   std::mutex event_buffer_mutex;
   Clock::time_point last_process;
-  bool accept_events();
   public:
   MidiIn();
   ~MidiIn();

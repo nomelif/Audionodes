@@ -165,10 +165,12 @@ extern "C" {
     for (auto &id_node_pair : node_storage) {
       if (id_node_pair.second->mark_deletion) {
         marked_for_deletion.push_back(id_node_pair.first);
-      } else if (id_node_pair.second->get_is_sink()) {
-        q.push_back(id_node_pair.first);
-        for (auto add_link : links_to[id_node_pair.first]) {
-          links_from_count[add_link.from_node]++;
+      } else {
+        if (id_node_pair.second->get_is_sink()) {
+          q.push_back(id_node_pair.first);
+          for (auto add_link : links_to[id_node_pair.first]) {
+            links_from_count[add_link.from_node]++;
+          }
         }
       }
     }
@@ -202,6 +204,15 @@ extern "C" {
         final_links[i][link.to_socket] = NodeTree::Link(true, node_index[link.from_node], link.from_socket);
       }
     }
+    
+    // Call callbacks on newly connected nodes
+    for (Node *node : final_order) {
+      if (!node->mark_connected) {
+        node->mark_connected = true;
+        node->connect_callback();
+      }
+      node->_tmp_connected = true;
+    }
 
     // Make a new node tree with the newly acquired evaluation parameters
     NodeTree *new_node_tree = new NodeTree(final_order, final_links);
@@ -211,6 +222,16 @@ extern "C" {
     main_node_tree = new_node_tree;
     SDL_UnlockAudioDevice(dev);
     delete old_node_tree;
+    
+    // Call callbacks on newly disconnected nodes
+    for (auto &id_node_pair : node_storage) {
+      Node *node = id_node_pair.second;
+      if (!node->_tmp_connected && node->mark_connected) {
+        node->mark_connected = false;
+        node->disconnect_callback();
+      }
+      node->_tmp_connected = false;
+    }
 
     // Lastly, we clean up the removed nodes
     for (node_uid id : marked_for_deletion) {
