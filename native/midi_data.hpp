@@ -16,10 +16,7 @@ struct MidiData : public Data {
       pitch_bend,
       undef
     };
-    size_t time;
-    bool operator<(const Event) const;
-    unsigned char raw_type, raw_channel;
-    unsigned int param1, param2;
+    unsigned char raw_type, raw_channel, param1, param2;
     
     Type get_type();
     int get_channel();
@@ -30,7 +27,8 @@ struct MidiData : public Data {
     bool is_panic();
     bool is_sustain();
     bool is_sustain_enable();
-    Event(unsigned char, unsigned char, unsigned int, unsigned int, size_t time = 0);
+    Event(unsigned char, unsigned char, unsigned int, unsigned int);
+    Event();
   };
   
   typedef std::vector<Event> EventSeries;

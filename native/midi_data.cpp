@@ -1,9 +1,5 @@
 #include "midi_data.hpp"
 
-bool MidiData::Event::operator<(const Event other) const {
-  return time < other.time;
-}
-
 MidiData::Event::Type MidiData::Event::get_type() {
   switch (raw_type) {
     case 0x8:
@@ -62,13 +58,14 @@ bool MidiData::Event::is_sustain_enable() {
 }
 
 MidiData::Event::Event(
-  unsigned char type, unsigned char channel, unsigned int param1, unsigned int param2, size_t time) :
-  time(time),
+  unsigned char type, unsigned char channel, unsigned int param1, unsigned int param2) :
   raw_type(type),
   raw_channel(channel),
   param1(param1),
   param2(param2)
 {}
+
+MidiData::Event::Event() {}
 
 MidiData::MidiData(EventSeries events) :
   events(events)
