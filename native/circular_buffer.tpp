@@ -34,6 +34,12 @@ bool CircularBuffer<T, size>::empty() {
 }
 
 template<typename T, size_t size>
+void CircularBuffer<T, size>::clear() {
+  read_index = 0;
+  write_index = 0;
+}
+
+template<typename T, size_t size>
 bool CircularBuffer<T, size>::full() {
   size_t tmp_read_index = read_index.load(), tmp_write_index = write_index.load();
   // The buffer is full if a new write would cause the indices to be same
@@ -43,7 +49,10 @@ bool CircularBuffer<T, size>::full() {
 }
 
 template<typename T, size_t size>
-CircularBuffer<T, size>::CircularBuffer(bool verbose) : verbose(verbose)
+CircularBuffer<T, size>::CircularBuffer(bool verbose) :
+  write_index(0),
+  read_index(0),
+  verbose(verbose)
 {}
 
 #endif

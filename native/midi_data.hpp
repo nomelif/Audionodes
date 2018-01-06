@@ -18,6 +18,7 @@ struct MidiData : public Data {
     };
     unsigned char raw_type, raw_channel, param1, param2;
     
+    static unsigned char get_type_value(Type);
     Type get_type();
     int get_channel();
     int get_note();
@@ -27,11 +28,13 @@ struct MidiData : public Data {
     bool is_panic();
     bool is_sustain();
     bool is_sustain_enable();
-    Event(unsigned char, unsigned char, unsigned int, unsigned int);
+    Event(unsigned char, unsigned char, unsigned char, unsigned char);
+    Event(Type, unsigned char, unsigned char, unsigned char);
     Event();
   };
   
   typedef std::vector<Event> EventSeries;
+  typedef Event::Type EType; // helper
   EventSeries events;
   
   MidiData(EventSeries);

@@ -12,14 +12,24 @@ int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
     // Corresponds to param2
     fluid_midi_event_get_velocity(event)
   );
-  // TODO: buffer full
-  node->event_buffer.push(our_event);
+  if (!node->overflow_flag) {
+    if (node->event_buffer.full()) {
+      // Signal buffer overflow
+      node->overflow_flag = true;
+      std::clog << "Audionodes native: Buffer overflow at MIDI input!" << std::endl;
+    } else {
+      node->event_buffer.push(our_event);
+    }
+  } else {
+    // Node hasn't responded to overflow yet, can't do anything
+  }
   return 0;
 }
 
 MidiIn::MidiIn() :
   Node(0, 1, 0),
-  event_buffer(false)
+  event_buffer(false),
+  overflow_flag(false)
 {
   fluid_settings_t* settings = new_fluid_settings();
   fluid_settings_setstr(settings, "midi.portname", "Audionodes");
@@ -33,8 +43,21 @@ MidiIn::~MidiIn()
 
 NodeOutputWindow MidiIn::process(NodeInputWindow &input) {
   MidiData::EventSeries events;
-  while (!event_buffer.empty()) {
-    events.push_back(event_buffer.pop());
+  if (!overflow_flag) {
+    while (!event_buffer.empty()) {
+      events.push_back(event_buffer.pop());
+    }
+  } else {
+    // Buffer overflow occured
+    event_buffer.clear();
+    // Emit panic signal on all channels
+    for (unsigned char chan = 0; chan < 16; ++chan) {
+      // CC 120, CC 121, CC 123
+      events.emplace_back(MidiData::EType::control, chan, 120, 0);
+      events.emplace_back(MidiData::EType::control, chan, 121, 0);
+      events.emplace_back(MidiData::EType::control, chan, 123, 0);
+    }
+    overflow_flag = false;
   }
   return NodeOutputWindow({new MidiData(events)});
 }

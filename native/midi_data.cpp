@@ -21,6 +21,27 @@ MidiData::Event::Type MidiData::Event::get_type() {
   }
 }
 
+unsigned char MidiData::Event::get_type_value(Type type) {
+  switch (type) {
+    case Type::note_off:
+      return 0x8;
+    case Type::note_on:
+      return 0x9;
+    case Type::polyphonic_aftertouch:
+      return 0xA;
+    case Type::control:
+      return 0xB;
+    case Type::program:
+      return 0xC;
+    case Type::channel_aftertouch:
+      return 0xD;
+    case Type::pitch_bend:
+      return 0xE;
+    default:
+      return 0;
+  }
+}
+
 int MidiData::Event::get_channel() {
   return raw_channel;
 }
@@ -58,12 +79,21 @@ bool MidiData::Event::is_sustain_enable() {
 }
 
 MidiData::Event::Event(
-  unsigned char type, unsigned char channel, unsigned int param1, unsigned int param2) :
+  unsigned char type, unsigned char channel, unsigned char param1, unsigned char param2) :
   raw_type(type),
   raw_channel(channel),
   param1(param1),
   param2(param2)
 {}
+
+MidiData::Event::Event(
+  Type type, unsigned char channel, unsigned char param1, unsigned char param2) :
+  raw_type(get_type_value(type)),
+  raw_channel(channel),
+  param1(param1),
+  param2(param2)
+{}
+  
 
 MidiData::Event::Event() {}
 
