@@ -1,6 +1,6 @@
 #include "sink.hpp"
 
-Sink::Sink() : Node(1, 0, 0, true) {}
+Sink::Sink() : Node({SocketType::audio}, {}, {}, true) {}
 
 NodeOutputWindow Sink::process(NodeInputWindow &input) {
   return NodeOutputWindow({});

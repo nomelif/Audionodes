@@ -53,22 +53,25 @@ Chunk NodeTree::evaluate() {
           *node_polyphony_descriptors[i].input
           != *node_polyphony_descriptors[link.from_node].output;
       } else {
-        // TODO: Don't do this if the input socket isn't audio
-        // Interpolate earlier value and new value
-        float old_v = node->old_input_values[j];
-        float new_v = node->get_input_value(j);
-        Chunk audio;
-        if (old_v == new_v) audio.fill(new_v);
-        else {
-          for (size_t k = 0; k < N; ++k) {
-            audio[k] = ((N-k-1)*old_v + (k+1)*new_v)/N;
+        if (node->input_socket_types[j] == Node::SocketType::audio) {
+          // Interpolate earlier value and new value
+          float old_v = node->old_input_values[j];
+          float new_v = node->get_input_value(j);
+          Chunk audio;
+          if (old_v == new_v) audio.fill(new_v);
+          else {
+            for (size_t k = 0; k < N; ++k) {
+              audio[k] = ((N-k-1)*old_v + (k+1)*new_v)/N;
+            }
+            node->old_input_values[j] = new_v;
           }
-          node->old_input_values[j] = new_v;
+          // ~NodeInputWindow handles delete
+          socket_data = new AudioData(audio);
+          view_collapsed = true;
+          temporary_data = true;
+        } else {
+          socket_data = nullptr;
         }
-        // ~NodeInputWindow handles delete
-        socket_data = new AudioData(audio);
-        view_collapsed = true;
-        temporary_data = true;
       }
       inputs.emplace_back(*socket_data, view_collapsed, temporary_data);
     }

@@ -2,7 +2,11 @@
 
 
 Oscillator::Oscillator() :
-    Node(4, 1, 1)
+    Node(
+      SocketTypeList(4, SocketType::audio),
+      {SocketType::audio},
+      {PropertyType::select}
+    )
 {}
 
 void Oscillator::reset_state() {

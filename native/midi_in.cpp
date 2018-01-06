@@ -27,7 +27,7 @@ int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
 }
 
 MidiIn::MidiIn() :
-  Node(0, 1, 0),
+  Node({}, {SocketType::midi}, {}),
   event_buffer(false),
   overflow_flag(false)
 {

@@ -10,11 +10,27 @@
 class Node {
   protected:
   bool is_sink;
-  size_t input_count, output_count, property_count;
   std::vector<SigT> input_values;
   std::vector<int> property_values;
   std::mutex input_values_mutex;
+  
   public:
+  enum class SocketType {
+    audio, midi
+  };
+  enum class PropertyType {
+    number, integer, boolean, select
+  };
+  typedef std::vector<SocketType> SocketTypeList;
+  typedef std::vector<PropertyType> PropertyTypeList;
+  protected:
+  SocketTypeList _input_socket_types, _output_socket_types;
+  PropertyTypeList _property_types;
+  public:
+  // Public const references to type lists
+  const SocketTypeList &input_socket_types, &output_socket_types;
+  const PropertyTypeList &property_types;
+  
   virtual Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   
   // Override if the node has to manage bundles
@@ -38,7 +54,7 @@ class Node {
   
   void copy_input_values(const Node&);
   virtual NodeOutputWindow process(NodeInputWindow&) = 0;
-  Node(size_t, size_t, size_t, bool is_sink=false);
+  Node(SocketTypeList, SocketTypeList, PropertyTypeList, bool is_sink=false);
   virtual ~Node() = 0;
 };
 

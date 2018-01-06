@@ -1,20 +1,25 @@
 #include "node.hpp"
 
-Node::Node(size_t input_count, size_t output_count, size_t property_count, bool is_sink) :
+Node::Node(
+  SocketTypeList input_types, SocketTypeList output_types,
+  PropertyTypeList property_types, bool is_sink) :
     is_sink(is_sink),
-    input_count(input_count),
-    output_count(output_count),
-    property_count(property_count)
+    _input_socket_types(input_types),
+    _output_socket_types(output_types),
+    _property_types(property_types),
+    input_socket_types(_input_socket_types),
+    output_socket_types(_output_socket_types),
+    property_types(_property_types)
 {
-  input_values.resize(input_count);
-  property_values.resize(property_count);
-  old_input_values.resize(input_count);
+  input_values.resize(input_types.size());
+  old_input_values.resize(input_types.size());
+  property_values.resize(property_types.size());
 }
 
 Node::~Node() {}
 
 bool Node::get_is_sink() { return is_sink; }
-size_t Node::get_input_count() { return input_count; }
+size_t Node::get_input_count() { return input_socket_types.size(); }
 
 void Node::set_input_value(int index, SigT value) {
   std::lock_guard<std::mutex> lock(input_values_mutex);

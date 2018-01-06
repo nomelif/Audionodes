@@ -3,7 +3,7 @@
 #include <iostream>
 
 Math::Math() :
-    Node(2, 1, 1)
+    Node({SocketType::audio, SocketType::audio}, {SocketType::audio}, {PropertyType::select})
 {}
 
 const Math::MathOperatorList Math::math_operators = {
