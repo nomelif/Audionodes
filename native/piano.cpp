@@ -17,7 +17,6 @@ NodeOutputWindow Piano::process(NodeInputWindow &input) {
   SigT sust = std::max(SigT(0), input[InputSockets::sustain_time][0][0]);
   std::vector<VoiceState> new_voices;
   for (const MidiData::Event event : midi.events) {
-    std::cout <<"EVENTatpiano " << (int)event.raw_type << std::endl;
     unsigned char note = event.get_note();
     switch (event.get_type()) {
       case MidiData::EType::note_on:
@@ -55,7 +54,6 @@ NodeOutputWindow Piano::process(NodeInputWindow &input) {
   input.universes.output->update(removed, new_voices.size());
   voices.clear();
   size_t n = voices_tmp.size() + new_voices.size();
-  std::cout << n << std::endl;
   voices.reserve(n);
   existing_note.fill(nullptr);
   for (VoiceState voice : voices_tmp) {

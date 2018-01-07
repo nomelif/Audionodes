@@ -32,7 +32,6 @@ void NodeTree::prepare_polyphony_universes() {
   }
 }
 
-#include <iostream>
 Chunk NodeTree::evaluate() {
   std::vector<NodeOutputWindow> node_outputs; node_outputs.reserve(amount);
   Chunk output;
@@ -53,7 +52,6 @@ Chunk NodeTree::evaluate() {
         view_collapsed =
           *node_polyphony_descriptors[i].input
           != *node_polyphony_descriptors[link.from_node].output;
-        std::cout << i << " " << j << ": " << view_collapsed <<" " <<link.from_node << std::endl;
       } else {
         if (node->input_socket_types[j] == Node::SocketType::audio) {
           // Interpolate earlier value and new value

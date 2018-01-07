@@ -84,7 +84,8 @@ MidiData::Event::Event(
     raw_channel(channel),
     param1(param1),
     param2(param2)
-{}
+{
+}
 
 MidiData::Event::Event(
   Type type, unsigned char channel, unsigned char param1, unsigned char param2) :

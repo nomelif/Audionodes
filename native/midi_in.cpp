@@ -11,6 +11,9 @@ int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
     // Corresponds to param2
     fluid_midi_event_get_velocity(event)
   );
+  if (our_event.get_type() == MidiData::EType::note_on && our_event.get_velocity() == 0) {
+    our_event.raw_type = MidiData::Event::get_type_value(MidiData::EType::note_off);
+  }
   if (!node->overflow_flag) {
     if (node->event_buffer.full()) {
       // Signal buffer overflow

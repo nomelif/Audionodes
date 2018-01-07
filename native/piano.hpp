@@ -6,7 +6,6 @@
 #include "node.hpp"
 #include "midi_data.hpp"
 #include <cmath>
-#include <iostream>
 
 class Piano : public Node {
   enum InputSockets {

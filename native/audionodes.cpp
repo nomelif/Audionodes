@@ -188,25 +188,16 @@ extern "C" {
         to_process_q.push_back(link.from_node);
       }
     }
-    for (auto x : to_process) {
-      std::cout << x << "|" << links_from_count[x] << " ";
-    }
-    std::cout << std::endl;
     for (size_t i = 0; i < q.size(); ++i) {
       node_uid id = q[i];
-      std::cout << id << " ";
       for (auto link : links_to[id]) {
         if (!to_process.count(link.from_node)) continue;
         links_from_count[link.from_node]--;
         if (links_from_count[link.from_node] == 0) {
           q.push_back(link.from_node);
-          for (auto add_link : links_to[link.from_node]) {
-            links_from_count[add_link.from_node]++;
-          }
         }
       }
     }
-    std::cout << std::endl;
     // Reverse the resulting vector to have the correct evaluation order
     std::reverse(q.begin(), q.end());
 
