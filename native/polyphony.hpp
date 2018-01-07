@@ -9,6 +9,8 @@ class Universe {
   // Describes how the universe changed from the last chunk
   // (which channels were removed and how many new channels were initialized)
   // and uniquely correlates polyphony sources to prevent unwanted mixing
+  static int token_counter;
+  int unique_token;
   bool variable;
   size_t channel_amount = 0, old_channel_amount = 0, added_channels_amount = 0, removed_channels_amount = 0;
   std::vector<bool> channel_removed;
@@ -28,6 +30,9 @@ class Universe {
   bool operator==(const Universe&) const;
   bool operator!=(const Universe&) const;
  
+  // Reset if channel_amount isn't the expected value
+  void ensure(size_t);
+  
   // Removal by lookup-table
   void update(std::vector<bool> removed, size_t added);
   // Removal by indices
@@ -76,6 +81,7 @@ class Universe {
   struct Descriptor {
     Pointer input, bundles, output;
     Descriptor();
+    Descriptor(Pointer, Pointer, Pointer);
     void set_all(Pointer);
   };
 };

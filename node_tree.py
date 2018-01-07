@@ -175,6 +175,19 @@ class MidiIn(Node, AudioTreeNode):
         AudioTreeNode.init(self, context)
         self.outputs.new('MidiSocketType', "Stream")
 
+class Piano(Node, AudioTreeNode):
+    bl_idname = 'PianoNode'
+    bl_label = 'Piano'
+    
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('MidiSocketType', "MIDI")
+        self.inputs.new('RawAudioSocketType', "Decay time")
+        self.outputs.new('RawAudioSocketType', "Frequency")
+        self.outputs.new('RawAudioSocketType', "Velocity")
+        self.outputs.new('RawAudioSocketType', "Runtime")
+        self.outputs.new('RawAudioSocketType', "Decay")
+
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'

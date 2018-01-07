@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include <set>
 #include <mutex>
 #include <functional>
 #include <SDL2/SDL.h>

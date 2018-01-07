@@ -72,7 +72,8 @@ node_categories = [
         NodeItem("OscillatorNode"),
         NodeItem("MathNode"),
         NodeItem("SinkNode"),
-        NodeItem("MidiInNode")
+        NodeItem("MidiInNode"),
+        NodeItem("PianoNode")
     ]),
 ]
 

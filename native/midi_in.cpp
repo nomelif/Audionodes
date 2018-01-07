@@ -1,11 +1,10 @@
 #include "midi_in.hpp"
 
 int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
-  using namespace std::chrono;
   MidiIn *node = (MidiIn*)_node;
   if (!node->mark_connected) return 0;
   MidiData::Event our_event(
-    fluid_midi_event_get_type(event),
+    fluid_midi_event_get_type(event) >> 4,
     fluid_midi_event_get_channel(event),
     // Corresponds to param1
     fluid_midi_event_get_key(event),

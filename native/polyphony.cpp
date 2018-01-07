@@ -1,5 +1,8 @@
 #include "polyphony.hpp"
 
+
+int Universe::token_counter = 0;
+
 Universe::Universe(bool variable) :
   variable(variable)
 {
@@ -11,8 +14,9 @@ Universe::Universe(bool variable) :
 }
 
 Universe::Universe(bool variable, size_t channels) :
-  variable(variable),
-  channel_amount(channels)
+    unique_token(token_counter++),
+    variable(variable),
+    channel_amount(channels)
 {}
 
 bool Universe::is_polyphonic() const {
@@ -31,14 +35,22 @@ bool Universe::operator==(const Universe &other) const {
   // Different variabilities, can't be the same
   if (is_variable() != other.is_variable()) return false;
   if (is_variable()) {
-    // Compare by pointers (the same variable universe is only new'd once in it's creator)
-    return this == &other;
+    return unique_token == other.unique_token;
   } else {
     return get_channel_amount() == other.get_channel_amount();
   }
 }
 bool Universe::operator!=(const Universe &other) const {
   return !operator==(other);
+}
+
+void Universe::ensure(size_t expected) {
+  if (channel_amount != expected) {
+    old_channel_amount = channel_amount;
+    channel_amount = expected;
+    added_channels_amount = 0;
+    removed_channels_amount = 0;
+  }
 }
 
 void Universe::update(std::vector<bool> removed, size_t added) {
@@ -70,6 +82,12 @@ Universe::Descriptor::Descriptor() {
   Pointer mono(new Universe());
   input = bundles = output = mono;
 }
+
+Universe::Descriptor::Descriptor(Pointer input, Pointer bundles, Pointer output) :
+    input(input),
+    bundles(bundles),
+    output(output)
+{}
 
 void Universe::Descriptor::set_all(Pointer to) {
   input = bundles = output = to;

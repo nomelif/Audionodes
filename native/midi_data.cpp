@@ -1,6 +1,6 @@
 #include "midi_data.hpp"
 
-MidiData::Event::Type MidiData::Event::get_type() {
+MidiData::Event::Type MidiData::Event::get_type() const {
   switch (raw_type) {
     case 0x8:
       return Type::note_off;
@@ -42,23 +42,23 @@ unsigned char MidiData::Event::get_type_value(Type type) {
   }
 }
 
-int MidiData::Event::get_channel() {
+int MidiData::Event::get_channel() const {
   return raw_channel;
 }
 
-int MidiData::Event::get_note() {
+int MidiData::Event::get_note() const {
   return param1;
 }
 
-int MidiData::Event::get_velocity() {
+int MidiData::Event::get_velocity() const {
   return param2;
 }
 
-int MidiData::Event::get_bend() {
+int MidiData::Event::get_bend() const {
   return param2;
 }
 
-int MidiData::Event::get_aftertouch() {
+int MidiData::Event::get_aftertouch() const {
   if (get_type() == Type::polyphonic_aftertouch) {
     return param2;
   } else {
@@ -66,32 +66,29 @@ int MidiData::Event::get_aftertouch() {
   }
 }
 
-bool MidiData::Event::is_panic() {
+bool MidiData::Event::is_panic() const {
   return (get_type() == Type::control) && (param1 == 0x7b);
 }
 
-bool MidiData::Event::is_sustain() {
+bool MidiData::Event::is_sustain() const {
   return (get_type() == Type::control) && (param1 == 0x40);
 }
 
-bool MidiData::Event::is_sustain_enable() {
+bool MidiData::Event::is_sustain_enable() const {
   return is_sustain() && (param2 > 0x40);
 }
 
 MidiData::Event::Event(
   unsigned char type, unsigned char channel, unsigned char param1, unsigned char param2) :
-  raw_type(type),
-  raw_channel(channel),
-  param1(param1),
-  param2(param2)
+    raw_type(type),
+    raw_channel(channel),
+    param1(param1),
+    param2(param2)
 {}
 
 MidiData::Event::Event(
   Type type, unsigned char channel, unsigned char param1, unsigned char param2) :
-  raw_type(get_type_value(type)),
-  raw_channel(channel),
-  param1(param1),
-  param2(param2)
+    Event(get_type_value(type), channel, param1, param2)
 {}
   
 

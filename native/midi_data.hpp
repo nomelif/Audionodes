@@ -19,15 +19,15 @@ struct MidiData : public Data {
     unsigned char raw_type, raw_channel, param1, param2;
     
     static unsigned char get_type_value(Type);
-    Type get_type();
-    int get_channel();
-    int get_note();
-    int get_velocity();
-    int get_bend();
-    int get_aftertouch();
-    bool is_panic();
-    bool is_sustain();
-    bool is_sustain_enable();
+    Type get_type() const;
+    int get_channel() const;
+    int get_note() const;
+    int get_velocity() const;
+    int get_bend() const;
+    int get_aftertouch() const;
+    bool is_panic() const;
+    bool is_sustain() const;
+    bool is_sustain_enable() const;
     Event(unsigned char, unsigned char, unsigned char, unsigned char);
     Event(Type, unsigned char, unsigned char, unsigned char);
     Event();

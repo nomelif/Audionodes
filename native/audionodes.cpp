@@ -4,12 +4,14 @@
 #include "sink.hpp"
 #include "math.hpp"
 #include "midi_in.hpp"
+#include "piano.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
   NodeType(Sink, "SinkNode"),
   NodeType(Math, "MathNode"),
-  NodeType(MidiIn, "MidiInNode")
+  NodeType(MidiIn, "MidiInNode"),
+  NodeType(Piano, "PianoNode")
 };
 
 // Nodes addressed by unique integers
@@ -162,22 +164,39 @@ extern "C" {
     // Breadth first search from sinks to find reverse topological order
     std::vector<node_uid> q;
     std::vector<node_uid> marked_for_deletion;
+    // will contain all nodes that need to be evaluated (directly or indirectly connected to a sink)
+    std::set<node_uid> to_process;
+    std::vector<node_uid> to_process_q;
     for (auto &id_node_pair : node_storage) {
       if (id_node_pair.second->mark_deletion) {
         marked_for_deletion.push_back(id_node_pair.first);
       } else {
         if (id_node_pair.second->get_is_sink()) {
           q.push_back(id_node_pair.first);
-          for (auto add_link : links_to[id_node_pair.first]) {
-            links_from_count[add_link.from_node]++;
-          }
+          to_process.insert(id_node_pair.first);
+          to_process_q.push_back(id_node_pair.first);
         }
       }
     }
-    for (size_t i = 0; i < q.size(); ++i) {
-      node_uid id = q[i];
+    for (size_t i = 0; i < to_process_q.size(); ++i) {
+      node_uid id = to_process_q[i];
       for (auto link : links_to[id]) {
         if (node_storage[link.from_node]->mark_deletion) continue;
+        links_from_count[link.from_node]++;
+        if (to_process.count(link.from_node)) continue;
+        to_process.insert(link.from_node);
+        to_process_q.push_back(link.from_node);
+      }
+    }
+    for (auto x : to_process) {
+      std::cout << x << "|" << links_from_count[x] << " ";
+    }
+    std::cout << std::endl;
+    for (size_t i = 0; i < q.size(); ++i) {
+      node_uid id = q[i];
+      std::cout << id << " ";
+      for (auto link : links_to[id]) {
+        if (!to_process.count(link.from_node)) continue;
         links_from_count[link.from_node]--;
         if (links_from_count[link.from_node] == 0) {
           q.push_back(link.from_node);
@@ -187,6 +206,7 @@ extern "C" {
         }
       }
     }
+    std::cout << std::endl;
     // Reverse the resulting vector to have the correct evaluation order
     std::reverse(q.begin(), q.end());
 
@@ -201,6 +221,7 @@ extern "C" {
       final_order[i] = node;
       final_links[i] = std::vector<NodeTree::Link>(node->get_input_count());
       for (auto link : links_to[id]) {
+        if (!to_process.count(link.from_node)) continue;
         final_links[i][link.to_socket] = NodeTree::Link(true, node_index[link.from_node], link.from_socket);
       }
     }

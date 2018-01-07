@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cstdint>
 
-const size_t N = 1024;
+const size_t N = 256;
 const int rate = 44100;
 typedef float SigT;
 typedef std::array<SigT, N> Chunk;
