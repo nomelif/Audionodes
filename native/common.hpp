@@ -9,7 +9,7 @@
 #include <cstdint>
 
 const size_t N = 256;
-const int rate = 44100;
+const int RATE = 44100;
 typedef float SigT;
 typedef std::array<SigT, N> Chunk;
 typedef int node_uid;

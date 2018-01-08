@@ -61,7 +61,7 @@ extern "C" {
     SDL_Init(SDL_INIT_AUDIO);
 
 		SDL_AudioSpec spec;
-		spec.freq     = rate;
+		spec.freq     = RATE;
 		spec.format   = AUDIO_S16SYS;
 		spec.channels = 1;
 		spec.samples  = N;

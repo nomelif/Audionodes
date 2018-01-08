@@ -42,7 +42,7 @@ NodeOutputWindow Piano::process(NodeInputWindow &input) {
   std::vector<size_t> removed;
   std::vector<VoiceState> voices_tmp;
   for (size_t i = 0; i < voices.size(); ++i) {
-    if (voices[i].released && voices[i].since_rel > size_t(sust*rate)) {
+    if (voices[i].released && voices[i].since_rel > size_t(sust*RATE)) {
       voices[i].dead = true;
     }
     if (voices[i].dead) {
@@ -70,11 +70,11 @@ NodeOutputWindow Piano::process(NodeInputWindow &input) {
     frequency[i].fill(voice.freq);
     velocity[i].fill(voice.velocity);
     for (size_t j = 0; j < N; ++j) {
-      runtime[i][j] = SigT(voice.age++)/rate;
+      runtime[i][j] = SigT(voice.age++)/RATE;
     }
     if (voice.released) {
       for (size_t j = 0; j < N; ++j) {
-        decay[i][j] = std::max(SigT(0), (sust*rate-SigT(voice.since_rel++))/(sust*rate));
+        decay[i][j] = std::max(SigT(0), (sust*RATE-SigT(voice.since_rel++))/(sust*RATE));
       }
     } else decay[i].fill(1);
   }
