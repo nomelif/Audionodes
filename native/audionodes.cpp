@@ -5,13 +5,15 @@
 #include "math.hpp"
 #include "midi_in.hpp"
 #include "piano.hpp"
+#include "pitch_bend.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
   NodeType(Sink, "SinkNode"),
   NodeType(Math, "MathNode"),
   NodeType(MidiIn, "MidiInNode"),
-  NodeType(Piano, "PianoNode")
+  NodeType(Piano, "PianoNode"),
+  NodeType(PitchBend, "PitchBendNode")
 };
 
 // Nodes addressed by unique integers
@@ -216,7 +218,7 @@ extern "C" {
         final_links[i][link.to_socket] = NodeTree::Link(true, node_index[link.from_node], link.from_socket);
       }
     }
-    
+
     // Call callbacks on newly connected nodes
     for (Node *node : final_order) {
       if (!node->mark_connected) {
@@ -234,7 +236,7 @@ extern "C" {
     main_node_tree = new_node_tree;
     SDL_UnlockAudioDevice(dev);
     delete old_node_tree;
-    
+
     // Call callbacks on newly disconnected nodes
     for (auto &id_node_pair : node_storage) {
       Node *node = id_node_pair.second;

@@ -55,7 +55,7 @@ int MidiData::Event::get_velocity() const {
 }
 
 int MidiData::Event::get_bend() const {
-  return param2;
+  return (int)param2 << 7 | param1;
 }
 
 int MidiData::Event::get_aftertouch() const {

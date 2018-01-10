@@ -73,6 +73,7 @@ node_categories = [
         NodeItem("MathNode"),
         NodeItem("SinkNode"),
         NodeItem("MidiInNode"),
+        NodeItem("PitchBendNode"),
         NodeItem("PianoNode")
     ]),
 ]

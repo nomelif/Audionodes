@@ -29,7 +29,7 @@ class AudioTree(NodeTree):
 class AudioTreeNodeSocket:
     def get_tree(self):
         return self.id_data
-    
+
     def get_index(self):
         return int(self.path_from_id().split('[')[-1][:-1])
 
@@ -59,7 +59,7 @@ class MidiSocket(NodeSocket, AudioTreeNodeSocket):
 
     def draw(self, context, layout, node, text):
         layout.label(text)
-    
+
     def draw_color(self, context, node):
         return (0.9, 0.86, 0.14, 1.0)
 
@@ -178,7 +178,7 @@ class MidiIn(Node, AudioTreeNode):
 class Piano(Node, AudioTreeNode):
     bl_idname = 'PianoNode'
     bl_label = 'Piano'
-    
+
     def init(self, context):
         AudioTreeNode.init(self, context)
         self.inputs.new('MidiSocketType', "MIDI")
@@ -187,6 +187,15 @@ class Piano(Node, AudioTreeNode):
         self.outputs.new('RawAudioSocketType', "Velocity")
         self.outputs.new('RawAudioSocketType', "Runtime")
         self.outputs.new('RawAudioSocketType', "Decay")
+
+class PitchBend(Node, AudioTreeNode):
+    bl_idname = 'PitchBendNode'
+    bl_label = 'Pitch Bend'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('MidiSocketType', "MIDI")
+        self.outputs.new('RawAudioSocketType', "Bend")
 
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
