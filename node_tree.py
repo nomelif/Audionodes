@@ -130,7 +130,7 @@ class Math(Node, AudioTreeNode):
         ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
 
     func_enum_items = [
-        ('SIN', 'Add', '', 0),
+        ('ADD', 'Add', '', 0),
         ('SUB', 'Subtract', '', 1),
         ('MUL', 'Multiply', '', 2),
         ('DIV', 'Divide', '', 3),
