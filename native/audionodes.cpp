@@ -56,6 +56,7 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
 }
 
 SDL_AudioDeviceID dev;
+bool initialized = false;
 
 // Methods to be used through the FFI
 extern "C" {
@@ -98,6 +99,7 @@ extern "C" {
     }
     node_storage.clear();
     delete main_node_tree;
+    main_node_tree = nullptr;
   }
 
   node_uid create_node(const char* type_c) {

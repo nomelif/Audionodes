@@ -17,13 +17,19 @@ class AudioTree(NodeTree):
         pass
 
     def update(self):
+        # Blender likes to call this method when loading isn't yet finished,
+        # don't do anything in that case
+        if ffi.flag_loading_file: return
         links = ffi.native.begin_tree_update()
         for link in self.links:
             ffi.native.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
         ffi.native.finish_tree_update(links)
+    
+    def post_load_handler(self):
+        for node in self.nodes:
+            node.post_load_handler()
+        self.update()
 
-    def send_value_update(self, node, index, value):
-        ffi.native.update_node_input_value(node.get_uid(), index, value)
 
 # Custom socket type
 class AudioTreeNodeSocket:
@@ -39,7 +45,7 @@ class RawAudioSocket(NodeSocket, AudioTreeNodeSocket):
     bl_label = 'Raw Audio'
 
     def update_value(self, context):
-       self.get_tree().send_value_update(self.node, self.get_index(), self.value_prop)
+       self.node.send_value_update(self.get_index(), self.value_prop)
 
     value_prop = bpy.props.FloatProperty(update=update_value)
 
@@ -74,10 +80,25 @@ class AudioTreeNode:
 
     def get_tree(self):
         return self.id_data
-
-    def init(self, context):
+    
+    def register_native(self):
         self["unique_id"] = ffi.native.create_node(self.bl_idname.encode('ascii'))
 
+    def init(self, context):
+        self.register_native()
+    
+    def send_value_update(self, index, value):
+        ffi.native.update_node_input_value(self.get_uid(), index, value)
+    
+    def send_property_update(self, index, value):
+        ffi.native.update_node_property_value(self.get_uid(), index, value)
+    
+    def post_load_handler(self):
+        self.register_native()
+        for socket in self.inputs:
+            if type(socket) == RawAudioSocket:
+                socket.update_value(None)
+    
     def copy(self, node):
         self["unique_id"] = ffi.native.copy_node(node.get_uid(), self.bl_idname.encode('ascii'))
 
@@ -87,13 +108,17 @@ class AudioTreeNode:
     def free(self):
         ffi.native.remove_node(self.get_uid())
 
-# Proof-of-concept state, remake and move these to another file ASAP
+# Proof-of-concept state, remake? and move these to another file ASAP
 class Oscillator(Node, AudioTreeNode):
     bl_idname = 'OscillatorNode'
     bl_label = 'Oscillator'
 
     def change_func(self, context):
-        ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
+        self.send_property_update(0, self.func_enum_to_native[self.func_enum])
+    
+    def post_load_handler(self):
+        AudioTreeNode.post_load_handler(self)
+        self.change_func(None)
 
     func_enum_items = [
         ('SIN', 'Sine', '', 0),
@@ -127,7 +152,11 @@ class Math(Node, AudioTreeNode):
     bl_label = 'Math'
 
     def change_func(self, context):
-        ffi.native.update_node_property_value(self.get_uid(), 0, self.func_enum_to_native[self.func_enum])
+        self.send_property_update(0, self.func_enum_to_native[self.func_enum])
+    
+    def post_load_handler(self):
+        AudioTreeNode.post_load_handler(self)
+        self.change_func(None)
 
     func_enum_items = [
         ('ADD', 'Add', '', 0),

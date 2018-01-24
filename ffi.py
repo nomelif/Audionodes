@@ -8,4 +8,4 @@ with open(os.path.join(os.path.dirname(__file__), "native/c_interface.h"), 'r') 
     ffi.cdef(interface)
 
 native = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"), ffi.RTLD_DEEPBIND)
-
+flag_loading_file = False
