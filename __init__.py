@@ -87,27 +87,27 @@ def register():
 
     bpy.utils.register_module(__name__)
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
-    ffi.native.initialize();
+    ffi.initialize()
 
 def unregister():
-    ffi.native.cleanup()
+    ffi.cleanup()
     nodeitems_utils.unregister_node_categories("AUDIONODES")
     bpy.utils.unregister_module(__name__)
 
 import atexit
 def exit_handler():
-    ffi.native.cleanup()
+    ffi.cleanup()
 atexit.register(exit_handler)
 
 from bpy.app.handlers import persistent
 @persistent
 def pre_load_handler(_):
     ffi.flag_loading_file = True
-    ffi.native.cleanup()
+    ffi.cleanup()
 
 @persistent
 def post_load_handler(_):
-    ffi.native.initialize()
+    ffi.initialize()
     ffi.flag_loading_file = False
     for tree in bpy.data.node_groups:
         if type(tree) == node_tree.AudioTree:
