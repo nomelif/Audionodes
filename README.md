@@ -1,6 +1,6 @@
 # Audionodes
 
-Audio generation in blender nodes under Linux.
+Audio generation in Blender nodes.
 
 Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
@@ -19,9 +19,9 @@ sudo apt install libsdl2-2.0-0 libfluidsynth
 
 On Arch, this would be `sudo pacman -S sdl2 fluidsynth`.
 
-On other systems, try to install similar packages.
+On other distributions, try to install similar packages.
 
-Download the plugin in zip format for your appropriate platform under Releases,
+Download the plugin in zip format for Linux under Releases,
 and install it just like any other Blender plugin.
 
 ### I am running macOS
@@ -32,8 +32,8 @@ You should install the necessary packages via [Homebrew](https://brew.sh/).
 brew install sdl2 fluidsynth
 ```
 
-Download the plugin in zip format for your appropriate platform under Releases,
-and install it just like any other blender plugin.
+Download the plugin in zip format for macOS under Releases,
+and install it just like any other Blender plugin.
 
 ### Having trouble installing?
 
