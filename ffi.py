@@ -1,25 +1,72 @@
 
-import cffi, os
+# import cffi, os
+import os
+import ctypes as ct
 
-ffi = cffi.FFI()
+# ffi = cffi.FFI()
+#
+# with open(os.path.join(os.path.dirname(__file__), "native/c_interface.h"), 'r') as file:
+#     interface = file.read()
+#     ffi.cdef(interface)
 
-with open(os.path.join(os.path.dirname(__file__), "native/c_interface.h"), 'r') as file:
-    interface = file.read()
-    ffi.cdef(interface)
-
-native = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"), ffi.RTLD_DEEPBIND)
+# native = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"), ffi.RTLD_DEEPBIND)
+native = ct.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "native.so"))
 
 flag_loading_file = False
 flag_initialized = False
 
+native.initialize.argtypes = []
+native.initialize.restype = None
 def initialize():
     global flag_initialized
     if not flag_initialized:
         native.initialize()
         flag_initialized = True
 
+native.cleanup.argtypes = []
+native.cleanup.restype = None
 def cleanup():
     global flag_initialized
     if flag_initialized:
         native.cleanup()
         flag_initialized = False
+
+native.create_node.argtypes = [ct.c_char_p]
+native.create_node.restype = ct.c_int
+def create_node(node_type):
+    return native.create_node(node_type)
+
+native.copy_node.argtypes = [ct.c_int, ct.c_char_p]
+native.copy_node.restype = ct.c_int
+def copy_node(old_id, node_type):
+    return native.copy_node(old_id, node_type)
+
+native.remove_node.argtypes = [ct.c_int]
+native.remove_node.restype = None
+def remove_node(node_id):
+    native.remove_node(node_id)
+
+native.update_node_input_value.argtypes = [ct.c_int, ct.c_int, ct.c_float]
+native.update_node_input_value.restype = None
+def update_node_input_value(node_id, socket_id, val):
+    native.update_node_input_value(node_id, socket_id, val)
+
+native.update_node_property_value.argtypes = [ct.c_int, ct.c_int, ct.c_int]
+native.update_node_property_value.restype = None
+def update_node_property_value(node_id, socket_id, val):
+    native.update_node_property_value(node_id, socket_id, val)
+
+native.begin_tree_update.argtypes = []
+native.begin_tree_update.restype = ct.c_void_p
+def begin_tree_update():
+    return native.begin_tree_update()
+
+native.add_tree_update_link.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, ct.c_size_t, ct.c_size_t]
+native.add_tree_update_link.restype = None
+def add_tree_update_link(ref, from_node, to_node, from_socket, to_socket):
+    native.add_tree_update_link(ref, from_node, to_node, from_socket, to_socket)
+
+native.finish_tree_update.argtypes = [ct.c_void_p]
+native.finish_tree_update.restype = None
+def finish_tree_update(ref):
+    native.finish_tree_update(ref)

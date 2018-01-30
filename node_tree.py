@@ -19,11 +19,12 @@ class AudioTree(NodeTree):
     def update(self):
         # Blender likes to call this method when loading isn't yet finished,
         # don't do anything in that case
-        if ffi.flag_loading_file: return
-        links = ffi.native.begin_tree_update()
+        if ffi.flag_loading_file:
+            return
+        links = ffi.begin_tree_update()
         for link in self.links:
-            ffi.native.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
-        ffi.native.finish_tree_update(links)
+            ffi.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
+        ffi.finish_tree_update(links)
     
     def post_load_handler(self):
         for node in self.nodes:
@@ -82,16 +83,16 @@ class AudioTreeNode:
         return self.id_data
     
     def register_native(self):
-        self["unique_id"] = ffi.native.create_node(self.bl_idname.encode('ascii'))
+        self["unique_id"] = ffi.create_node(self.bl_idname.encode('ascii'))
 
     def init(self, context):
         self.register_native()
     
     def send_value_update(self, index, value):
-        ffi.native.update_node_input_value(self.get_uid(), index, value)
+        ffi.update_node_input_value(self.get_uid(), index, value)
     
     def send_property_update(self, index, value):
-        ffi.native.update_node_property_value(self.get_uid(), index, value)
+        ffi.update_node_property_value(self.get_uid(), index, value)
     
     def post_load_handler(self):
         self.register_native()
@@ -100,13 +101,13 @@ class AudioTreeNode:
                 socket.update_value(None)
     
     def copy(self, node):
-        self["unique_id"] = ffi.native.copy_node(node.get_uid(), self.bl_idname.encode('ascii'))
+        self["unique_id"] = ffi.copy_node(node.get_uid(), self.bl_idname.encode('ascii'))
 
     def get_uid(self):
         return self["unique_id"];
 
     def free(self):
-        ffi.native.remove_node(self.get_uid())
+        ffi.remove_node(self.get_uid())
 
 # Proof-of-concept state, remake? and move these to another file ASAP
 class Oscillator(Node, AudioTreeNode):
