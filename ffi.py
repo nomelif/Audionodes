@@ -1,16 +1,9 @@
 
-# import cffi, os
 import os
 import ctypes as ct
 
-# ffi = cffi.FFI()
-#
-# with open(os.path.join(os.path.dirname(__file__), "native/c_interface.h"), 'r') as file:
-#     interface = file.read()
-#     ffi.cdef(interface)
-
-# native = ffi.dlopen(os.path.join(os.path.dirname(__file__), "native.so"), ffi.RTLD_DEEPBIND)
-native = ct.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), "native.so"))
+# mode=8 stands for RTLD_DEEPBIND dlopen flag
+native = ct.CDLL(os.path.join(os.path.dirname(__file__), "native.so"), mode=8)
 
 flag_loading_file = False
 flag_initialized = False
