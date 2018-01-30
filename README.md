@@ -4,103 +4,67 @@ Audio generation in blender nodes under Linux.
 
 Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
-## Install
+## Installation
 
-For now Audionodes doesn't come with the required libraries. You need to install `pyalsaaudio` and `NumPy` for it to work.
+For now Audionodes doesn't come with the required libraries. You need to install `SDL 2` and `FluidSynth` for it to work.
+We currently support Linux and macOS.
 
 ### I am running Linux
 
-We have found that Audio Nodes has a greater chance of working (especially with MIDI setups) on versions of Blender that are installed through a package manager. We speculate that this is due to them using a standard Python 3 release.
+#### Basic setup
 
-### Basic setup
-
-On Ubuntu run this command:
+On Ubuntu, install the necessary packages:
 
 ```
-sudo apt-get install python3-numpy python3-pip
+sudo apt install libsdl2-2.0-0 libfluidsynth
 ```
 
-On Archlinux, install `pip` and `numpy` with `sudo pacman -S python-pip python-numpy`.
-
-
-Regardless of your distribution, install `pyalsaaudio` from `pip` with `pip3 install PyGame --user`.
+On Arch, this would be `sudo pacman -S sdl2 fluidsynth`.
 
 On other systems, try to install similar packages.
 
-### Aside on MIDI input
+Download the plugin in zip format for your appropriate platform under Releases,
+and install it just like any other Blender plugin.
 
-You can use a MIDI keyboard with Audio Nodes. It is possible that it may work out of the box, but we recommend installing Alsaseq. It is available through `pip`, but I never got it to build right. This slightly modified version of an older release seems to work fine, though. Download [this](https://drive.google.com/file/d/0B0nfZWGohnB7MG4wMnZ6RzUyb0E/view?usp=sharing) zip file and unpack it where you want. Navigate into it and run:
+### I am running macOS
+
+You should install the necessary packages via [Homebrew](https://brew.sh/).
 
 ```
-sudo python3 setup.py build
-sudo python3 setup.py install
+brew install sdl2 fluidsynth
 ```
 
-The archive is an old version (only one that I got to build) of alsaseq, see here: [Alsaseq home site](http://pp.com.mx/python/alsaseq/)
+Download the plugin in zip format for your appropriate platform under Releases,
+and install it just like any other blender plugin.
 
-To connect to a midi keyboard, add a `Piano` node and hit `Keyboard capture`. This should create an alsa socket to connect a MIDI device to. A nice GUI tool to do this is QjackCtl. After launching it go to `Connect > Alsa [tab]` and hook up the USB midi on the left to Audionodes on the right. To kill the sound from the piano node quickly, hit escape on the keyboard.
+#### Having trouble installing?
 
-### Main installation
+Please open an issue. Hopefully we can help.
 
-Download this repository as a zip and load that zip into Blender through `User Preferences > Addons > Install from File...`. Then enable the addon by checking the checkbox.
+## Compiling from source
 
-### Troubleshooting
+### Linux
 
-If there is an error when activating the addon, you are probably not using the right Python installation. To remedy this, open a terminal and run `python3`. There type:
+You need `gcc/g++` for compiling, and the dependencies with header files.
 
-```python
-import sys
-sys.path
+```
+sudo apt install gcc libsdl2-dev libfluidsynth-dev
 ```
 
-On my machine the output looks like:
+Again, use similar packages with other distributions.
 
-```python
-['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
-```
+Then run the compile script `./compile.sh`. After that you can zip the folder up and install it into Blender.
 
-Copy the output of the command. In Blender go to `Scripting` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
+### macOS
 
-```python
-import sys
-sys.path.extend(whatever your output was)
-```
+Here we will use `clang` for compiling, you will most likely be prompted to install the XCode packages when trying to compile.
 
-This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
-
-Now go and enable the addon, it should work.
-
-### Troubleshooting
-
-If there is an error when enabling the addon, you are probably not using the right Python installation. To remedy this, open a terminal and run `python3`. There type:
-
-```python
-import sys
-sys.path
-```
-
-On my machine the output looks like:
-
-```python
-['', '/usr/local/lib/python3.5/dist-packages/alsaseq-0.4-py3.5-linux-x86_64.egg', '/usr/lib/python3/dist-packages', '/usr/lib/python35.zip', '/usr/lib/python3.5', '/usr/lib/python3.5/plat-x86_64-linux-gnu', '/usr/lib/python3.5/lib-dynload', '/usr/local/lib/python3.5/dist-packages']
-```
-
-Copy the output of the command. In Blender go to `Scripting` (from the dropdown in the very upper bar that says `Default`) and write the following into the console:
-
-```python
-import sys
-sys.path.extend(whatever your output was)
-```
-
-This terminal lets you copy and paste using Ctrl + C and Ctrl + V.
-
-Now go and enable the addon, it should work.
-
-### It still doesn't work
-
-Please open an issue. Hopefully we can fix it.
+Again, install the required dependencies via [Homebrew](https://brew.sh/) first, then run `./compile.sh`.
+After that you can zip the folder up and install it into Blender.
 
 ## How does one use this sorcery?!
+**Note: This guide is fairly outdated, but you should get the idea.**
+We are going to update it.
 
 We start by creating a new node setup:
 
