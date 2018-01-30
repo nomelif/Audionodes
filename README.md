@@ -11,8 +11,6 @@ We currently support Linux and macOS.
 
 ### I am running Linux
 
-#### Basic setup
-
 On Ubuntu, install the necessary packages:
 
 ```
@@ -37,7 +35,7 @@ brew install sdl2 fluidsynth
 Download the plugin in zip format for your appropriate platform under Releases,
 and install it just like any other blender plugin.
 
-#### Having trouble installing?
+### Having trouble installing?
 
 Please open an issue. Hopefully we can help.
 
