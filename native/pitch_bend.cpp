@@ -22,7 +22,6 @@ NodeOutputWindow PitchBend::process(NodeInputWindow &input) {
     }
   }
 
-  //std::cout << bend_state << std::endl;
   for (size_t j = 0; j < N; ++j) {
     SigT result = (bend_state*(N-j) + new_state*j)/N;
     bend[j] = result;
