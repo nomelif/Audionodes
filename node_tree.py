@@ -227,6 +227,30 @@ class PitchBend(Node, AudioTreeNode):
         self.inputs.new('MidiSocketType', "MIDI")
         self.outputs.new('RawAudioSocketType', "Bend")
 
+class Slider(Node, AudioTreeNode):
+    bl_idname = 'SliderNode'
+    bl_label = 'Slider'
+
+
+    def change_channel(self, context):
+        self.send_property_update(0, self.channel)
+    
+    def post_load_handler(self):
+        AudioTreeNode.post_load_handler(self)
+        self.change_channel(None)
+
+    channel = bpy.props.IntProperty(name="Slider ID", min=1, max=16, default=1, update=change_channel)
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('MidiSocketType', "MIDI")
+        self.outputs.new('RawAudioSocketType', "Value")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'channel', text='Slider ID')
+
+
+
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'

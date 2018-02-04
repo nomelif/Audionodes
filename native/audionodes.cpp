@@ -6,6 +6,7 @@
 #include "midi_in.hpp"
 #include "piano.hpp"
 #include "pitch_bend.hpp"
+#include "slider.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
@@ -13,7 +14,8 @@ const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Math, "MathNode"),
   NodeType(MidiIn, "MidiInNode"),
   NodeType(Piano, "PianoNode"),
-  NodeType(PitchBend, "PitchBendNode")
+  NodeType(PitchBend, "PitchBendNode"),
+  NodeType(Slider, "SliderNode")
 };
 
 // Nodes addressed by unique integers
