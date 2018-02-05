@@ -17,7 +17,7 @@ NodeOutputWindow Slider::process(NodeInputWindow &input) {
   const MidiData &midi = input[InputSockets::midi_in].get<MidiData>();
   SigT new_state = value_state;
   for (const MidiData::Event event : midi.events) {
-    if (event.get_type() == MidiData::EType::control && channel == event.get_channel()-8) {
+    if (event.get_type() == MidiData::EType::control && channel == event.get_channel()-8 && event.get_note() == 7) {
       new_state = SigT(event.get_bend())/16384;
     }
   }
