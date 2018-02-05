@@ -3,7 +3,7 @@ import os
 import ctypes as ct
 
 # mode=8 stands for RTLD_DEEPBIND dlopen flag
-native = ct.CDLL(os.path.join(os.path.dirname(__file__), "native.so"), mode=8)
+native = ct.CDLL(os.path.join(os.path.dirname(__file__), "libnative.so"), mode=8)
 
 flag_loading_file = False
 flag_initialized = False
