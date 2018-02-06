@@ -15,7 +15,8 @@ class Slider : public Node {
     value
   };
   enum Properties {
-    channel
+    channel,
+    interfaceType
   };
   SigT value_state;
   public:
