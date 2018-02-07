@@ -1,5 +1,4 @@
-#include "pitch_bend.hpp"
-#include <iostream>
+#include "nodes/pitch_bend.hpp"
 
 PitchBend::PitchBend() :
     Node({SocketType::midi}, {SocketType::audio}, {})

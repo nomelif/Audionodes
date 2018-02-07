@@ -18,6 +18,7 @@ include (native/CMakeLists.txt)
 
 add_library (native SHARED ${NATIVE_SRCS})
 set_target_properties (native PROPERTIES PUBLIC_HEADER ${NATIVE_PUBLIC_HEADER})
+target_include_directories (native PRIVATE ${NATIVE_HEADERS})
 
 # Dependencies
 find_path (SDL2_INCLUDE_DIR SDL2/SDL.h)
@@ -35,10 +36,11 @@ add_custom_target (blender
   COMMAND ${CMAKE_COMMAND} -E copy
     $<TARGET_FILE_NAME:native>
     "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/node_tree.py"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ffi.py"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/blender"
     Audionodes
+  COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes/blender
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/blender"
+    Audionodes/blender
   COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_PROJECT_NAME}.zip" --format=zip Audionodes
   COMMAND ${CMAKE_COMMAND} -E remove_directory Audionodes
 )

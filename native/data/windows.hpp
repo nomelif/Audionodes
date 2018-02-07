@@ -3,7 +3,7 @@
 #define DATA_WINDOWS_HPP
 
 #include "common.hpp"
-#include "data.hpp"
+#include "data/data.hpp"
 #include "polyphony.hpp"
 #include <memory>
 

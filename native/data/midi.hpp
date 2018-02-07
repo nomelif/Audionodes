@@ -2,7 +2,7 @@
 #define MIDI_DATA_HPP
 
 #include "common.hpp"
-#include "data.hpp"
+#include "data/data.hpp"
 
 struct MidiData : public Data {
   struct Event {

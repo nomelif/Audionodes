@@ -1,11 +1,11 @@
 #include "audionodes.hpp"
 
-#include "oscillator.hpp"
-#include "sink.hpp"
-#include "math.hpp"
-#include "midi_in.hpp"
-#include "piano.hpp"
-#include "pitch_bend.hpp"
+#include "nodes/oscillator.hpp"
+#include "nodes/sink.hpp"
+#include "nodes/math.hpp"
+#include "nodes/midi_in.hpp"
+#include "nodes/piano.hpp"
+#include "nodes/pitch_bend.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),

@@ -1,4 +1,4 @@
-#include "midi_data.hpp"
+#include "data/midi.hpp"
 
 MidiData::Event::Type MidiData::Event::get_type() const {
   switch (raw_type) {

@@ -1,4 +1,4 @@
-#include "midi_in.hpp"
+#include "nodes/midi_in.hpp"
 
 int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
   MidiIn *node = (MidiIn*)_node;

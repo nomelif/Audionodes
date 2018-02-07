@@ -23,6 +23,6 @@ class CircularBuffer {
   CircularBuffer(bool);
 };
 
-#include "circular_buffer.tpp"
+#include "util/circular_buffer.tpp"
 
 #endif

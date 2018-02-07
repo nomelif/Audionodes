@@ -4,8 +4,8 @@
 
 #include "common.hpp"
 #include "node.hpp"
-#include "midi_data.hpp"
-#include "circular_buffer.hpp"
+#include "data/midi.hpp"
+#include "util/circular_buffer.hpp"
 
 #include "fluidsynth.h"
 #include <iostream>

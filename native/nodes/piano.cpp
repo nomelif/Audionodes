@@ -1,4 +1,4 @@
-#include "piano.hpp"
+#include "nodes/piano.hpp"
 
 Piano::Piano() :
     Node({SocketType::midi, SocketType::audio}, SocketTypeList(4, SocketType::audio), {})
