@@ -23,12 +23,14 @@ class AudioTree(NodeTree):
             return
         links = ffi.begin_tree_update()
         for link in self.links:
+            link.from_node.check_revive()
+            link.to_node.check_revive()
             ffi.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
         ffi.finish_tree_update(links)
     
     def post_load_handler(self):
         for node in self.nodes:
-            node.post_load_handler()
+            node.reinit()
         self.update()
 
 
@@ -89,25 +91,37 @@ class AudioTreeNode:
         self.register_native()
     
     def send_value_update(self, index, value):
+        self.check_revive()
         ffi.update_node_input_value(self.get_uid(), index, value)
     
     def send_property_update(self, index, value):
+        self.check_revive()
         ffi.update_node_property_value(self.get_uid(), index, value)
     
-    def post_load_handler(self):
+    def reinit(self):
         self.register_native()
         for socket in self.inputs:
             if type(socket) == RawAudioSocket:
                 socket.update_value(None)
     
     def copy(self, node):
+        node.check_revive()
         self["unique_id"] = ffi.copy_node(node.get_uid(), self.bl_idname.encode('ascii'))
 
     def get_uid(self):
-        return self["unique_id"];
+        return self["unique_id"]
 
     def free(self):
+        if not ffi.node_exists(self.get_uid()):
+            # Already freed
+            return
         ffi.remove_node(self.get_uid())
+    
+    def check_revive(self):
+        # Check if node was revived (e.g. undid a delete operation)
+        if not ffi.node_exists(self.get_uid()):
+            self.reinit()
+            
 
 # Proof-of-concept state, remake? and move these to another file ASAP
 class Oscillator(Node, AudioTreeNode):
@@ -117,8 +131,8 @@ class Oscillator(Node, AudioTreeNode):
     def change_func(self, context):
         self.send_property_update(0, self.func_enum_to_native[self.func_enum])
     
-    def post_load_handler(self):
-        AudioTreeNode.post_load_handler(self)
+    def reinit(self):
+        AudioTreeNode.reinit(self)
         self.change_func(None)
 
     func_enum_items = [
@@ -155,8 +169,8 @@ class Math(Node, AudioTreeNode):
     def change_func(self, context):
         self.send_property_update(0, self.func_enum_to_native[self.func_enum])
     
-    def post_load_handler(self):
-        AudioTreeNode.post_load_handler(self)
+    def reinit(self):
+        AudioTreeNode.reinit(self)
         self.change_func(None)
 
     func_enum_items = [
@@ -236,8 +250,8 @@ class Slider(Node, AudioTreeNode):
         self.send_property_update(0, self.channel)
         self.send_property_update(1, self.modes_to_native[self.interfaceType])
     
-    def post_load_handler(self):
-        AudioTreeNode.post_load_handler(self)
+    def reinit(self):
+        AudioTreeNode.reinit(self)
         self.update_props(None)
 
     channel = bpy.props.IntProperty(name="ID", min=1, max=16, default=1, update=update_props)

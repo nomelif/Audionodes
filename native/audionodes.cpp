@@ -20,12 +20,9 @@ const static std::map<std::string, NodeCreator> node_types = {
 
 // Nodes addressed by unique integers
 std::map<node_uid, Node*> node_storage;
+node_uid node_storage_counter = 0;
 node_uid node_storage_alloc() {
-  if (node_storage.size()) {
-    return node_storage.rbegin()->first+1;
-  } else {
-    return 0;
-  }
+  return node_storage_counter++;
 }
 
 NodeTree *main_node_tree;
@@ -130,6 +127,10 @@ extern "C" {
       return;
     }
     node_storage[id]->mark_deletion = true;
+  }
+  
+  bool node_exists(node_uid id) {
+    return node_storage.count(id);
   }
 
   void update_node_input_value(node_uid id, int input_index, float value) {

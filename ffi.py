@@ -38,6 +38,11 @@ native.remove_node.argtypes = [ct.c_int]
 native.remove_node.restype = None
 def remove_node(node_id):
     native.remove_node(node_id)
+    
+native.node_exists.argtypes = [ct.c_int]
+native.node_exists.restype = ct.c_bool
+def node_exists(node_id):
+    return native.node_exists(node_id)
 
 native.update_node_input_value.argtypes = [ct.c_int, ct.c_int, ct.c_float]
 native.update_node_input_value.restype = None
