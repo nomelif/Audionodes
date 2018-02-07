@@ -1,4 +1,4 @@
-#include "oscillator.hpp"
+#include "nodes/oscillator.hpp"
 
 
 Oscillator::Oscillator() :

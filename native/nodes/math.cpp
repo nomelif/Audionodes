@@ -1,4 +1,4 @@
-#include "math.hpp"
+#include "nodes/math.hpp"
 #include <cmath>
 #include <iostream>
 

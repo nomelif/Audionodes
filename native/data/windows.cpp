@@ -1,4 +1,4 @@
-#include "data_windows.hpp"
+#include "data/windows.hpp"
 
 NodeInputWindow::Socket::Socket(Data &data, bool view_collapsed, bool temporary_data) :
   view_collapsed(view_collapsed),

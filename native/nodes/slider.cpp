@@ -1,5 +1,4 @@
-#include "slider.hpp"
-#include <iostream>
+#include "nodes/slider.hpp"
 
 Slider::Slider() :
     Node({SocketType::midi}, {SocketType::audio}, {PropertyType::integer, PropertyType::select})

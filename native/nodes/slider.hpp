@@ -4,7 +4,7 @@
 
 #include "common.hpp"
 #include "node.hpp"
-#include "midi_data.hpp"
+#include "data/midi.hpp"
 #include <cmath>
 
 class Slider : public Node {

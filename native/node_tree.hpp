@@ -5,7 +5,7 @@
 #include "common.hpp"
 #include "node.hpp"
 #include "polyphony.hpp"
-#include "data_windows.hpp"
+#include "data/windows.hpp"
 
 class NodeTree {
   public:

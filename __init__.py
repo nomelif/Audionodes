@@ -47,7 +47,9 @@ if "bpy" in locals():
 
 import bpy
 
-from . import node_tree, ffi
+from . import blender
+node_tree = blender.node_tree
+ffi = blender.ffi
 
 ### Node Categories ###
 # Node categories are a python system for automatically
