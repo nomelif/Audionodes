@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 3.9)
 project (Audionodes LANGUAGES C CXX VERSION 0.2.1)
 set (CMAKE_CXX_STANDARD 14)
 
+if (NOT CMAKE_BUILD_TYPE)
+  set (CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type: Release or Debug")
+endif ()
+
 # Helper function for adding source file paths to a list
 function (add_paths to)
   set (to_tmp ${${to}})

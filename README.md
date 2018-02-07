@@ -41,24 +41,73 @@ Please open an issue. Hopefully we can help.
 
 ## Compiling from source
 
-### Linux
+### Linux dependencies
 
-You need `gcc/g++` for compiling, and the dependencies with header files.
+You need `GCC/g++` for compiling, the `CMake` build system, and the dependencies with header files.
 
 ```
-sudo apt install gcc libsdl2-dev libfluidsynth-dev
+sudo apt install cmake make gcc libsdl2-dev libfluidsynth-dev
 ```
 
 Again, use similar packages with other distributions.
 
-Then run the compile script `./compile.sh`. After that you can zip the folder up and install it into Blender.
+*Building instructions after macOS dependencies...*
 
-### macOS
+### macOS dependencies
 
 Here we will use `clang` for compiling, you will most likely be prompted to install the XCode packages when trying to compile.
 
-Again, install the required dependencies via [Homebrew](https://brew.sh/) first, then run `./compile.sh`.
-After that you can zip the folder up and install it into Blender.
+Again, install the required dependencies (+ CMake) via [Homebrew](https://brew.sh/):
+
+```
+brew install cmake sdl2 fluidsynth
+```
+
+### Building in Linux & macOS
+
+Change into the repository directory. First prepare the CMake-build:
+
+```
+cmake .
+```
+
+In order to compile with debug symbols (for `gdb` or other debuggers),
+you can specify the build type:
+
+```
+cmake . -DCMAKE_BUILD_TYPE=Debug
+```
+
+Revert back to normal with `-DCMAKE_BUILD_TYPE=Release`.
+
+Now, to build only the `native` library (audio generation backend), run
+
+```
+make
+```
+
+To build the Blender-addon .zip-file, run
+
+```
+make blender
+```
+
+`Audionodes.zip` should appear at the repository root, you can now
+install it into Blender.
+
+If you are lazy, you can also build and install the addon directly
+into your Blender installation, like so:
+
+```
+make blender_install
+```
+
+When running `cmake`, a message will be printed about which Blender
+installation this will use or if none was found at all.
+It also might simply not work on your system due to various reasons.
+
+Oh, and to build, install and enable the addon, you can `make blender_install blender_enable`.
+Conversly, you can remove the addon with `make blender_uninstall`.
 
 ## How does one use this sorcery?!
 **Note: This guide is fairly outdated, but you should get the idea.**
