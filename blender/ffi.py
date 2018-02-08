@@ -5,7 +5,7 @@ import platform
 
 native_fname = {
     "Linux": "libnative.so",
-    "Darwin": "native.dylib",
+    "Darwin": "libnative.dylib",
     "Windows": "native.dll"
 }[platform.system()]
 native_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", native_fname))
