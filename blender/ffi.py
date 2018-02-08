@@ -1,8 +1,14 @@
 
 import os
 import ctypes as ct
+import platform
 
-native_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "libnative.so"))
+native_fname = {
+    "Linux": "libnative.so",
+    "Darwin": "native.dylib",
+    "Windows": "native.dll"
+}[platform.system()]
+native_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", native_fname))
 # mode=8 stands for RTLD_DEEPBIND dlopen flag
 native = ct.CDLL(native_path, mode=8)
 
