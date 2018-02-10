@@ -14,7 +14,7 @@ We currently support Linux and macOS.
 On Ubuntu, install the necessary packages:
 
 ```
-sudo apt install libsdl2-2.0-0 libfluidsynth
+sudo apt install libsdl2-2.0-0 libfluidsynth1
 ```
 
 On Arch, this would be `sudo pacman -S sdl2 fluidsynth`.
