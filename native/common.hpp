@@ -13,6 +13,5 @@ const int RATE = 44100;
 typedef float SigT;
 typedef std::array<SigT, N> Chunk;
 typedef int node_uid;
-typedef std::uint32_t MidiMSG;
 
 #endif
