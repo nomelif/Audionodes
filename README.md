@@ -6,7 +6,7 @@ Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Installation
 
-For now Audionodes doesn't come with the required libraries. You need to install `SDL 2` and `FluidSynth` for it to work.
+For now Audionodes doesn't come with the required libraries. You need to install `SDL 2` (for audio output, and possibly input in the future) and `FluidSynth` (for MIDI input, and possibly SoundFont support in the future) for it to work.
 We currently support Linux and macOS.
 
 ### I am running Linux
