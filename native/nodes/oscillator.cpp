@@ -61,7 +61,8 @@ NodeOutputWindow Oscillator::process(NodeInputWindow &input) {
     SigT state = bundles[i];
     Chunk &channel = states[i];
     for (size_t j = 0; j < N; ++j) {
-      state = std::fmod(std::fmod(state + frequency[j]/RATE, 1)+1, 1);
+      state = std::fmod(state + frequency[j]/RATE, 1);
+      if (state < 0) state += 1;
       channel[j] = state;
     }
     bundles[i] = state;
