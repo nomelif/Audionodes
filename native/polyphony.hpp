@@ -80,7 +80,7 @@ class Universe {
   }
   struct Descriptor {
     Pointer input, bundles, output;
-    Descriptor();
+    Descriptor(); // All mono
     Descriptor(Pointer, Pointer, Pointer);
     void set_all(Pointer);
   };

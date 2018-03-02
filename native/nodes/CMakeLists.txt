@@ -6,4 +6,5 @@ add_paths (NATIVE_SRCS
   pitch_bend.cpp
   sink.cpp
   slider.cpp
+  collapse.cpp
 )

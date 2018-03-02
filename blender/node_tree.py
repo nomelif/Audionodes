@@ -275,7 +275,38 @@ class Slider(Node, AudioTreeNode):
         layout.prop(self, 'interfaceType')
         layout.prop(self, 'channel')
 
+class Collapse(Node, AudioTreeNode):
+    bl_idname = 'CollapseNode'
+    bl_label = 'Collapse'
 
+    def change_method(self, context):
+        self.send_property_update(0, self.method_enum_to_native[self.method_enum])
+    
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.change_method(None)
+
+    method_enum_items = [
+        ('ADD', 'Sum', '', 0),
+        ('MIN', 'Minimum', '', 1),
+        ('MAX', 'Maximum', '', 2),
+        ('MUL', 'Product', '', 3),
+    ]
+
+    method_enum_to_native = { item[0]: item[3] for item in method_enum_items }
+
+    method_enum = bpy.props.EnumProperty(
+        items = method_enum_items,
+        update = change_method
+    )
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.outputs.new('RawAudioSocketType', "Audio")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'method_enum', text='')
 
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
