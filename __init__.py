@@ -68,17 +68,21 @@ class AudioNodeCategory(NodeCategory):
         return context.space_data.tree_type == 'AudioTreeType'
 
 node_categories = [
-
-    # identifier, label, items list
-    AudioNodeCategory("AUDIO_IO", "Inputs and outputs", items=[
-        NodeItem("OscillatorNode"),
-        NodeItem("MathNode"),
+    AudioNodeCategory("AUDIO_OUT", "Audio output", items=[
         NodeItem("SinkNode"),
+    ]),
+    AudioNodeCategory("GENERATORS", "Generators", items=[
+        NodeItem("OscillatorNode"),
+    ]),
+    AudioNodeCategory("OPERATORS", "Operators", items=[
+        NodeItem("MathNode"),
+        NodeItem("CollapseNode"),
+    ]),
+    AudioNodeCategory("MIDI", "MIDI", items=[
         NodeItem("MidiInNode"),
+        NodeItem("PianoNode"),
         NodeItem("PitchBendNode"),
         NodeItem("SliderNode"),
-        NodeItem("PianoNode"),
-        NodeItem("CollapseNode"),
     ]),
 ]
 
