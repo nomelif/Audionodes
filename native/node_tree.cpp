@@ -9,78 +9,76 @@ NodeTree::Link::Link(bool connected, size_t node, size_t socket) :
 
 NodeTree::NodeTree(std::vector<Node*> order, std::vector<std::vector<Link>> links) :
   amount(order.size()),
-  node_evaluation_order(order),
-  links(links)
+  node_evaluation_order(order)
 {
-  prepare_polyphony_universes();
-}
-
-void NodeTree::prepare_polyphony_universes() {
-  node_polyphony_descriptors.reserve(amount);
+  node_inputs.reserve(amount);
   for (size_t i = 0; i < amount; ++i) {
     Node *node = node_evaluation_order[i];
-    std::vector<Universe::Pointer> inputs;
-    inputs.reserve(node->get_input_count());
+    
+    std::vector<Universe::Pointer> input_universes;
+    input_universes.reserve(node->get_input_count());
     for (Link link : links[i]) {
       if (link.connected) {
-        inputs.push_back(node_polyphony_descriptors[link.from_node].output);
+        input_universes.push_back(node_inputs[link.from_node].universes.output);
       } else {
-        inputs.emplace_back(new Universe());
+        input_universes.emplace_back(new Universe());
       }
     }
-    node_polyphony_descriptors.push_back(node->infer_polyphony_operation(inputs));
+    Universe::Descriptor universes = node->infer_polyphony_operation(input_universes);
+    
+    NodeInputWindow::SocketsList input_sockets;
+    input_sockets.reserve(node->get_input_count());
+    for (size_t j = 0; j < node->get_input_count(); ++j) {
+      Link link = links[i][j];
+      if (link.connected) {
+        Data **data = node_evaluation_order[link.from_node]->output_window.ref(link.from_socket);
+        // The data will be viewed as collapsed if the chosen universes aren't compatible
+        bool view_collapsed = *universes.input != *node_inputs[link.from_node].universes.output;
+        input_sockets.emplace_back(data, view_collapsed, false);
+      } else {
+        Data **tmp_data_ptr = nullptr;
+        bool tmp_audio_data = false;
+        if (node->input_socket_types[j] == Node::SocketType::audio) {
+          // Unconnected audio socket input -> inline value control
+          Data *data = new AudioData(true, 0);
+          tmp_data_ptr = new Data*(data);
+          tmp_audio_data = true;
+        }
+        input_sockets.emplace_back(tmp_data_ptr, true, tmp_audio_data);
+      }
+    }
+    
+    node_inputs.emplace_back(input_sockets, universes);
   }
 }
 
-Chunk NodeTree::evaluate() {
-  std::vector<NodeOutputWindow> node_outputs; node_outputs.reserve(amount);
-  Chunk output;
+const Chunk& NodeTree::evaluate() {
   output.fill(0.);
   for (size_t i = 0; i < amount; ++i) {
     Node *node = node_evaluation_order[i];
     // Collect node inputs
     size_t input_amt = node->get_input_count();
-    NodeInputWindow::SocketsList inputs; inputs.reserve(input_amt);
+    //NodeInputWindow::SocketsList inputs; inputs.reserve(input_amt);
     for (size_t j = 0; j < input_amt; ++j) {
-      Data *socket_data;
-      bool view_collapsed = false;
-      bool temporary_data = false;
-      Link link = links[i][j];
-      if (link.connected) {
-        socket_data = &node_outputs[link.from_node][link.from_socket];
-        // The data will be viewed as collapsed if the chosen universes aren't compatible
-        view_collapsed =
-          *node_polyphony_descriptors[i].input
-          != *node_polyphony_descriptors[link.from_node].output;
-      } else {
-        if (node->input_socket_types[j] == Node::SocketType::audio) {
-          // Interpolate earlier value and new value
-          float old_v = node->old_input_values[j];
-          float new_v = node->get_input_value(j);
-          Chunk audio;
-          if (old_v == new_v) audio.fill(new_v);
-          else {
-            for (size_t k = 0; k < N; ++k) {
-              audio[k] = ((N-k-1)*old_v + (k+1)*new_v)/N;
-            }
-            node->old_input_values[j] = new_v;
+      if (node_inputs[i][j].tmp_audio_data) {
+        // Interpolate earlier value and new value
+        float old_v = node->old_input_values[j];
+        float new_v = node->get_input_value(j);
+        Chunk &audio = node_inputs[i][j].get_write<AudioData>().mono;
+        if (old_v == new_v) audio.fill(new_v);
+        else {
+          for (size_t k = 0; k < N; ++k) {
+            audio[k] = ((N-k-1)*old_v + (k+1)*new_v)/N;
           }
-          // ~NodeInputWindow handles delete
-          socket_data = new AudioData(audio);
-          view_collapsed = true;
-          temporary_data = true;
-        } else {
-          socket_data = nullptr;
+          node->old_input_values[j] = new_v;
         }
       }
-      inputs.emplace_back(*socket_data, view_collapsed, temporary_data);
     }
     // Process node
-    NodeInputWindow input_window(inputs, node_polyphony_descriptors[i]);
-    node->apply_bundle_universe_changes(*node_polyphony_descriptors[i].bundles);
-    node_outputs.push_back(node->process(input_window));
+    node->apply_bundle_universe_changes(*node_inputs[i].universes.bundles);
+    node->process(node_inputs[i]);
     if (node->get_is_sink()) {
-      const AudioData &data = inputs[0].get<AudioData>();
+      const AudioData &data = node_inputs[i][0].get<AudioData>();
       for (size_t j = 0; j < N; ++j) {
         output[j] += data.mono[j];
       }

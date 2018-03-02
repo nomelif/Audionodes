@@ -10,18 +10,28 @@
 class NodeInputWindow {
   public:
   class Socket {
+    friend class NodeInputWindow;
+    friend class NodeTree;
+    
     bool view_collapsed;
     AudioData *audio_cache = nullptr;
-    Data *data;
-    bool temporary_data;
+    Data *audio_cache_valid_for = nullptr;
+    Data **data;
+    const bool tmp_audio_data;
+    void delete_temporary_data();
+    
+    template<class T>
+    inline T& get_write() {
+      return Data::extract<T>(data ? *data : nullptr);
+    }
+    
     public:
-    Socket(Data&, bool, bool temporary_data=false);
+    Socket(Data**, bool, bool tmp_audio_data=false);
     template<class T = Data>
     inline const T& get() {
-      return data ? data->extract<T>() : T::dummy;
+      return get_write<T>();
     }
     const Chunk& operator[](size_t idx);
-    void delete_temporary_data();
   };
   typedef std::vector<Socket> SocketsList;
   private:
@@ -38,17 +48,21 @@ class NodeInputWindow {
 
 class NodeOutputWindow {
   public:
-  typedef std::vector<Data*> SocketsList;
+  typedef std::vector<Data**> SocketsList;
   
-  NodeOutputWindow(SocketsList);
+  NodeOutputWindow();
   ~NodeOutputWindow();
-  // The destructor shall only be called when NodeTree::evauluate() ends, not on
-  // moves etc (using std::move() to push to node_outputs vector) -> default move ctor
-  NodeOutputWindow(NodeOutputWindow&&) = default;
-  inline Data& operator[](size_t idx) {
-    return *sockets[idx];
+  template<class T>
+  inline T& get(size_t idx) {
+    return Data::extract<T>(*sockets[idx]);
   }
-  private:
+  // Specialization of get for AudioData
+  inline AudioData& operator[](size_t idx) {
+    return Data::extract<AudioData>(*sockets[idx]);
+  }
+  inline Data** ref(size_t idx) {
+    return idx < sockets.size() ? sockets[idx] : nullptr;
+  }
   SocketsList sockets;
 };
 

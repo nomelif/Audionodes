@@ -48,20 +48,22 @@ const Math::MathOperatorList Math::math_operators = {
 
 };
 
-NodeOutputWindow Math::process(NodeInputWindow &input) {
+void Math::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
-  AudioData::PolyList output(n);
+  AudioData::PolyWriter output(output_window[0]);
+  output.resize(n);
+  
   const MathOperator &func =
     math_operators[get_property_value(Properties::math_operator)];
+  
   for (size_t i = 0; i < n; ++i) {
     const Chunk
       &val1 = input[InputSockets::val1][i],
-      &val2    = input[InputSockets::val2][i];
+      &val2 = input[InputSockets::val2][i];
     Chunk &channel = output[i];
     for (size_t j = 0; j < N; ++j) {
       SigT result = func(val1[j], val2[j]);
       channel[j] = std::isfinite(result) ? result : 0.0;
     }
   }
-  return NodeOutputWindow({new AudioData(output)});
 }

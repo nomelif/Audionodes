@@ -10,11 +10,11 @@ Universe::Descriptor Slider::infer_polyphony_operation(std::vector<Universe::Poi
   return Universe::Descriptor();
 }
 
-NodeOutputWindow Slider::process(NodeInputWindow &input) {
+void Slider::process(NodeInputWindow &input) {
   int channel = get_property_value(Properties::channel);
   int interfaceType = get_property_value(Properties::interfaceType);
   static const int controlMask[] = {7, 10};
-  Chunk value;
+  Chunk &value = output_window[0].mono;
   const MidiData &midi = input[InputSockets::midi_in].get<MidiData>();
   SigT new_state = value_state;
   for (const MidiData::Event event : midi.events) {
@@ -28,5 +28,4 @@ NodeOutputWindow Slider::process(NodeInputWindow &input) {
     value[j] = result;
   }
   value_state = new_state;
-  return NodeOutputWindow({new AudioData(value)});
 }

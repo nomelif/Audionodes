@@ -7,7 +7,9 @@ Oscillator::Oscillator() :
       {SocketType::audio},
       {PropertyType::select}
     )
-{}
+{
+  states.reserve(AudioData::default_reserve);
+}
 
 void Oscillator::reset_state() {
   for (SigT &state : bundles) {
@@ -48,14 +50,16 @@ void Oscillator::apply_bundle_universe_changes(const Universe &universe) {
   universe.apply_delta(bundles);
 }
 
-NodeOutputWindow Oscillator::process(NodeInputWindow &input) {
+void Oscillator::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
-  AudioData::PolyList output(n);
+  AudioData::PolyWriter output(output_window[0]);
+  output.resize(n);
+  
   const OscillationFunc &func =
     oscillation_funcs[get_property_value(Properties::oscillation_func)];
   
   bool frequency_is_poly = input.universes.bundles->is_polyphonic();
-  AudioData::PolyList states(bundles.size());
+  states.resize(bundles.size());
   for (size_t i = 0; i < bundles.size(); ++i) {
     const Chunk &frequency = input[InputSockets::frequency][i];
     SigT state = bundles[i];
@@ -78,6 +82,5 @@ NodeOutputWindow Oscillator::process(NodeInputWindow &input) {
       channel[j] = func(state[j], param[j]) * amplitude[j] + offset[j];
     }
   }
-  return NodeOutputWindow({new AudioData(output)});
 }
 

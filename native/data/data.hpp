@@ -9,8 +9,8 @@ struct Data {
   virtual ~Data();
 
   template<class T>
-  T& extract() {
-    T *p = dynamic_cast<T*>(this);
+  static T& extract(Data* data) {
+    T *p = dynamic_cast<T*>(data);
     if (p != nullptr) {
       return *p;
     } else {
@@ -20,25 +20,44 @@ struct Data {
   }
 
   template<class T>
-  const T& extract() const {
-    const T *p = dynamic_cast<const T*>(this);
+  static const T& extract(const Data* data) {
+    const T *p = dynamic_cast<const T*>(data);
     if (p != nullptr) {
       return *p;
     } else {
       return T::dummy;
     }
   }
+  
+  static Data dummy;
 };
 
 struct AudioData : public Data {
   Chunk mono;
   typedef std::vector<Chunk> PolyList;
+  static const size_t default_reserve = 16;
   PolyList poly;
   void make_collapsed_version();
-  AudioData(bool init = true);
+  AudioData(bool init = false, size_t reserve = default_reserve);
   AudioData(PolyList);
   AudioData(Chunk);
   static AudioData dummy;
+  
+  // Interface object to write polyphonic data, computes collapsed version
+  // on destruction
+  class PolyWriter {
+    AudioData &bind;
+    public:
+    PolyList &internal;
+    inline Chunk& operator[](size_t idx) {
+      return internal[idx];
+    }
+    inline void resize(size_t size) {
+      internal.resize(size);
+    }
+    PolyWriter(AudioData&);
+    ~PolyWriter();
+  };
 };
 
 #endif

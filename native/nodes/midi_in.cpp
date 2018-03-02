@@ -50,8 +50,9 @@ MidiIn::~MidiIn()
   delete_fluid_midi_driver(driver);
 }
 
-NodeOutputWindow MidiIn::process(NodeInputWindow &input) {
-  MidiData::EventSeries events;
+void MidiIn::process(NodeInputWindow &input) {
+  MidiData::EventSeries &events = output_window.get<MidiData>(0).events;
+  events.clear();
   if (!overflow_flag) {
     while (!event_buffer.empty()) {
       events.push_back(event_buffer.pop());
@@ -68,5 +69,4 @@ NodeOutputWindow MidiIn::process(NodeInputWindow &input) {
     }
     overflow_flag = false;
   }
-  return NodeOutputWindow({new MidiData(events)});
 }

@@ -19,7 +19,7 @@ class Math : public Node {
   const static MathOperatorList math_operators;
   public:
   Math();
-  NodeOutputWindow process(NodeInputWindow&);
+  void process(NodeInputWindow&);
 };
 
 #endif

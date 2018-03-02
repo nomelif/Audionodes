@@ -21,14 +21,15 @@ class Piano : public Node {
     bool released = false;
     bool dead = false;
   };
-  std::vector<VoiceState> voices;
+  std::vector<VoiceState> voices, new_voices, voices_tmp;
+  std::vector<size_t> removed_tmp;
   // null when note doesn't exist, otherwise pointer to VoiceState
   std::array<VoiceState*, 127> existing_note;
   bool sustain = false;
   public:
   Piano();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  NodeOutputWindow process(NodeInputWindow&);
+  void process(NodeInputWindow&);
 };
 
 #endif

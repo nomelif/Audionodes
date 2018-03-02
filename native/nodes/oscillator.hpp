@@ -13,7 +13,12 @@ class Oscillator : public Node {
   enum Properties {
     oscillation_func
   };
+  
+  // Persistent state
   std::vector<SigT> bundles;
+  
+  // Runtime intermediary variables
+  AudioData::PolyList states;
 
   typedef std::function<SigT(SigT, SigT)> OscillationFunc;
   typedef std::vector<OscillationFunc> OscillationFuncList;
@@ -23,7 +28,7 @@ class Oscillator : public Node {
   void reset_state();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void apply_bundle_universe_changes(const Universe&);
-  NodeOutputWindow process(NodeInputWindow&);
+  void process(NodeInputWindow&);
 };
 
 #endif

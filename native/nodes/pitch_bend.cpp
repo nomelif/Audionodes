@@ -10,9 +10,8 @@ Universe::Descriptor PitchBend::infer_polyphony_operation(std::vector<Universe::
   return Universe::Descriptor();
 }
 
-NodeOutputWindow PitchBend::process(NodeInputWindow &input) {
-
-  Chunk bend;
+void PitchBend::process(NodeInputWindow &input) {
+  Chunk &bend = output_window[0].mono;
   const MidiData &midi = input[InputSockets::midi_in].get<MidiData>();
   SigT new_state = bend_state;
   for (const MidiData::Event event : midi.events) {
@@ -26,5 +25,4 @@ NodeOutputWindow PitchBend::process(NodeInputWindow &input) {
     bend[j] = result;
   }
   bend_state = new_state;
-  return NodeOutputWindow({new AudioData(bend)});
 }

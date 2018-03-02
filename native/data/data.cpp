@@ -1,7 +1,7 @@
 #include "data/data.hpp"
 
 Data::~Data() {}
-
+Data Data::dummy = Data();
 
 void AudioData::make_collapsed_version() {
   mono.fill(0);
@@ -12,8 +12,9 @@ void AudioData::make_collapsed_version() {
   }
 }
 
-AudioData::AudioData(bool init) {
+AudioData::AudioData(bool init, size_t reserve) {
   if (init) mono.fill(0);
+  poly.reserve(reserve);
 }
 
 AudioData::AudioData(PolyList poly) :
@@ -27,4 +28,13 @@ AudioData::AudioData(Chunk mono) :
 {}
 
 AudioData AudioData::dummy = AudioData();
+
+AudioData::PolyWriter::PolyWriter(AudioData &bind) :
+  bind(bind),
+  internal(bind.poly)
+{}
+
+AudioData::PolyWriter::~PolyWriter() {
+  bind.make_collapsed_version();
+}
 

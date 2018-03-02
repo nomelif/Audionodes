@@ -1,4 +1,5 @@
 #include "node.hpp"
+#include "data/midi.hpp"
 
 Node::Node(
   SocketTypeList input_types, SocketTypeList output_types,
@@ -14,6 +15,21 @@ Node::Node(
   input_values.resize(input_types.size());
   old_input_values.resize(input_types.size());
   property_values.resize(property_types.size());
+  output_window.sockets.reserve(input_types.size());
+  for (auto type : output_types) {
+    Data *data;
+    switch (type) {
+      typedef SocketType ST;
+      case ST::audio:
+        data = new AudioData();
+        break;
+      case ST::midi:
+        data = new MidiData();
+        break;
+    }
+    Data **data_ptr = new Data*(data);
+    output_window.sockets.push_back(data_ptr);
+  }
 }
 
 Node::~Node() {}

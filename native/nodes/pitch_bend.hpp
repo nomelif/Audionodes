@@ -18,7 +18,7 @@ class PitchBend : public Node {
   public:
   PitchBend();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  NodeOutputWindow process(NodeInputWindow&);
+  void process(NodeInputWindow&);
 };
 
 #endif

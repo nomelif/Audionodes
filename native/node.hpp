@@ -53,7 +53,8 @@ class Node {
   virtual void disconnect_callback();
   
   void copy_input_values(const Node&);
-  virtual NodeOutputWindow process(NodeInputWindow&) = 0;
+  NodeOutputWindow output_window;
+  virtual void process(NodeInputWindow&) = 0;
   Node(SocketTypeList, SocketTypeList, PropertyTypeList, bool is_sink=false);
   virtual ~Node() = 0;
 };

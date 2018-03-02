@@ -8,7 +8,7 @@
 class Sink : public Node {
   public:
   Sink();
-  NodeOutputWindow process(NodeInputWindow&);
+  void process(NodeInputWindow&);
 };
 
 #endif

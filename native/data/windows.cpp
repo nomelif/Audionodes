@@ -1,14 +1,15 @@
 #include "data/windows.hpp"
 
-NodeInputWindow::Socket::Socket(Data &data, bool view_collapsed, bool temporary_data) :
+NodeInputWindow::Socket::Socket(Data **data, bool view_collapsed, bool tmp_audio_data) :
   view_collapsed(view_collapsed),
-  data(&data),
-  temporary_data(temporary_data)
+  data(data),
+  tmp_audio_data(tmp_audio_data)
 {}
 
 const Chunk& NodeInputWindow::Socket::operator[](size_t idx) {
-  if (audio_cache == nullptr) {
-    audio_cache = &data->extract<AudioData>();
+  if (audio_cache == nullptr || audio_cache_valid_for != *data) {
+    audio_cache = &get_write<AudioData>();
+    audio_cache_valid_for = *data;
   }
   if (view_collapsed || idx >= audio_cache->poly.size()) {
     return audio_cache->mono;
@@ -17,7 +18,10 @@ const Chunk& NodeInputWindow::Socket::operator[](size_t idx) {
   }
 }
 void NodeInputWindow::Socket::delete_temporary_data() {
-  if (temporary_data) delete data;
+  if (tmp_audio_data) {
+    delete *data;
+    delete data;
+  }
 }
 
 size_t NodeInputWindow::get_channel_amount() {
@@ -29,17 +33,16 @@ NodeInputWindow::NodeInputWindow(SocketsList sockets, Universe::Descriptor unive
   universes(universes)
 {}
 NodeInputWindow::~NodeInputWindow() {
-  for (Socket &pane : sockets) {
-    pane.delete_temporary_data();
+  for (Socket &socket : sockets) {
+    socket.delete_temporary_data();
   }
 }
 
-NodeOutputWindow::NodeOutputWindow(SocketsList sockets) :
-  sockets(sockets)
-{}
+NodeOutputWindow::NodeOutputWindow() {}
 
 NodeOutputWindow::~NodeOutputWindow() {
   for (auto ptr : sockets) {
+    delete *ptr;
     delete ptr;
   }
 }

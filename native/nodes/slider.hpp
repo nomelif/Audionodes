@@ -22,7 +22,7 @@ class Slider : public Node {
   public:
   Slider();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  NodeOutputWindow process(NodeInputWindow&);
+  void process(NodeInputWindow&);
 };
 
 #endif
