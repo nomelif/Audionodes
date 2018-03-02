@@ -3,7 +3,7 @@ project (Audionodes LANGUAGES C CXX VERSION 0.2.1)
 set (CMAKE_CXX_STANDARD 14)
 
 if (NOT CMAKE_BUILD_TYPE)
-  set (CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type: Release or Debug")
+  set (CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type: Release or Debug" FORCE)
 endif ()
 
 # Helper function for adding source file paths to a list
