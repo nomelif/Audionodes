@@ -43,16 +43,14 @@ class Universe {
     if (variable) {
       if (old_channel_amount == apply_to.size()) {
         if (removed_channels_amount > 0) {
-          // Remove old channels by creating a new vector
-          // and re-adding all the channels that were not removed
-          std::vector<T> new_vec;
-          new_vec.reserve(channel_amount);
+          size_t replace_idx = 0;
           for (size_t i = 0; i < old_channel_amount; ++i) {
             if (!channel_removed[i]) {
-              new_vec.push_back(std::move(apply_to[i]));
+              if (replace_idx != i) apply_to[replace_idx] = apply_to[i];
+              replace_idx++;
             }
           }
-          apply_to = std::move(new_vec);
+          apply_to.resize(replace_idx);
         }
         apply_to.reserve(channel_amount);
         // Add new channels
