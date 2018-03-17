@@ -9,6 +9,13 @@ native_fname = {
     "Windows": "native.dll"
 }[platform.system()]
 native_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", native_fname))
+if not os.path.isfile(native_path):
+    raise AssertionError("""Audionodes: Unable to locate the native backend shared library.
+Expected to find it at %s.
+NOTE: The addon will not work if you download a raw repository-zip, \
+because the native backend needs to be compiled.
+Please make sure you download the addon from the Releases-page or compile the backend yourself.""" % native_path)
+
 # mode=8 stands for RTLD_DEEPBIND dlopen flag
 native = ct.CDLL(native_path, mode=8)
 
