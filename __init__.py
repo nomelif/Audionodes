@@ -78,6 +78,9 @@ node_categories = [
         NodeItem("MathNode"),
         NodeItem("CollapseNode"),
     ]),
+    AudioNodeCategory("FILTERS", "Filters", items=[
+        NodeItem("IIRFilterNode"),
+    ]),
     AudioNodeCategory("MIDI", "MIDI", items=[
         NodeItem("MidiInNode"),
         NodeItem("PianoNode"),

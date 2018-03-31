@@ -7,4 +7,5 @@ add_paths (NATIVE_SRCS
   sink.cpp
   slider.cpp
   collapse.cpp
+  iir_filter.cpp
 )

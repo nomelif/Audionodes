@@ -308,6 +308,46 @@ class Collapse(Node, AudioTreeNode):
     def draw_buttons(self, context, layout):
         layout.prop(self, 'method_enum', text='')
 
+class IIRFilter(Node, AudioTreeNode):
+    bl_idname = 'IIRFilterNode'
+    bl_label = 'IIR Filter'
+
+    def update_props(self, context):
+        self.send_property_update(0, self.mode_enum_to_native[self.mode_enum])
+        self.send_property_update(1, self.poles)
+    
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.update_props(None)
+
+    mode_enum_items = [
+        ('LP', 'Low pass', '', 0),
+        ('HP', 'High pass', '', 1),
+    ]
+
+    mode_enum_to_native = { item[0]: item[3] for item in mode_enum_items }
+
+    mode_enum = bpy.props.EnumProperty(
+        items = mode_enum_items,
+        update = update_props
+    )
+    poles = bpy.props.IntProperty(name="Pole pairs", min=0, max=8, default=2, update=update_props)
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Input")
+        self.inputs.new('RawAudioSocketType', "Cutoff (Hz)")
+        self.inputs[1].value_prop = 1.0
+        self.inputs.new('RawAudioSocketType', "Resonance")
+        self.inputs[2].value_prop = 1.0
+        self.inputs.new('RawAudioSocketType', "Rolloff")
+        self.inputs[3].value_prop = 1.0
+        self.outputs.new('RawAudioSocketType', "Audio")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'mode_enum', text='')
+        layout.prop(self, 'poles')
+
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'
