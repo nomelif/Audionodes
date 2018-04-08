@@ -16,24 +16,29 @@ class IIRFilter : public Node {
   enum Modes {
     low_pass, high_pass
   };
-  static const size_t max_poles = 8;
-  static const size_t max_coeff = 2*max_poles+1;
-  struct Biquad {
-    double a[3], b[3];
-  };
-  struct Coeffs {
-    double a[max_coeff], b[max_coeff];
-    size_t count = 1;
-    Coeffs();
-    // Convolve the biquad into the coefficent collection
-    void apply(Biquad);
+  static const size_t max_poles = 6;
+  typedef double FSigT;
+  struct DirectForm {
+    FSigT a[3], b[3];
     void correct_gain(Modes);
   };
+  struct Lattice {
+    FSigT k[2], v[3];
+    FSigT state[2];
+    static Lattice interpolate(const Lattice&, const Lattice&, FSigT);
+  };
   struct Filter {
-    CircularArray<double, max_coeff> in_hist, out_hist;
-    Coeffs coeffs;
-    bool initialized=false;
-    void process(const Chunk&, Chunk&);
+    Lattice biquads[max_poles];
+    Lattice old_biquads[max_poles];
+    Modes mode;
+    size_t poles;
+    SigT cutoff, resonance, rolloff;
+    bool initialized = false;
+    Filter() = default;
+    Filter(Modes, int, SigT, SigT, SigT);
+    bool equivalent(Modes, int, SigT, SigT, SigT) const;
+    void copy_state(const Filter&);
+    void process(const Chunk&, Chunk&, bool);
   };
   std::vector<Filter> bundles;
   

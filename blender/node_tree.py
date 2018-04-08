@@ -331,7 +331,7 @@ class IIRFilter(Node, AudioTreeNode):
         items = mode_enum_items,
         update = update_props
     )
-    poles = bpy.props.IntProperty(name="Pole pairs", min=0, max=8, default=2, update=update_props)
+    poles = bpy.props.IntProperty(name="Biquads", min=0, max=6, default=2, update=update_props)
 
     def init(self, context):
         AudioTreeNode.init(self, context)
