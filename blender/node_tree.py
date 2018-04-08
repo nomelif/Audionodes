@@ -348,6 +348,15 @@ class IIRFilter(Node, AudioTreeNode):
         layout.prop(self, 'mode_enum', text='')
         layout.prop(self, 'poles')
 
+class Noise(Node, AudioTreeNode):
+    bl_idname = 'NoiseNode'
+    bl_label = 'Noise'
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Amplitude")
+        self.inputs[0].value_prop = 1.0
+        self.outputs.new('RawAudioSocketType', "Audio")
+
 class Sink(Node, AudioTreeNode):
     bl_idname = 'SinkNode'
     bl_label = 'Sink'

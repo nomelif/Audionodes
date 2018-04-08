@@ -8,4 +8,5 @@ add_paths (NATIVE_SRCS
   slider.cpp
   collapse.cpp
   iir_filter.cpp
+  noise.cpp
 )

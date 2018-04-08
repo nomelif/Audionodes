@@ -73,6 +73,7 @@ node_categories = [
     ]),
     AudioNodeCategory("GENERATORS", "Generators", items=[
         NodeItem("OscillatorNode"),
+        NodeItem("NoiseNode"),
     ]),
     AudioNodeCategory("OPERATORS", "Operators", items=[
         NodeItem("MathNode"),

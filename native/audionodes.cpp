@@ -9,6 +9,7 @@
 #include "nodes/slider.hpp"
 #include "nodes/collapse.hpp"
 #include "nodes/iir_filter.hpp"
+#include "nodes/noise.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
@@ -19,7 +20,8 @@ const static std::map<std::string, NodeCreator> node_types = {
   NodeType(PitchBend, "PitchBendNode"),
   NodeType(Slider, "SliderNode"),
   NodeType(Collapse, "CollapseNode"),
-  NodeType(IIRFilter, "IIRFilterNode")
+  NodeType(IIRFilter, "IIRFilterNode"),
+  NodeType(Noise, "NoiseNode")
 };
 
 // Nodes addressed by unique integers
