@@ -16,7 +16,7 @@ class Node {
   
   public:
   enum class SocketType {
-    audio, midi
+    audio, midi, trigger
   };
   enum class PropertyType {
     number, integer, boolean, select
