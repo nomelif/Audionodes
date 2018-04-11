@@ -72,6 +72,17 @@ class MidiSocket(NodeSocket, AudioTreeNodeSocket):
     def draw_color(self, context, node):
         return (0.9, 0.86, 0.14, 1.0)
 
+class TriggerSocket(NodeSocket, AudioTreeNodeSocket):
+    '''Socket for trogger events'''
+    bl_idname = 'TriggerSocketType'
+    bl_label = 'Trigger'
+
+    def draw(self, context, layout, node, text):
+        layout.label(text)
+
+    def draw_color(self, context, node):
+        return (0.52734375, 0.99609375, 0.87109375, 1.0)
+
 # Mix-in class for all custom nodes in this tree type.
 # Defines a poll function to enable instantiation.
 class AudioTreeNode:
@@ -231,6 +242,29 @@ class Piano(Node, AudioTreeNode):
         self.outputs.new('RawAudioSocketType', "Velocity")
         self.outputs.new('RawAudioSocketType', "Runtime")
         self.outputs.new('RawAudioSocketType', "Decay")
+
+class Trigger(Node, AudioTreeNode):
+    bl_idname = 'TriggerNode'
+    bl_label = 'Trigger'
+
+    def update_props(self, context):
+        self.send_property_update(0, self.channel)
+    
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.update_props(None)
+
+    channel = bpy.props.IntProperty(name="Button", min=1, max=16, default=1, update=update_props)
+
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'channel')
+
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('MidiSocketType', "MIDI")
+        self.outputs.new('TriggerSocketType', "Trigger")
 
 class PitchBend(Node, AudioTreeNode):
     bl_idname = 'PitchBendNode'

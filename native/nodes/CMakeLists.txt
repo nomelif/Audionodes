@@ -9,4 +9,5 @@ add_paths (NATIVE_SRCS
   collapse.cpp
   iir_filter.cpp
   noise.cpp
+  trigger.cpp
 )

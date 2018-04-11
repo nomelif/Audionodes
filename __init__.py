@@ -87,6 +87,7 @@ node_categories = [
         NodeItem("PianoNode"),
         NodeItem("PitchBendNode"),
         NodeItem("SliderNode"),
+        NodeItem("TriggerNode")
     ]),
 ]
 
