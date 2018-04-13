@@ -10,9 +10,6 @@
 class Node {
   protected:
   bool is_sink;
-  std::vector<SigT> input_values;
-  std::vector<int> property_values;
-  std::mutex input_values_mutex;
   
   public:
   enum class SocketType {
@@ -37,7 +34,6 @@ class Node {
   virtual void apply_bundle_universe_changes(const Universe&);
   
   bool mark_deletion = false, mark_connected = false, _tmp_connected = false;
-  std::vector<SigT> old_input_values;
   
   bool get_is_sink();
   size_t get_input_count();
@@ -46,6 +42,10 @@ class Node {
   SigT get_input_value(int);
   void set_property_value(int, int);
   int get_property_value(int);
+  virtual void receive_binary(int, int, void*);
+  std::vector<SigT> input_values;
+  std::vector<SigT> old_input_values;
+  std::vector<int> property_values;
   
   // Called right before the node becomes active in a tree
   virtual void connect_callback();

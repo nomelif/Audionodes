@@ -38,21 +38,18 @@ bool Node::get_is_sink() { return is_sink; }
 size_t Node::get_input_count() { return input_socket_types.size(); }
 
 void Node::set_input_value(int index, SigT value) {
-  std::lock_guard<std::mutex> lock(input_values_mutex);
   input_values[index] = value;
 }
 SigT Node::get_input_value(int index) {
-  std::lock_guard<std::mutex> lock(input_values_mutex);
   return input_values[index];
 }
 void Node::set_property_value(int index, int value) {
-  std::lock_guard<std::mutex> lock(input_values_mutex);
   property_values[index] = value;
 }
 int Node::get_property_value(int index) {
-  std::lock_guard<std::mutex> lock(input_values_mutex);
   return property_values[index];
 }
+void Node::receive_binary(int, int, void*) {}
 
 void Node::connect_callback() {}
 void Node::disconnect_callback() {}

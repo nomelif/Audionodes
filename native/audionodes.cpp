@@ -35,6 +35,36 @@ node_uid node_storage_alloc() {
 
 NodeTree *main_node_tree;
 
+Message::Message() {}
+Message::Message(Node* node, size_t slot, float audio_input) :
+    type(Type::audio_input), node(node), slot(slot), audio_input(audio_input)
+{}
+Message::Message(Node* node, size_t slot, int property) :
+    type(Type::property), node(node), slot(slot), property(property)
+{}
+Message::Message(Node* node, size_t slot, int length, void *binary) :
+    type(Type::binary), node(node), slot(slot), property(length), binary(binary)
+{}
+
+CircularBuffer<Message, 128> msg_queue;
+
+void send_message(Message msg) {
+  // Sleep until queue has room
+  for (size_t rep = 0; rep < 10 && msg_queue.full(); ++rep) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000*N/RATE+1));
+  }
+  // Fail
+  if (msg_queue.full()) {
+    std::cerr << "Audionodes native: Unable to communicate with execution thread" << std::endl;
+    if (msg.type == Message::Type::binary) {
+      char *ptr = (char*) msg.binary;
+      delete [] ptr;
+    }
+    return;
+  }
+  msg_queue.push(msg);
+}
+
 void audio_callback(void *userdata, Uint8 *_stream, int len) {
   // Cast byte stream into 16-bit signed int stream
   Sint16 *stream = (Sint16*) _stream;
@@ -47,6 +77,21 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
   if (main_node_tree == nullptr) {
     for (int i = 0; i < len; ++i) stream[i] = 0;
     return;
+  }
+  while (!msg_queue.empty()) {
+    Message msg = msg_queue.pop();
+    switch (msg.type) {
+      typedef Message::Type T;
+      case T::audio_input:
+        msg.node->set_input_value(msg.slot, msg.audio_input);
+        break;
+      case T::property:
+        msg.node->set_property_value(msg.slot, msg.property);
+        break;
+      case T::binary:
+        msg.node->receive_binary(msg.slot, msg.property, msg.binary);
+        break;
+    }
   }
   const static Sint16 maximum_value = (1 << 15)-1;
   const static Sint16 minimum_value = -(1 << 15);
@@ -146,7 +191,7 @@ extern "C" {
       std::cerr << "Audionodes native: Tried to update input value of non-existent node " << id << std::endl;
       return;
     }
-    node_storage[id]->set_input_value(input_index, value);
+    send_message(Message(node_storage[id], input_index, value));
   }
 
   void update_node_property_value(node_uid id, int enum_index, int value) {
@@ -154,7 +199,18 @@ extern "C" {
       std::cerr << "Audionodes native: Tried to update property value of non-existent node " << id << std::endl;
       return;
     }
-    node_storage[id]->set_property_value(enum_index, value);
+    send_message(Message(node_storage[id], enum_index, value));
+  }
+  
+  void send_node_binary_data(node_uid id, int slot, int length, void *_bin) {
+    if (!node_storage.count(id)) {
+      std::cerr << "Audionodes native: Tried to send binary data to non-existent node " << id << std::endl;
+      return;
+    }
+    // Node (or send_message on failure) will handle deletion
+    char *bin = new char[length];
+    std::memcpy(bin, _bin, length);
+    send_message(Message(node_storage[id], slot, length, bin));
   }
 
   std::vector<NodeTree::ConstructionLink>* begin_tree_update() {

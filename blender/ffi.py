@@ -68,6 +68,11 @@ native.update_node_property_value.restype = None
 def update_node_property_value(node_id, socket_id, val):
     native.update_node_property_value(node_id, socket_id, val)
 
+native.send_node_binary_data.argtypes = [ct.c_int, ct.c_int, ct.c_int, ct.c_char_p]
+native.send_node_binary_data.restype = None
+def send_node_binary_data(node_id, slot, data):
+    native.send_node_binary_data(node_id, slot, len(data), data)
+
 native.begin_tree_update.argtypes = []
 native.begin_tree_update.restype = ct.c_void_p
 def begin_tree_update():

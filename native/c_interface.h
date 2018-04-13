@@ -6,6 +6,7 @@ void remove_node(int);
 bool node_exists(int);
 void update_node_input_value(int, int, float);
 void update_node_property_value(int, int, int);
+void send_node_binary_data(int, int, int, void*);
 void* begin_tree_update();
 void add_tree_update_link(void*, int, int, size_t, size_t);
 void finish_tree_update(void*);

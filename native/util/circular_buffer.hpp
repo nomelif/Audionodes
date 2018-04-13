@@ -9,6 +9,7 @@
 // but not multiple threads for the same operation
 template<typename T, size_t capacity>
 class CircularBuffer {
+  // Use std::allocator?
   T buffer[capacity];
   std::atomic<size_t> write_index, read_index;
   bool verbose;
