@@ -27,7 +27,7 @@ class AudioTree(NodeTree):
             link.to_node.check_revive()
             ffi.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
         ffi.finish_tree_update(links)
-    
+
     def post_load_handler(self):
         for node in self.nodes:
             node.reinit()
@@ -94,27 +94,27 @@ class AudioTreeNode:
 
     def get_tree(self):
         return self.id_data
-    
+
     def register_native(self):
         self["unique_id"] = ffi.create_node(self.bl_idname.encode('ascii'))
 
     def init(self, context):
         self.register_native()
-    
+
     def send_value_update(self, index, value):
         self.check_revive()
         ffi.update_node_input_value(self.get_uid(), index, value)
-    
+
     def send_property_update(self, index, value):
         self.check_revive()
         ffi.update_node_property_value(self.get_uid(), index, value)
-    
+
     def reinit(self):
         self.register_native()
         for socket in self.inputs:
             if type(socket) == RawAudioSocket:
                 socket.update_value(None)
-    
+
     def copy(self, node):
         node.check_revive()
         self["unique_id"] = ffi.copy_node(node.get_uid(), self.bl_idname.encode('ascii'))
@@ -127,12 +127,15 @@ class AudioTreeNode:
             # Already freed
             return
         ffi.remove_node(self.get_uid())
-    
+
     def check_revive(self):
         # Check if node was revived (e.g. undid a delete operation)
         if not ffi.node_exists(self.get_uid()):
             self.reinit()
-            
+
+    def send_binary(self, slot, data):
+        ffi.send_node_binary_data(self.get_uid(), slot, data)
+
 
 # Proof-of-concept state, remake? and move these to another file ASAP
 class Oscillator(Node, AudioTreeNode):
@@ -141,7 +144,7 @@ class Oscillator(Node, AudioTreeNode):
 
     def change_func(self, context):
         self.send_property_update(0, self.func_enum_to_native[self.func_enum])
-    
+
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.change_func(None)
@@ -179,7 +182,7 @@ class Math(Node, AudioTreeNode):
 
     def change_func(self, context):
         self.send_property_update(0, self.func_enum_to_native[self.func_enum])
-    
+
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.change_func(None)
@@ -243,28 +246,91 @@ class Piano(Node, AudioTreeNode):
         self.outputs.new('RawAudioSocketType', "Runtime")
         self.outputs.new('RawAudioSocketType', "Decay")
 
-class Trigger(Node, AudioTreeNode):
-    bl_idname = 'TriggerNode'
-    bl_label = 'Trigger'
+class MidiTrigger(Node, AudioTreeNode):
+    bl_idname = 'MidiTriggerNode'
+    bl_label = 'MIDI Trigger'
 
     def update_props(self, context):
         self.send_property_update(0, self.channel)
-    
+        self.send_property_update(1, self.modes_to_native[self.interfaceType])
+
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.update_props(None)
 
-    channel = bpy.props.IntProperty(name="Button", min=1, max=16, default=1, update=update_props)
+    channel = bpy.props.IntProperty(name="Control", min=0, max=127, default=1, update=update_props)
+    modes = [('TRIGGER_BUTTON', 'Trigger button', '', 0),
+             ('KEY', 'Key', '', 1)]
 
+    interfaceType = bpy.props.EnumProperty(
+        items = modes,
+        update = update_props
+    )
+
+    modes_to_native = { item[0]: item[3] for item in modes }
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'channel')
+        layout.prop(self, 'interfaceType')
 
 
     def init(self, context):
         AudioTreeNode.init(self, context)
         self.inputs.new('MidiSocketType', "MIDI")
         self.outputs.new('TriggerSocketType', "Trigger")
+        self.update_props(None)
+
+class Sampler(Node, AudioTreeNode):
+    bl_idname = 'SamplerNode'
+    bl_label = 'Sampler'
+
+    def update_props(self, context):
+        print(self.sound)
+        sound_struct = bpy.data.sounds.load(filepath=self.sound)
+        sound_struct.use_fake_user = True
+        sound_struct.use_mono = True
+        sound_struct.pack()
+        sound_struct.use_memory_cache = True
+        #print(sound_struct.packed_file.data)
+        self.send_binary(0, sound_struct.packed_file.data)
+
+        #pass #self.send_property_update(0, self.channel)
+
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.update_props(None)
+
+
+    sound = bpy.props.StringProperty(subtype='FILE_PATH', update=update_props, get=None, set=None)
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "sound", text="")
+            #row = layout.row()
+            #if sound.packed_file:
+            #    row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
+            #else:
+            #    row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
+
+
+        #layout.prop(self, "sound", text="")
+        #layout.prop(self, 'channel')
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('TriggerSocketType', "Trigger")
+        self.outputs.new('RawAudioSocketType', "Audio")
+
+class Toggle(Node, AudioTreeNode):
+    bl_idname = 'ToggleNode'
+    bl_label = 'Toggle'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('TriggerSocketType', "Trigger")
+        self.inputs.new('RawAudioSocketType', "A")
+        self.inputs.new('RawAudioSocketType', "B")
+        self.outputs.new('RawAudioSocketType', "Audio")
+
 
 class PitchBend(Node, AudioTreeNode):
     bl_idname = 'PitchBendNode'
@@ -283,7 +349,7 @@ class Slider(Node, AudioTreeNode):
     def update_props(self, context):
         self.send_property_update(0, self.channel)
         self.send_property_update(1, self.modes_to_native[self.interfaceType])
-    
+
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.update_props(None)
@@ -315,7 +381,7 @@ class Collapse(Node, AudioTreeNode):
 
     def change_method(self, context):
         self.send_property_update(0, self.method_enum_to_native[self.method_enum])
-    
+
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.change_method(None)
@@ -349,7 +415,7 @@ class IIRFilter(Node, AudioTreeNode):
     def update_props(self, context):
         self.send_property_update(0, self.mode_enum_to_native[self.mode_enum])
         self.send_property_update(1, self.poles)
-    
+
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.update_props(None)

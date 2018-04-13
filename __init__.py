@@ -74,10 +74,12 @@ node_categories = [
     AudioNodeCategory("GENERATORS", "Generators", items=[
         NodeItem("OscillatorNode"),
         NodeItem("NoiseNode"),
+        NodeItem("SamplerNode"),
     ]),
     AudioNodeCategory("OPERATORS", "Operators", items=[
         NodeItem("MathNode"),
         NodeItem("CollapseNode"),
+        NodeItem("ToggleNode")
     ]),
     AudioNodeCategory("FILTERS", "Filters", items=[
         NodeItem("IIRFilterNode"),
@@ -87,7 +89,7 @@ node_categories = [
         NodeItem("PianoNode"),
         NodeItem("PitchBendNode"),
         NodeItem("SliderNode"),
-        NodeItem("TriggerNode")
+        NodeItem("MidiTriggerNode"),
     ]),
 ]
 

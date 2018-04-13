@@ -10,7 +10,9 @@
 #include "nodes/collapse.hpp"
 #include "nodes/iir_filter.hpp"
 #include "nodes/noise.hpp"
-#include "nodes/trigger.hpp"
+#include "nodes/midi_trigger.hpp"
+#include "nodes/sampler.hpp"
+#include "nodes/toggle.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
@@ -23,7 +25,9 @@ const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Collapse, "CollapseNode"),
   NodeType(IIRFilter, "IIRFilterNode"),
   NodeType(Noise, "NoiseNode"),
-  NodeType(Trigger, "TriggerNode")
+  NodeType(MidiTrigger, "MidiTriggerNode"),
+  NodeType(Sampler, "SamplerNode"),
+  NodeType(Toggle, "ToggleNode")
 };
 
 // Nodes addressed by unique integers

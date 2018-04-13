@@ -1,6 +1,6 @@
 
-#ifndef TRIGGER_HPP
-#define TRIGGER_HPP
+#ifndef MIDI_TRIGGER_HPP
+#define MIDI_TRIGGER_HPP
 
 #include "common.hpp"
 #include "node.hpp"
@@ -8,7 +8,7 @@
 #include "data/trigger.hpp"
 #include <cmath>
 
-class Trigger : public Node {
+class MidiTrigger : public Node {
   enum InputSockets {
     midi_in
   };
@@ -16,10 +16,11 @@ class Trigger : public Node {
     trigger
   };
   enum Properties {
-    channel
+    channel,
+    interfaceType
   };
   public:
-  Trigger();
+  MidiTrigger();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void process(NodeInputWindow&);
 };
