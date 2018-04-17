@@ -284,15 +284,22 @@ class Sampler(Node, AudioTreeNode):
     bl_idname = 'SamplerNode'
     bl_label = 'Sampler'
 
-    def update_props(self, context):
-        print(self.sound)
+    def load_sound(self, context):
+        if self.sound_datablock != "":
+          bpy.data.sounds[self.sound_datablock].use_memory_cache = False
+          bpy.data.sounds[self.sound_datablock].use_fake_user = False
         sound_struct = bpy.data.sounds.load(filepath=self.sound)
         sound_struct.use_fake_user = True
         sound_struct.use_mono = True
         sound_struct.pack()
         sound_struct.use_memory_cache = True
-        #print(sound_struct.packed_file.data)
+        self.sound_datablock = sound_struct.name
         self.send_binary(0, sound_struct.packed_file.data)
+
+    def update_props(self, context):
+        if self.sound_datablock != "": 
+          sound_struct = bpy.data.sounds[self.sound_datablock]
+          self.send_binary(0, sound_struct.packed_file.data)
 
         #pass #self.send_property_update(0, self.channel)
 
@@ -301,19 +308,10 @@ class Sampler(Node, AudioTreeNode):
         self.update_props(None)
 
 
-    sound = bpy.props.StringProperty(subtype='FILE_PATH', update=update_props, get=None, set=None)
-
+    sound = bpy.props.StringProperty(subtype='FILE_PATH', update=load_sound, get=None, set=None)
+    sound_datablock = bpy.props.StringProperty(name="Sound Datablock")
     def draw_buttons(self, context, layout):
         layout.prop(self, "sound", text="")
-            #row = layout.row()
-            #if sound.packed_file:
-            #    row.operator("sound.unpack", icon='PACKAGE', text="Unpack")
-            #else:
-            #    row.operator("sound.pack", icon='UGLYPACKAGE', text="Pack")
-
-
-        #layout.prop(self, "sound", text="")
-        #layout.prop(self, 'channel')
 
     def init(self, context):
         AudioTreeNode.init(self, context)
