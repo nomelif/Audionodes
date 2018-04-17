@@ -7,21 +7,25 @@
 #include "data/midi.hpp"
 #include "data/trigger.hpp"
 #include <cmath>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_audio.h>
 
 class Sampler : public Node {
   enum InputSockets {
-    midi_in
+    trigger_socket
   };
   enum OutputSockets {
-    trigger
+    audio_socket
   };
   enum Properties {
   };
 
 
-  Uint16* buff = nullptr;
+  SigT* buff = nullptr;
   size_t size;
+  size_t playhead = -1;
   bool loaded = false;
+  std::mutex wav_lock;
 
 
   public:
