@@ -35,8 +35,8 @@ class IIRFilter : public Node {
     SigT cutoff, resonance, rolloff;
     bool initialized = false;
     Filter() = default;
-    Filter(Modes, int, SigT, SigT, SigT);
-    bool equivalent(Modes, int, SigT, SigT, SigT) const;
+    Filter(Modes, size_t, SigT, SigT, SigT);
+    bool equivalent(Modes, size_t, SigT, SigT, SigT) const;
     void copy_state(const Filter&);
     void process(const Chunk&, Chunk&, bool);
   };
