@@ -20,8 +20,8 @@ struct Message {
   enum class Type {
     audio_input, property, binary    
   };
-  Node *node;
   Type type;
+  Node *node;
   size_t slot;
   
   float audio_input;

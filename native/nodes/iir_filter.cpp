@@ -14,11 +14,11 @@ void IIRFilter::apply_bundle_universe_changes(const Universe &universe) {
   universe.apply_delta(bundles);
 }
 
-bool IIRFilter::Filter::equivalent(Modes mode_, int poles_, SigT cutoff_, SigT resonance_, SigT rolloff_) const {
+bool IIRFilter::Filter::equivalent(Modes mode_, size_t poles_, SigT cutoff_, SigT resonance_, SigT rolloff_) const {
   return mode == mode_ && poles == poles_ && cutoff == cutoff_ && resonance == resonance_ && rolloff == rolloff_;
 }
 
-IIRFilter::Filter::Filter(Modes mode, int poles, SigT cutoff, SigT resonance, SigT rolloff) :
+IIRFilter::Filter::Filter(Modes mode, size_t poles, SigT cutoff, SigT resonance, SigT rolloff) :
     mode(mode), poles(poles), cutoff(cutoff), resonance(resonance), rolloff(rolloff),
     initialized(true)
 {
@@ -130,7 +130,7 @@ void IIRFilter::process(NodeInputWindow &input) {
   Modes mode = static_cast<Modes>(get_property_value(Properties::mode));
   int poles = get_property_value(Properties::poles);
   if (poles < 0) poles = 0;
-  if (poles > max_poles) poles = max_poles;
+  if ((size_t) poles > max_poles) poles = max_poles;
   for (size_t i = 0; i < n; ++i) {
     SigT
       cutoff = input[InputSockets::cutoff][i][0],

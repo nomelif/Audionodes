@@ -1,5 +1,7 @@
 #include "node.hpp"
+
 #include "data/midi.hpp"
+#include "data/trigger.hpp"
 
 Node::Node(
   SocketTypeList input_types, SocketTypeList output_types,
@@ -17,7 +19,7 @@ Node::Node(
   property_values.resize(property_types.size());
   output_window.sockets.reserve(input_types.size());
   for (auto type : output_types) {
-    Data *data;
+    Data *data = nullptr;
     switch (type) {
       typedef SocketType ST;
       case ST::audio:
@@ -25,6 +27,9 @@ Node::Node(
         break;
       case ST::midi:
         data = new MidiData();
+        break;
+      case ST::trigger:
+        data = new TriggerData();
         break;
     }
     Data **data_ptr = new Data*(data);
