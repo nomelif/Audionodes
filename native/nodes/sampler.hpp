@@ -19,15 +19,12 @@ class Sampler : public Node {
   };
   enum Properties {
   };
-
-
-  SigT* buff = nullptr;
+  
+  float *buff = nullptr;
   size_t size;
   size_t playhead = -1;
   bool loaded = false;
-  std::mutex wav_lock;
-
-
+  
   public:
   Sampler();
   ~Sampler();
