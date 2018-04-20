@@ -67,9 +67,7 @@ void Sampler::process(NodeInputWindow &input) {
 
   // If no file is loaded or the file is not being played, send an empty signal
   if (!loaded || playhead > size) {
-    for (size_t j = 0; j < N; ++j) {
-      value[j] = 0;
-    }
+    value.fill(0);
   } else {
     // Read from the file either until the end of the chunk or until the end of the file
     for (size_t j = 0; j < N && playhead + j < size; ++j) {
@@ -89,8 +87,6 @@ void Sampler::process(NodeInputWindow &input) {
   }
 
 }
-
-
 
 Sampler::~Sampler(){
   delete [] buff;

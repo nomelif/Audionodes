@@ -20,9 +20,13 @@ void PitchBend::process(NodeInputWindow &input) {
     }
   }
 
-  for (size_t j = 0; j < N; ++j) {
-    SigT result = (bend_state*(N-j) + new_state*j)/N;
-    bend[j] = result;
+  if (bend_state == new_state) {
+    bend.fill(bend_state);
+  } else {
+    for (size_t j = 0; j < N; ++j) {
+      SigT result = (bend_state*(N-j) + new_state*j)/N;
+      bend[j] = result;
+    }
+    bend_state = new_state;
   }
-  bend_state = new_state;
 }

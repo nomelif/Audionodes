@@ -23,9 +23,13 @@ void Slider::process(NodeInputWindow &input) {
     }
   }
 
-  for (size_t j = 0; j < N; ++j) {
-    SigT result = (value_state*(N-j) + new_state*j)/N;
-    value[j] = result;
+  if (value_state == new_state) {
+    value.fill(value_state);
+  } else {
+    for (size_t j = 0; j < N; ++j) {
+      SigT result = (value_state*(N-j) + new_state*j)/N;
+      value[j] = result;
+    }
+    value_state = new_state;
   }
-  value_state = new_state;
 }
