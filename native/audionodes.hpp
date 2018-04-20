@@ -28,6 +28,8 @@ struct Message {
   int property;
   void *binary;
   
+  void apply();
+  
   Message();
   Message(Node*, size_t, float);
   Message(Node*, size_t, int);

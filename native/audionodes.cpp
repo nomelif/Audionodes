@@ -50,23 +50,43 @@ Message::Message(Node* node, size_t slot, int length, void *binary) :
     type(Type::binary), node(node), slot(slot), property(length), binary(binary)
 {}
 
-CircularBuffer<Message, 128> msg_queue;
+void Message::apply() {
+  switch (type) {
+    case Type::audio_input:
+      node->set_input_value(slot, audio_input);
+      break;
+    case Type::property:
+      node->set_property_value(slot, property);
+      break;
+    case Type::binary:
+      node->receive_binary(slot, property, binary);
+      break;
+  }
+}
+
+CircularBuffer<Message, 256> msg_queue;
 
 void send_message(Message msg) {
-  // Sleep until queue has room
-  for (size_t rep = 0; rep < 10 && msg_queue.full(); ++rep) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000*N/RATE+1));
-  }
-  // Fail
-  if (msg_queue.full()) {
-    std::cerr << "Audionodes native: Unable to communicate with execution thread" << std::endl;
-    if (msg.type == Message::Type::binary) {
-      char *ptr = (char*) msg.binary;
-      delete [] ptr;
+  if (msg.node->mark_connected) {
+    // Node is connected and actively used by the execution thread, use thread-safe communication
+    // Sleep until queue has room
+    for (size_t rep = 0; rep < 10 && msg_queue.full(); ++rep) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000*N/RATE+1));
     }
-    return;
+    // Fail
+    if (msg_queue.full()) {
+      std::cerr << "Audionodes native: Unable to communicate with execution thread" << std::endl;
+      if (msg.type == Message::Type::binary) {
+        char *ptr = (char*) msg.binary;
+        delete [] ptr;
+      }
+      return;
+    }
+    msg_queue.push(msg);
+  } else {
+    // Apply the message directly
+    msg.apply();
   }
-  msg_queue.push(msg);
 }
 
 void audio_callback(void *userdata, Uint8 *_stream, int len) {
@@ -84,18 +104,7 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
   }
   while (!msg_queue.empty()) {
     Message msg = msg_queue.pop();
-    switch (msg.type) {
-      typedef Message::Type T;
-      case T::audio_input:
-        msg.node->set_input_value(msg.slot, msg.audio_input);
-        break;
-      case T::property:
-        msg.node->set_property_value(msg.slot, msg.property);
-        break;
-      case T::binary:
-        msg.node->receive_binary(msg.slot, msg.property, msg.binary);
-        break;
-    }
+    msg.apply();
   }
   const static Sint16 maximum_value = (1 << 15)-1;
   const static Sint16 minimum_value = -(1 << 15);
