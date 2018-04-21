@@ -34,6 +34,14 @@ void Piano::process(NodeInputWindow &input) {
         }
         break;
       case MidiData::EType::control:
+        if (event.is_panic()) {
+          for (auto &voice : voices) {
+            voice.dead = true;
+          }
+          for (auto &voice : new_voices) {
+            voice.dead = true;
+          }
+        }
         break;
       default:
         break;
