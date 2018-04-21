@@ -284,6 +284,13 @@ class Sampler(Node, AudioTreeNode):
     bl_idname = 'SamplerNode'
     bl_label = 'Sampler'
 
+
+    def update_props(self, context):
+        self.send_property_update(0, self.modes_to_native[self.mode])
+        if self.sound_datablock != "": 
+          sound_struct = bpy.data.sounds[self.sound_datablock]
+          self.send_binary(0, sound_struct.packed_file.data)
+
     def load_sound(self, context):
         if self.sound_datablock != "":
           bpy.data.sounds[self.sound_datablock].use_memory_cache = False
@@ -296,12 +303,15 @@ class Sampler(Node, AudioTreeNode):
         self.sound_datablock = sound_struct.name
         self.send_binary(0, sound_struct.packed_file.data)
 
-    def update_props(self, context):
-        if self.sound_datablock != "": 
-          sound_struct = bpy.data.sounds[self.sound_datablock]
-          self.send_binary(0, sound_struct.packed_file.data)
+    modes = [('RUN_ONCE', 'Run once', '', 0),
+             ('LOOP', 'Loop', '', 1)]
 
-        #pass #self.send_property_update(0, self.channel)
+    mode = bpy.props.EnumProperty(
+        items = modes,
+        update = update_props
+    )
+
+    modes_to_native = { item[0]: item[3] for item in modes }
 
     def reinit(self):
         AudioTreeNode.reinit(self)
@@ -312,11 +322,13 @@ class Sampler(Node, AudioTreeNode):
     sound_datablock = bpy.props.StringProperty(name="Sound Datablock")
     def draw_buttons(self, context, layout):
         layout.prop(self, "sound", text="")
+        layout.prop(self, "mode")
 
     def init(self, context):
         AudioTreeNode.init(self, context)
         self.inputs.new('TriggerSocketType', "Trigger")
         self.outputs.new('RawAudioSocketType', "Audio")
+        self.update_props(None)
 
 class Toggle(Node, AudioTreeNode):
     bl_idname = 'ToggleNode'

@@ -3,8 +3,8 @@
 #include <iostream>
 
 
-Sampler::Sampler() :
-    Node({SocketType::trigger}, {SocketType::audio}, {})
+Sampler::Sampler():
+ Node({SocketType::trigger}, {SocketType::audio}, {PropertyType::select})
 {}
 
 Universe::Descriptor Sampler::infer_polyphony_operation(std::vector<Universe::Pointer>) {
@@ -54,35 +54,51 @@ void Sampler::receive_binary(int slot, int length, void* file) {
     std::cerr << "Sampler: " << SDL_GetError() << std::endl;
   }
   delete [] ((char*) file);
-  playhead = -1;
+  playhead = 0;
+  if(get_property_value(Properties::mode) == 0 || loaded == false)
+    running = false;
+  else
+    running = true;
 }
 
 void Sampler::process(NodeInputWindow &input) {
 
   // Trigger detection
   auto &triggers = input[InputSockets::trigger_socket].get<TriggerData>();
-  if (triggers.events.size() > 0) playhead = 0;
+  if (triggers.events.size() > 0){
+    if(get_property_value(Properties::mode) == 0){
+      playhead = 0;
+      running = true;
+    }else{
+      playhead = 0;
+      running = !running;
+    }
+  }
 
   Chunk &value = output_window[0].mono;
 
   // If no file is loaded or the file is not being played, send an empty signal
-  if (!loaded || playhead > size) {
+  if (!loaded || !running || playhead > size) {
     value.fill(0);
   } else {
     // Read from the file either until the end of the chunk or until the end of the file
-    for (size_t j = 0; j < N && playhead + j < size; ++j) {
-      value[j] = buff[playhead + j];
+    for (size_t j = 0; j < N; ++j) {
+      value[j] = buff[(playhead + j)%size];
     }
 
     // Fill the rest with zeroes
-    if (size-playhead < N) {
+    if (size-playhead < N && get_property_value(Properties::mode) == 0) {
       for (size_t j = size-playhead; j < N; ++j) value[j] = 0;
     }
 
     // Advance the playhead and maybe end playback
     playhead += N;
     if (playhead >= size) {
-      playhead = -1;
+      if(get_property_value(Properties::mode) == 0){
+        playhead = 0;
+        running = false;
+      }else
+        playhead = playhead % size;
     }
   }
 

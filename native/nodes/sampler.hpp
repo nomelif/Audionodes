@@ -18,11 +18,13 @@ class Sampler : public Node {
     audio_socket
   };
   enum Properties {
+    mode
   };
   
   float *buff = nullptr;
   size_t size;
-  size_t playhead = -1;
+  size_t playhead = 0;
+  bool running = false;
   bool loaded = false;
   
   public:
