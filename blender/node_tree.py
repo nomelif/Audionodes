@@ -144,6 +144,7 @@ class Oscillator(Node, AudioTreeNode):
 
     def change_func(self, context):
         self.send_property_update(0, self.func_enum_to_native[self.func_enum])
+        self.send_property_update(1, self.anti_alias_check)
 
     def reinit(self):
         AudioTreeNode.reinit(self)
@@ -162,6 +163,11 @@ class Oscillator(Node, AudioTreeNode):
         items = func_enum_items,
         update = change_func
     )
+    
+    anti_alias_check = bpy.props.BoolProperty(
+        name = "Anti-alias",
+        update = change_func
+    )
 
     def init(self, context):
         AudioTreeNode.init(self, context)
@@ -175,6 +181,7 @@ class Oscillator(Node, AudioTreeNode):
 
     def draw_buttons(self, context, layout):
         layout.prop(self, 'func_enum', text='')
+        layout.prop(self, 'anti_alias_check')
 
 class Math(Node, AudioTreeNode):
     bl_idname = 'MathNode'
@@ -287,7 +294,7 @@ class Sampler(Node, AudioTreeNode):
 
     def update_props(self, context):
         self.send_property_update(0, self.modes_to_native[self.mode])
-        if self.sound_datablock != "": 
+        if self.sound_datablock != "":
           sound_struct = bpy.data.sounds[self.sound_datablock]
           self.send_binary(0, sound_struct.packed_file.data)
 

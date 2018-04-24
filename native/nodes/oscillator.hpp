@@ -11,18 +11,19 @@ class Oscillator : public Node {
     frequency, amplitude, offset, param
   };
   enum Properties {
-    oscillation_func
+    oscillation_func, anti_alias
+  };
+  enum Modes {
+    sine, saw, square, triangle
   };
   
   // Persistent state
-  std::vector<SigT> bundles;
-  
-  // Runtime intermediary variables
-  AudioData::PolyList states;
+  struct Bundle {
+    SigT state, last_val;
+  };
+  std::vector<Bundle> bundles;
 
-  typedef std::function<SigT(SigT, SigT)> OscillationFunc;
-  typedef std::vector<OscillationFunc> OscillationFuncList;
-  const static OscillationFuncList oscillation_funcs;
+  static SigT poly_blep(SigT, SigT);
   public:
   Oscillator();
   void reset_state();
