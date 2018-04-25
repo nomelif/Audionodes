@@ -10,10 +10,9 @@ void Toggle::process(NodeInputWindow &input) {
   auto &s_a = input[InputSockets::signal_a];
   auto &s_b = input[InputSockets::signal_b];
   auto &triggers = input[InputSockets::trigger].get<TriggerData>();
-  //output[OutputSockets::output].resize(s_a.get_channel_amount());
-  AudioData::PolyWriter output(output_window[0]);
-  output.resize(input.get_channel_amount());
-  for(size_t i = 0; i < input.get_channel_amount(); i++){
+  size_t n = input.get_channel_amount();
+  AudioData::PolyWriter output(output_window[0], n);
+  for(size_t i = 0; i < n; i++){
     bool state = a_on;
     size_t k = 0;
     for(size_t j = 0; j < N; j++){

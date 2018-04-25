@@ -125,8 +125,7 @@ void IIRFilter::Filter::process(const Chunk& input, Chunk& output, bool interpol
 
 void IIRFilter::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
-  AudioData::PolyWriter output(output_window[0]);
-  output.resize(n);
+  AudioData::PolyWriter output(output_window[0], n);
   Modes mode = static_cast<Modes>(get_property_value(Properties::mode));
   int poles = get_property_value(Properties::poles);
   if (poles < 0) poles = 0;

@@ -73,14 +73,10 @@ void Piano::process(NodeInputWindow &input) {
     existing_note[voice.note] = &voices.back();
   }
   AudioData::PolyWriter
-    frequency(output_window[OutputSockets::frequency]),
-    velocity(output_window[OutputSockets::velocity]),
-    runtime(output_window[OutputSockets::runtime]),
-    decay(output_window[OutputSockets::decay]);
-  frequency.resize(n);
-  velocity.resize(n);
-  runtime.resize(n);
-  decay.resize(n);
+    frequency(output_window[OutputSockets::frequency], n),
+    velocity(output_window[OutputSockets::velocity], n),
+    runtime(output_window[OutputSockets::runtime], n),
+    decay(output_window[OutputSockets::decay], n);
   for (size_t i = 0; i < n; ++i) {
     VoiceState &voice = voices[i];
     frequency[i].fill(voice.freq);

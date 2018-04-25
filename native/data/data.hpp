@@ -56,6 +56,7 @@ struct AudioData : public Data {
       internal.resize(size);
     }
     PolyWriter(AudioData&);
+    PolyWriter(AudioData&, size_t);
     ~PolyWriter();
   };
 };

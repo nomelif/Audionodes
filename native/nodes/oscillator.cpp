@@ -50,8 +50,7 @@ void Oscillator::apply_bundle_universe_changes(const Universe &universe) {
 
 void Oscillator::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
-  AudioData::PolyWriter output(output_window[0]);
-  output.resize(n);
+  AudioData::PolyWriter output(output_window[0], n);
   
   const int f_id = get_property_value(Properties::oscillation_func);
   const int anti_alias = get_property_value(Properties::anti_alias);

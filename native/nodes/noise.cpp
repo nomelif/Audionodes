@@ -10,8 +10,7 @@ Noise::Noise() :
 
 void Noise::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
-  AudioData::PolyWriter output(output_window[0]);
-  output.resize(n);
+  AudioData::PolyWriter output(output_window[0], n);
   for (size_t i = 0; i < n; ++i) {
     Chunk &channel = output[i];
     const Chunk &vol = input[0][i];

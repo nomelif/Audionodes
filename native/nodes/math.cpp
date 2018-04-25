@@ -50,8 +50,7 @@ const Math::MathOperatorList Math::math_operators = {
 
 void Math::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
-  AudioData::PolyWriter output(output_window[0]);
-  output.resize(n);
+  AudioData::PolyWriter output(output_window[0], n);
   
   const MathOperator &func =
     math_operators[get_property_value(Properties::math_operator)];

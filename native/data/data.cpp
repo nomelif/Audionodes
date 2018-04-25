@@ -34,6 +34,13 @@ AudioData::PolyWriter::PolyWriter(AudioData &bind) :
   internal(bind.poly)
 {}
 
+AudioData::PolyWriter::PolyWriter(AudioData &bind, size_t size) :
+  bind(bind),
+  internal(bind.poly)
+{
+  resize(size);
+}
+
 AudioData::PolyWriter::~PolyWriter() {
   bind.make_collapsed_version();
 }
