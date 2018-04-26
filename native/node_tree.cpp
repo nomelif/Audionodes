@@ -58,7 +58,6 @@ const Chunk& NodeTree::evaluate() {
     Node *node = node_evaluation_order[i];
     // Collect node inputs
     size_t input_amt = node->get_input_count();
-    //NodeInputWindow::SocketsList inputs; inputs.reserve(input_amt);
     for (size_t j = 0; j < input_amt; ++j) {
       if (node_inputs[i][j].tmp_audio_data) {
         // Interpolate earlier value and new value
