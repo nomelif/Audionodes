@@ -13,6 +13,7 @@
 #include "nodes/midi_trigger.hpp"
 #include "nodes/sampler.hpp"
 #include "nodes/toggle.hpp"
+#include "nodes/microphone.hpp"
 
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
@@ -27,7 +28,8 @@ const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Noise, "NoiseNode"),
   NodeType(MidiTrigger, "MidiTriggerNode"),
   NodeType(Sampler, "SamplerNode"),
-  NodeType(Toggle, "ToggleNode")
+  NodeType(Toggle, "ToggleNode"),
+  NodeType(Microphone, "MicrophoneNode")
 };
 
 // Nodes addressed by unique integers

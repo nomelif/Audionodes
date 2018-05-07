@@ -253,6 +253,15 @@ class Piano(Node, AudioTreeNode):
         self.outputs.new('RawAudioSocketType', "Runtime")
         self.outputs.new('RawAudioSocketType', "Decay")
 
+
+class Microphone(Node, AudioTreeNode):
+    bl_idname = 'MicrophoneNode'
+    bl_label = 'Microphone'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.outputs.new('RawAudioSocketType', "Input stream")
+
 class MidiTrigger(Node, AudioTreeNode):
     bl_idname = 'MidiTriggerNode'
     bl_label = 'MIDI Trigger'
