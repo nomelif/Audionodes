@@ -16,8 +16,8 @@ NOTE: The addon will not work if you download a raw repository-zip, \
 because the native backend needs to be compiled.
 Please make sure you download the addon from the Releases-page or compile the backend yourself.""" % native_path)
 
-# mode=8 stands for RTLD_DEEPBIND dlopen flag
-native = ct.CDLL(native_path, mode=8)
+# mode=8 stands for RTLD_DEEPBIND dlopen flag [DISABLED]
+native = ct.CDLL(native_path, mode=0)
 
 flag_loading_file = False
 flag_initialized = False
