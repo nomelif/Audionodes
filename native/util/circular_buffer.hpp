@@ -22,6 +22,7 @@ class CircularBuffer {
   
   // Use with caution: both threads have to agree on the clear synchronously
   void clear();
+  
   CircularBuffer(bool verbose=false);
 };
 
