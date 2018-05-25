@@ -282,6 +282,13 @@ extern "C" {
         }
       }
     }
+    if (q.size() < to_process.size()) {
+      // Not all nodes that were supposed to be included got into the order ->
+      // there is a loop
+      std::cerr << "Audionodes native: Error building tree: loop found" << std::endl;
+      return;
+    }
+    
     // Reverse the resulting vector to have the correct evaluation order
     std::reverse(q.begin(), q.end());
 
