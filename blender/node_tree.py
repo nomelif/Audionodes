@@ -25,8 +25,7 @@ class AudioTree(NodeTree):
         for link in self.links:
             link.from_node.check_revive()
             link.to_node.check_revive()
-            if link.is_valid:
-                ffi.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
+            ffi.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
         ffi.finish_tree_update(links)
 
     def post_load_handler(self):
