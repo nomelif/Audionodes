@@ -8,46 +8,56 @@ Math::Math() :
     Node({SocketType::audio, SocketType::audio}, {SocketType::audio}, {PropertyType::select})
 {}
 
-const Math::MathOperatorList Math::math_operators = {
+const Math::MathOperator Math::math_operators[] = {
+#define X(op) [](const Chunk &_a, const Chunk &_b, Chunk &out) { \
+  for (size_t i = 0; i < N; ++i) { \
+    out[i] = op; \
+    out[i] = std::isfinite(out[i]) ? out[i] : 0.0; \
+  } \
+}
+#define a _a[i]
+#define b _b[i]
   // 0: Add
-  [](SigT a, SigT b) { return a + b; },
+  X( a + b ),
   // 1: Subtract
-  [](SigT a, SigT b) { return a - b; },
+  X( a - b ),
   // 2: Multiply
-  [](SigT a, SigT b) { return a * b; },
+  X( a * b ),
   // 3: Divide
-  [](SigT a, SigT b) { return a / b; },
+  X( a / b ),
   // 4: Sine
-  [](SigT a, SigT) { return std::sin(a); },
+  X( std::sin(a) ),
   // 5: Cosine
-  [](SigT a, SigT) { return std::cos(a); },
+  X( std::cos(a) ),
   // 6: Tangent
-  [](SigT a, SigT) { return std::tan(a); },
+  X( std::tan(a) ),
   // 7: Arcsine
-  [](SigT a, SigT) { return std::asin(a); },
+  X( std::asin(a) ),
   // 8: Arccosine
-  [](SigT a, SigT) { return std::acos(a); },
+  X( std::acos(a) ),
   // 9: Arctangent
-  [](SigT a, SigT) { return std::atan(a); },
+  X( std::atan(a) ),
   // 10: Power
-  [](SigT a, SigT b) { return std::pow(a, b); },
+  X( std::pow(a, b) ),
   // 11: Logarithm
-  [](SigT a, SigT b) { return std::log(a)/std::log(b); },
+  X( std::log(a)/std::log(b) ),
   // 12: Minimum
-  [](SigT a, SigT b) { return std::min(a, b); },
+  X( std::min(a, b) ),
   // 13: Maximum
-  [](SigT a, SigT b) { return std::max(a, b);; },
+  X( std::max(a, b) ),
   // 14: Round
-  [](SigT a, SigT b) { return std::round(a); },
+  X( std::round(a) ),
   // 15: Less than
-  [](SigT a, SigT b) { return a < b ? 1.0 : 0.0; },
+  X( a < b ? 1.0 : 0.0 ),
   // 16: Greater than
-  [](SigT a, SigT b) { return a > b ? 1.0 : 0.0; },
+  X( a > b ? 1.0 : 0.0 ),
   // 17: Modulo
-  [](SigT a, SigT b) { return std::fmod(a, b); },
+  X( std::fmod(a, b) ),
   // 18: Absolute
-  [](SigT a, SigT b) { return std::abs(a); }
-
+  X( std::abs(a) )
+#undef X
+#undef a
+#undef b
 };
 
 void Math::process(NodeInputWindow &input) {
@@ -61,11 +71,7 @@ void Math::process(NodeInputWindow &input) {
     const Chunk
       &val1 = input[InputSockets::val1][i],
       &val2 = input[InputSockets::val2][i];
-    Chunk &channel = output[i];
-    for (size_t j = 0; j < N; ++j) {
-      SigT result = func(val1[j], val2[j]);
-      channel[j] = std::isfinite(result) ? result : 0.0;
-    }
+    func(val1, val2, output[i]);
   }
 }
 

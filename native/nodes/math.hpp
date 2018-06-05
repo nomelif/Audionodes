@@ -16,9 +16,8 @@ class Math : public Node {
     math_operator
   };
 
-  typedef std::function<SigT(SigT, SigT)> MathOperator;
-  typedef std::vector<MathOperator> MathOperatorList;
-  const static MathOperatorList math_operators;
+  typedef void (*MathOperator)(const Chunk&, const Chunk&, Chunk&);
+  const static MathOperator math_operators[];
   public:
   Math();
   void process(NodeInputWindow&);
