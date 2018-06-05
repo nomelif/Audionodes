@@ -11,6 +11,8 @@
 #include <iostream>
 #include <atomic>
 
+namespace audionodes {
+
 class MidiIn : public Node {
   fluid_midi_driver_t* driver;
   static int handle_midi_event(void* data, fluid_midi_event_t* event);
@@ -22,5 +24,6 @@ class MidiIn : public Node {
   void process(NodeInputWindow&);
 };
 
+}
 
 #endif

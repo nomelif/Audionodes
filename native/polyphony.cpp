@@ -1,5 +1,6 @@
 #include "polyphony.hpp"
 
+namespace audionodes {
 
 int Universe::token_counter = 0;
 
@@ -91,4 +92,6 @@ Universe::Descriptor::Descriptor(Pointer input, Pointer bundles, Pointer output)
 
 void Universe::Descriptor::set_all(Pointer to) {
   input = bundles = output = to;
+}
+
 }

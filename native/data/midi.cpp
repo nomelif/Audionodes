@@ -1,5 +1,7 @@
 #include "data/midi.hpp"
 
+namespace audionodes {
+
 MidiData::Event::Type MidiData::Event::get_type() const {
   switch (raw_type) {
     case 0x8:
@@ -102,3 +104,5 @@ MidiData::MidiData(EventSeries events) :
 MidiData::MidiData() {}
 
 MidiData MidiData::dummy = MidiData();
+
+}

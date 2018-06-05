@@ -7,6 +7,8 @@
 #include "polyphony.hpp"
 #include <memory>
 
+namespace audionodes {
+
 class NodeInputWindow {
   public:
   class Socket {
@@ -65,5 +67,7 @@ class NodeOutputWindow {
   }
   SocketsList sockets;
 };
+
+}
 
 #endif

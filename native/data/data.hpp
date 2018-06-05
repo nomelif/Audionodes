@@ -5,6 +5,8 @@
 #include "common.hpp"
 #include <map>
 
+namespace audionodes {
+
 struct Data {
   virtual ~Data();
 
@@ -60,5 +62,7 @@ struct AudioData : public Data {
     ~PolyWriter();
   };
 };
+
+}
 
 #endif

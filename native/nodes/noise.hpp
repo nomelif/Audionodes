@@ -6,6 +6,8 @@
 #include "node.hpp"
 #include <random>
 
+namespace audionodes {
+
 class Noise : public Node {
   std::mt19937 generator;
   std::uniform_real_distribution<> distribution;
@@ -13,5 +15,7 @@ class Noise : public Node {
   Noise();
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

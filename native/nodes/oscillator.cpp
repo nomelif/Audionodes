@@ -1,5 +1,6 @@
 #include "nodes/oscillator.hpp"
 
+namespace audionodes {
 
 Oscillator::Oscillator() :
     Node(
@@ -78,7 +79,7 @@ void Oscillator::process(NodeInputWindow &input) {
         case Modes::square:
           channel[j] = state > 1-param[j] ? 1. : -1.;
           break;
-        case Modes::triangle: // will be integrated
+        case Modes::triangle:
           if (anti_alias) {
             // Will be integrated
             channel[j] = state > 0.5 ? 1. : -1.;
@@ -111,3 +112,5 @@ void Oscillator::process(NodeInputWindow &input) {
   }
 }
 
+
+}

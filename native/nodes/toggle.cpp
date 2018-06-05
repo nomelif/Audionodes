@@ -1,6 +1,6 @@
 #include "nodes/toggle.hpp"
 
-#include <iostream>
+namespace audionodes {
 
 Toggle::Toggle() :
     Node({SocketType::trigger, SocketType::audio, SocketType::audio}, {SocketType::audio}, {})
@@ -27,4 +27,6 @@ void Toggle::process(NodeInputWindow &input) {
     }
   }
   a_on ^= triggers.events.size() % 2;
+}
+
 }

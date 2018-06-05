@@ -7,6 +7,8 @@
 #include "data/midi.hpp"
 #include <cmath>
 
+namespace audionodes {
+
 class Slider : public Node {
   enum InputSockets {
     midi_in
@@ -24,5 +26,7 @@ class Slider : public Node {
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

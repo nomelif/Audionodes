@@ -7,6 +7,8 @@
 #include "polyphony.hpp"
 #include "data/windows.hpp"
 
+namespace audionodes {
+
 class NodeTree {
   public:
   struct ConstructionLink { // Used when building a new NodeTree on update
@@ -29,5 +31,7 @@ class NodeTree {
   NodeTree(std::vector<Node*>, std::vector<std::vector<Link>>);
   const Chunk& evaluate();
 };
+
+}
 
 #endif

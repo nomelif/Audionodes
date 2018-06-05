@@ -8,6 +8,8 @@
 #include "data/trigger.hpp"
 #include <cmath>
 
+namespace audionodes {
+
 class MidiTrigger : public Node {
   enum InputSockets {
     midi_in
@@ -24,5 +26,7 @@ class MidiTrigger : public Node {
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

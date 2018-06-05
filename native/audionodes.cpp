@@ -14,6 +14,8 @@
 #include "nodes/sampler.hpp"
 #include "nodes/toggle.hpp"
 
+namespace audionodes {
+
 const static std::map<std::string, NodeCreator> node_types = {
   NodeType(Oscillator, "OscillatorNode"),
   NodeType(Sink, "SinkNode"),
@@ -125,7 +127,7 @@ bool initialized = false;
 
 // Methods to be used through the FFI
 extern "C" {
-  void initialize() {
+  void audionodes_initialize() {
     SDL_Init(SDL_INIT_AUDIO);
 
 		SDL_AudioSpec spec;
@@ -157,7 +159,7 @@ extern "C" {
     SDL_PauseAudioDevice(dev, 0);
   }
 
-  void cleanup() {
+  void audionodes_cleanup() {
     SDL_CloseAudioDevice(dev);
     for (auto &id_node_pair : node_storage) {
       delete id_node_pair.second;
@@ -167,7 +169,7 @@ extern "C" {
     main_node_tree = nullptr;
   }
 
-  node_uid create_node(const char* type_c) {
+  node_uid audionodes_create_node(const char* type_c) {
     const std::string type = type_c;
     node_uid id = node_storage_alloc();
     if (node_types.count(type)) {
@@ -180,14 +182,14 @@ extern "C" {
     }
   }
 
-  node_uid copy_node(node_uid old_id, const char* type_c) {
-    node_uid new_id = create_node(type_c);
+  node_uid audionodes_copy_node(node_uid old_id, const char* type_c) {
+    node_uid new_id = audionodes_create_node(type_c);
     if (new_id == -1) return -1;
     node_storage[new_id]->copy_input_values(*node_storage[old_id]);
     return new_id;
   }
 
-  void remove_node(node_uid id) {
+  void audionodes_remove_node(node_uid id) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to remove non-existent node " << id << std::endl;
       return;
@@ -195,11 +197,11 @@ extern "C" {
     node_storage[id]->mark_deletion = true;
   }
   
-  bool node_exists(node_uid id) {
+  bool audionodes_node_exists(node_uid id) {
     return node_storage.count(id);
   }
 
-  void update_node_input_value(node_uid id, int input_index, float value) {
+  void audionodes_update_node_input_value(node_uid id, int input_index, float value) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to update input value of non-existent node " << id << std::endl;
       return;
@@ -207,7 +209,7 @@ extern "C" {
     send_message(Message(node_storage[id], input_index, value));
   }
 
-  void update_node_property_value(node_uid id, int enum_index, int value) {
+  void audionodes_update_node_property_value(node_uid id, int enum_index, int value) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to update property value of non-existent node " << id << std::endl;
       return;
@@ -215,7 +217,7 @@ extern "C" {
     send_message(Message(node_storage[id], enum_index, value));
   }
   
-  void send_node_binary_data(node_uid id, int slot, int length, void *_bin) {
+  void audionodes_send_node_binary_data(node_uid id, int slot, int length, void *_bin) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to send binary data to non-existent node " << id << std::endl;
       return;
@@ -226,20 +228,20 @@ extern "C" {
     send_message(Message(node_storage[id], slot, length, bin));
   }
 
-  std::vector<NodeTree::ConstructionLink>* begin_tree_update() {
+  std::vector<NodeTree::ConstructionLink>* audionodes_begin_tree_update() {
     std::vector<NodeTree::ConstructionLink> *links;
     links = new std::vector<NodeTree::ConstructionLink>();
     return links;
   }
 
-  void add_tree_update_link(std::vector<NodeTree::ConstructionLink> *links, node_uid from_node, node_uid to_node, size_t from_socket, size_t to_socket) {
+  void audionodes_add_tree_update_link(std::vector<NodeTree::ConstructionLink> *links, node_uid from_node, node_uid to_node, size_t from_socket, size_t to_socket) {
     if (!node_storage.count(from_node) || !node_storage.count(to_node)) {
       std::cerr << "Audionodes native: Tried to create a link to/from non-existent node " << from_node << " " << to_node << std::endl;
     }
     links->push_back({from_node, to_node, from_socket, to_socket});
   }
 
-  void finish_tree_update(std::vector<NodeTree::ConstructionLink> *links) {
+  void audionodes_finish_tree_update(std::vector<NodeTree::ConstructionLink> *links) {
     std::map<node_uid, std::vector<NodeTree::ConstructionLink>> links_to;
     std::map<node_uid, int> links_from_count;
     for (auto link : *links) {
@@ -346,4 +348,6 @@ extern "C" {
 
     delete links;
   }
+}
+
 }

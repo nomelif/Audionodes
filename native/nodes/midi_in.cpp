@@ -1,5 +1,7 @@
 #include "nodes/midi_in.hpp"
 
+namespace audionodes {
+
 int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
   MidiIn *node = (MidiIn*)_node;
   if (!node->mark_connected) return 0;
@@ -69,4 +71,6 @@ void MidiIn::process(NodeInputWindow &input) {
     }
     overflow_flag = false;
   }
+}
+
 }

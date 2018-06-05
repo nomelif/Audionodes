@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+namespace audionodes {
+
 
 Sampler::Sampler():
  Node({SocketType::trigger}, {SocketType::audio}, {PropertyType::select})
@@ -106,4 +108,6 @@ void Sampler::process(NodeInputWindow &input) {
 
 Sampler::~Sampler(){
   delete [] buff;
+}
+
 }

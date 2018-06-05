@@ -1,5 +1,7 @@
 #include "node_tree.hpp"
 
+namespace audionodes {
+
 NodeTree::Link::Link(bool connected, size_t node, size_t socket) :
   connected(connected),
   from_node(node),
@@ -84,4 +86,6 @@ const Chunk& NodeTree::evaluate() {
     }
   }
   return output;
+}
+
 }

@@ -4,6 +4,8 @@
 #include "common.hpp"
 #include "data.hpp"
 
+namespace audionodes {
+
 struct TriggerData : public Data {
   typedef size_t Event;
   typedef std::vector<Event> EventSeries;
@@ -13,5 +15,7 @@ struct TriggerData : public Data {
   
   static TriggerData dummy;
 };
+
+}
 
 #endif

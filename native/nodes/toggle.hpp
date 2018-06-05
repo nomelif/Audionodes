@@ -7,6 +7,8 @@
 #include "data/trigger.hpp"
 #include <cmath>
 
+namespace audionodes {
+
 class Toggle : public Node {
   enum InputSockets {
     trigger,
@@ -24,5 +26,7 @@ class Toggle : public Node {
 //  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

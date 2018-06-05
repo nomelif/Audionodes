@@ -1,6 +1,8 @@
 #include "nodes/math.hpp"
+
+namespace audionodes {
+
 #include <cmath>
-#include <iostream>
 
 Math::Math() :
     Node({SocketType::audio, SocketType::audio}, {SocketType::audio}, {PropertyType::select})
@@ -65,4 +67,6 @@ void Math::process(NodeInputWindow &input) {
       channel[j] = std::isfinite(result) ? result : 0.0;
     }
   }
+}
+
 }

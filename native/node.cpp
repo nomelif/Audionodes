@@ -3,6 +3,8 @@
 #include "data/midi.hpp"
 #include "data/trigger.hpp"
 
+namespace audionodes {
+
 Node::Node(
   SocketTypeList input_types, SocketTypeList output_types,
   PropertyTypeList property_types, bool is_sink) :
@@ -79,3 +81,5 @@ Universe::Descriptor Node::infer_polyphony_operation(std::vector<Universe::Point
 }
 
 void Node::apply_bundle_universe_changes(const Universe&) {}
+
+}

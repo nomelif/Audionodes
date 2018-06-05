@@ -1,5 +1,7 @@
 #include "data/data.hpp"
 
+namespace audionodes {
+
 Data::~Data() {}
 Data Data::dummy = Data();
 
@@ -45,3 +47,4 @@ AudioData::PolyWriter::~PolyWriter() {
   bind.make_collapsed_version();
 }
 
+}

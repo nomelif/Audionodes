@@ -1,5 +1,7 @@
 #include "nodes/pitch_bend.hpp"
 
+namespace audionodes {
+
 PitchBend::PitchBend() :
     Node({SocketType::midi}, {SocketType::audio}, {})
 {
@@ -29,4 +31,6 @@ void PitchBend::process(NodeInputWindow &input) {
     }
     bend_state = new_state;
   }
+}
+
 }

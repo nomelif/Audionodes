@@ -5,6 +5,8 @@
 #include "common.hpp"
 #include <memory>
 
+namespace audionodes {
+
 class Universe {
   // Describes how the universe changed from the last chunk
   // (which channels were removed and how many new channels were initialized)
@@ -84,5 +86,6 @@ class Universe {
   };
 };
 
+}
 
 #endif

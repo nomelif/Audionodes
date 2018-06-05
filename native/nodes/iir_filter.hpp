@@ -6,6 +6,8 @@
 #include "node.hpp"
 #include "util/circular_array.hpp"
 
+namespace audionodes {
+
 class IIRFilter : public Node {
   enum InputSockets {
     input, cutoff, resonance, rolloff
@@ -47,5 +49,7 @@ class IIRFilter : public Node {
   void apply_bundle_universe_changes(const Universe&);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

@@ -1,5 +1,7 @@
 #include "nodes/piano.hpp"
 
+namespace audionodes {
+
 Piano::Piano() :
     Node({SocketType::midi, SocketType::audio}, SocketTypeList(4, SocketType::audio), {})
 {
@@ -90,4 +92,6 @@ void Piano::process(NodeInputWindow &input) {
       }
     } else decay[i].fill(1);
   }
+}
+
 }

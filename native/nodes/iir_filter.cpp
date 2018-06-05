@@ -1,5 +1,7 @@
 #include "nodes/iir_filter.hpp"
 
+namespace audionodes {
+
 IIRFilter::IIRFilter() :
     Node(
       SocketTypeList(4, SocketType::audio),
@@ -155,4 +157,6 @@ void IIRFilter::process(NodeInputWindow &input) {
     n_filter.process(sig_in, sig_out, o_filter.initialized);
     o_filter = n_filter;
   }
+}
+
 }

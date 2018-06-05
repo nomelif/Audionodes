@@ -10,6 +10,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
 
+namespace audionodes {
+
 class Sampler : public Node {
   enum InputSockets {
     trigger_socket
@@ -34,4 +36,6 @@ class Sampler : public Node {
   void process(NodeInputWindow&);
   void receive_binary(int, int, void*);
 };
+}
+
 #endif

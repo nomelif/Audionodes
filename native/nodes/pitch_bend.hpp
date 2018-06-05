@@ -7,6 +7,8 @@
 #include "data/midi.hpp"
 #include <cmath>
 
+namespace audionodes {
+
 class PitchBend : public Node {
   enum InputSockets {
     midi_in
@@ -20,5 +22,7 @@ class PitchBend : public Node {
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

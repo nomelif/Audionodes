@@ -7,6 +7,8 @@
 #include "data/windows.hpp"
 #include <mutex>
 
+namespace audionodes {
+
 class Node {
   protected:
   bool is_sink;
@@ -58,5 +60,7 @@ class Node {
   Node(SocketTypeList, SocketTypeList, PropertyTypeList, bool is_sink=false);
   virtual ~Node() = 0;
 };
+
+}
 
 #endif

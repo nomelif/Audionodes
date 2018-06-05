@@ -1,5 +1,7 @@
 #include "nodes/slider.hpp"
 
+namespace audionodes {
+
 Slider::Slider() :
     Node({SocketType::midi}, {SocketType::audio}, {PropertyType::integer, PropertyType::select})
 {
@@ -32,4 +34,6 @@ void Slider::process(NodeInputWindow &input) {
     }
     value_state = new_state;
   }
+}
+
 }

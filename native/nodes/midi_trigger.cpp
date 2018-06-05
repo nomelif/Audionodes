@@ -1,5 +1,7 @@
 #include "nodes/midi_trigger.hpp"
 
+namespace audionodes {
+
 MidiTrigger::MidiTrigger() :
     Node({SocketType::midi}, {SocketType::trigger}, {PropertyType::integer, PropertyType::select})
 {}
@@ -24,4 +26,6 @@ void MidiTrigger::process(NodeInputWindow &input) {
       }
     }
   }
+}
+
 }

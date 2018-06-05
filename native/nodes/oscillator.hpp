@@ -6,6 +6,8 @@
 #include "node.hpp"
 #include <functional>
 
+namespace audionodes {
+
 class Oscillator : public Node {
   enum InputSockets {
     frequency, amplitude, offset, param
@@ -31,5 +33,7 @@ class Oscillator : public Node {
   void apply_bundle_universe_changes(const Universe&);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

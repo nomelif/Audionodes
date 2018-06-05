@@ -4,6 +4,8 @@
 #include "common.hpp"
 #include "data/data.hpp"
 
+namespace audionodes {
+
 struct MidiData : public Data {
   struct Event {
     enum class Type {
@@ -43,5 +45,6 @@ struct MidiData : public Data {
   static MidiData dummy;
 };
 
+}
 
 #endif

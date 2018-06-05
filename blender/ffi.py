@@ -22,68 +22,68 @@ native = ct.CDLL(native_path, mode=0)
 flag_loading_file = False
 flag_initialized = False
 
-native.initialize.argtypes = []
-native.initialize.restype = None
+native.audionodes_initialize.argtypes = []
+native.audionodes_initialize.restype = None
 def initialize():
     global flag_initialized
     if not flag_initialized:
-        native.initialize()
+        native.audionodes_initialize()
         flag_initialized = True
 
-native.cleanup.argtypes = []
-native.cleanup.restype = None
+native.audionodes_cleanup.argtypes = []
+native.audionodes_cleanup.restype = None
 def cleanup():
     global flag_initialized
     if flag_initialized:
-        native.cleanup()
+        native.audionodes_cleanup()
         flag_initialized = False
 
-native.create_node.argtypes = [ct.c_char_p]
-native.create_node.restype = ct.c_int
+native.audionodes_create_node.argtypes = [ct.c_char_p]
+native.audionodes_create_node.restype = ct.c_int
 def create_node(node_type):
-    return native.create_node(node_type)
+    return native.audionodes_create_node(node_type)
 
-native.copy_node.argtypes = [ct.c_int, ct.c_char_p]
-native.copy_node.restype = ct.c_int
+native.audionodes_copy_node.argtypes = [ct.c_int, ct.c_char_p]
+native.audionodes_copy_node.restype = ct.c_int
 def copy_node(old_id, node_type):
-    return native.copy_node(old_id, node_type)
+    return native.audionodes_copy_node(old_id, node_type)
 
-native.remove_node.argtypes = [ct.c_int]
-native.remove_node.restype = None
+native.audionodes_remove_node.argtypes = [ct.c_int]
+native.audionodes_remove_node.restype = None
 def remove_node(node_id):
-    native.remove_node(node_id)
+    native.audionodes_remove_node(node_id)
     
-native.node_exists.argtypes = [ct.c_int]
-native.node_exists.restype = ct.c_bool
+native.audionodes_node_exists.argtypes = [ct.c_int]
+native.audionodes_node_exists.restype = ct.c_bool
 def node_exists(node_id):
-    return native.node_exists(node_id)
+    return native.audionodes_node_exists(node_id)
 
-native.update_node_input_value.argtypes = [ct.c_int, ct.c_int, ct.c_float]
-native.update_node_input_value.restype = None
+native.audionodes_update_node_input_value.argtypes = [ct.c_int, ct.c_int, ct.c_float]
+native.audionodes_update_node_input_value.restype = None
 def update_node_input_value(node_id, socket_id, val):
-    native.update_node_input_value(node_id, socket_id, val)
+    native.audionodes_update_node_input_value(node_id, socket_id, val)
 
-native.update_node_property_value.argtypes = [ct.c_int, ct.c_int, ct.c_int]
-native.update_node_property_value.restype = None
+native.audionodes_update_node_property_value.argtypes = [ct.c_int, ct.c_int, ct.c_int]
+native.audionodes_update_node_property_value.restype = None
 def update_node_property_value(node_id, socket_id, val):
-    native.update_node_property_value(node_id, socket_id, int(val))
+    native.audionodes_update_node_property_value(node_id, socket_id, int(val))
 
-native.send_node_binary_data.argtypes = [ct.c_int, ct.c_int, ct.c_int, ct.c_char_p]
-native.send_node_binary_data.restype = None
+native.audionodes_send_node_binary_data.argtypes = [ct.c_int, ct.c_int, ct.c_int, ct.c_char_p]
+native.audionodes_send_node_binary_data.restype = None
 def send_node_binary_data(node_id, slot, data):
-    native.send_node_binary_data(node_id, slot, len(data), data)
+    native.audionodes_send_node_binary_data(node_id, slot, len(data), data)
 
-native.begin_tree_update.argtypes = []
-native.begin_tree_update.restype = ct.c_void_p
+native.audionodes_begin_tree_update.argtypes = []
+native.audionodes_begin_tree_update.restype = ct.c_void_p
 def begin_tree_update():
-    return native.begin_tree_update()
+    return native.audionodes_begin_tree_update()
 
-native.add_tree_update_link.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, ct.c_size_t, ct.c_size_t]
-native.add_tree_update_link.restype = None
+native.audionodes_add_tree_update_link.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, ct.c_size_t, ct.c_size_t]
+native.audionodes_add_tree_update_link.restype = None
 def add_tree_update_link(ref, from_node, to_node, from_socket, to_socket):
-    native.add_tree_update_link(ref, from_node, to_node, from_socket, to_socket)
+    native.audionodes_add_tree_update_link(ref, from_node, to_node, from_socket, to_socket)
 
-native.finish_tree_update.argtypes = [ct.c_void_p]
-native.finish_tree_update.restype = None
+native.audionodes_finish_tree_update.argtypes = [ct.c_void_p]
+native.audionodes_finish_tree_update.restype = None
 def finish_tree_update(ref):
-    native.finish_tree_update(ref)
+    native.audionodes_finish_tree_update(ref)

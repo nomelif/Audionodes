@@ -5,6 +5,8 @@
 #include "common.hpp"
 #include "node.hpp"
 
+namespace audionodes {
+
 class Collapse : public Node {
   enum InputSockets {
     audio_in
@@ -23,5 +25,7 @@ class Collapse : public Node {
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
   void process(NodeInputWindow&);
 };
+
+}
 
 #endif

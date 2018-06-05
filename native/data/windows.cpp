@@ -1,5 +1,7 @@
 #include "data/windows.hpp"
 
+namespace audionodes {
+
 NodeInputWindow::Socket::Socket(Data **data, bool view_collapsed, bool tmp_audio_data) :
   view_collapsed(view_collapsed),
   data(data),
@@ -45,4 +47,6 @@ NodeOutputWindow::~NodeOutputWindow() {
     delete *ptr;
     delete ptr;
   }
+}
+
 }

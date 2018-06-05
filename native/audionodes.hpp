@@ -16,6 +16,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_audio.h>
 
+namespace audionodes {
+
 struct Message {
   enum class Type {
     audio_input, property, binary    
@@ -38,5 +40,7 @@ struct Message {
 
 typedef std::function<Node*()> NodeCreator;
 #define NodeType(type, ident) {(ident), ([](){ return (Node*)new type(); })}
+
+}
 
 #endif

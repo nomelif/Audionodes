@@ -1,6 +1,8 @@
 #include "nodes/collapse.hpp"
 #include <limits>
 
+namespace audionodes {
+
 Collapse::Collapse() :
   Node({SocketType::audio}, {SocketType::audio}, {PropertyType::select})
 {}
@@ -52,4 +54,6 @@ void Collapse::process(NodeInputWindow &input) {
       }
       break;
   }
+}
+
 }

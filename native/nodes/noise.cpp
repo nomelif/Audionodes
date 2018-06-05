@@ -1,5 +1,7 @@
 #include "noise.hpp"
 
+namespace audionodes {
+
 Noise::Noise() :
     Node({SocketType::audio}, {SocketType::audio}, {}),
     distribution(-1, 1)
@@ -18,4 +20,6 @@ void Noise::process(NodeInputWindow &input) {
       channel[j] = distribution(generator)*vol[j];
     }
   }
+}
+
 }
