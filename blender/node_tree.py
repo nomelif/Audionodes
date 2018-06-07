@@ -23,9 +23,22 @@ class AudioTree(NodeTree):
             return
         links = ffi.begin_tree_update()
         for link in self.links:
-            link.from_node.check_revive()
-            link.to_node.check_revive()
-            ffi.add_tree_update_link(links, link.from_node.get_uid(), link.to_node.get_uid(), link.from_socket.get_index(), link.to_socket.get_index())
+            if link.to_node.bl_idname == "NodeReroute":
+                continue
+            from_node, from_socket = link.from_node, link.from_socket
+            to_node, to_socket = link.to_node, link.to_socket
+            connected = True
+            while from_node.bl_idname == "NodeReroute":
+                if not from_node.inputs[0].is_linked:
+                    connected = False
+                    break
+                new_link = from_node.inputs[0].links[0]
+                from_node, from_socket = new_link.from_node, new_link.from_socket
+            if not connected:
+                continue
+            from_node.check_revive()
+            to_node.check_revive()
+            ffi.add_tree_update_link(links, from_node.get_uid(), to_node.get_uid(), from_socket.get_index(), to_socket.get_index())
         ffi.finish_tree_update(links)
 
     def post_load_handler(self):
