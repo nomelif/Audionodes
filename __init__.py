@@ -71,6 +71,9 @@ node_categories = [
     AudioNodeCategory("AUDIO_OUT", "Audio output", items=[
         NodeItem("SinkNode"),
     ]),
+    AudioNodeCategory("AUDIO_IN", "Audio input", items=[
+        NodeItem("MicrophoneNode"),
+    ]),
     AudioNodeCategory("GENERATORS", "Generators", items=[
         NodeItem("OscillatorNode"),
         NodeItem("NoiseNode"),

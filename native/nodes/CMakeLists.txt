@@ -12,4 +12,5 @@ add_paths (NATIVE_SRCS
   midi_trigger.cpp
   sampler.cpp
   toggle.cpp
+  microphone.cpp
 )
