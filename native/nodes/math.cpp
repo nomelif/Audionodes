@@ -1,77 +1,61 @@
 #include "nodes/math.hpp"
+#include <cmath>
 
 namespace audionodes {
-
-#include <cmath>
 
 Math::Math() :
     Node({SocketType::audio, SocketType::audio}, {SocketType::audio}, {PropertyType::select})
 {}
 
-const Math::MathOperator Math::math_operators[] = {
-#define X(op) [](const Chunk &_a, const Chunk &_b, Chunk &out) { \
-  for (size_t i = 0; i < N; ++i) { \
-    out[i] = op; \
-    out[i] = std::isfinite(out[i]) ? out[i] : 0.0; \
-  } \
-}
+void Math::compute(Operations operation, const Chunk &_a, const Chunk &_b, Chunk &out) {
+  // Placing the switch inside the loop has worse performance. (as of GCC 7.3.0)
+  switch (operation) {
+    using O = Operations;
+#define X(op) for (size_t i = 0; i < N; ++i) { \
+  out[i] = (op); \
+} \
+break;
 #define a _a[i]
 #define b _b[i]
-  // 0: Add
-  X( a + b ),
-  // 1: Subtract
-  X( a - b ),
-  // 2: Multiply
-  X( a * b ),
-  // 3: Divide
-  X( a / b ),
-  // 4: Sine
-  X( std::sin(a) ),
-  // 5: Cosine
-  X( std::cos(a) ),
-  // 6: Tangent
-  X( std::tan(a) ),
-  // 7: Arcsine
-  X( std::asin(a) ),
-  // 8: Arccosine
-  X( std::acos(a) ),
-  // 9: Arctangent
-  X( std::atan(a) ),
-  // 10: Power
-  X( std::pow(a, b) ),
-  // 11: Logarithm
-  X( std::log(a)/std::log(b) ),
-  // 12: Minimum
-  X( std::min(a, b) ),
-  // 13: Maximum
-  X( std::max(a, b) ),
-  // 14: Round
-  X( std::round(a) ),
-  // 15: Less than
-  X( a < b ? 1.0 : 0.0 ),
-  // 16: Greater than
-  X( a > b ? 1.0 : 0.0 ),
-  // 17: Modulo
-  X( std::fmod(a, b) ),
-  // 18: Absolute
-  X( std::abs(a) )
+    case O::Add:        X( a + b )
+    case O::Subtract:   X( a - b )
+    case O::Multiply:   X( a * b )
+    case O::Divide:     X( a / b )
+    case O::Sine:       X( std::sin(a) )
+    case O::Cosine:     X( std::cos(a) )
+    case O::Tangent:    X( std::tan(a) )
+    case O::Arcsine:    X( std::asin(a) )
+    case O::Arccosine:  X( std::acos(a) )
+    case O::Arctangent: X( std::atan(a) )
+    case O::Power:      X( std::pow(a, b) )
+    case O::Logarithm:  X( std::log(a) / std::log(b) )
+    case O::Minimum:    X( std::min(a, b) )
+    case O::Maximum:    X( std::max(a, b) )
+    case O::Round:      X( std::round(a) )
+    case O::Less:       X( a < b ? 1.0 : 0.0 )
+    case O::Greater:    X( a > b ? 1.0 : 0.0 )
+    case O::Modulo:     X( std::fmod(a, b) )
+    case O::Absolute:   X( std::abs(a) )
 #undef X
 #undef a
 #undef b
-};
+  }
+  for (size_t i = 0; i < N; ++i) {
+    out[i] = std::isfinite(out[i]) ? out[i] : 0.0;
+  }
+}
 
 void Math::process(NodeInputWindow &input) {
   size_t n = input.get_channel_amount();
   AudioData::PolyWriter output(output_window[0], n);
   
-  const MathOperator &func =
-    math_operators[get_property_value(Properties::math_operator)];
+  Operations op = static_cast<Operations>(get_property_value(Properties::math_operator));
   
   for (size_t i = 0; i < n; ++i) {
     const Chunk
       &val1 = input[InputSockets::val1][i],
       &val2 = input[InputSockets::val2][i];
-    func(val1, val2, output[i]);
+    compute(op, val1, val2, output[i]);
   }
 }
 
