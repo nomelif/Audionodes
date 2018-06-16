@@ -316,6 +316,8 @@ class Sampler(Node, AudioTreeNode):
 
     def update_props(self, context):
         self.send_property_update(0, self.modes_to_native[self.mode])
+    
+    def send_sound(self):
         if self.sound_datablock != "":
           sound_struct = bpy.data.sounds[self.sound_datablock]
           self.send_binary(0, sound_struct.packed_file.data)
@@ -328,7 +330,8 @@ class Sampler(Node, AudioTreeNode):
         sound_struct.use_fake_user = True
         sound_struct.use_mono = True
         sound_struct.pack()
-        sound_struct.use_memory_cache = True
+        # Unnecessary?
+        # sound_struct.use_memory_cache = True
         self.sound_datablock = sound_struct.name
         self.send_binary(0, sound_struct.packed_file.data)
 
@@ -345,19 +348,21 @@ class Sampler(Node, AudioTreeNode):
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.update_props(None)
+        self.send_sound()
 
 
     sound = bpy.props.StringProperty(subtype='FILE_PATH', update=load_sound, get=None, set=None)
     sound_datablock = bpy.props.StringProperty(name="Sound Datablock")
     def draw_buttons(self, context, layout):
         layout.prop(self, "sound", text="")
-        layout.prop(self, "mode")
+        layout.prop(self, "mode", text="Mode")
 
     def init(self, context):
         AudioTreeNode.init(self, context)
         self.inputs.new('TriggerSocketType', "Trigger")
         self.outputs.new('RawAudioSocketType', "Audio")
         self.update_props(None)
+        self.send_sound()
 
 class Toggle(Node, AudioTreeNode):
     bl_idname = 'ToggleNode'
