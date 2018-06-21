@@ -13,4 +13,5 @@ add_paths (NATIVE_SRCS
   sampler.cpp
   toggle.cpp
   microphone.cpp
+  delay.cpp
 )

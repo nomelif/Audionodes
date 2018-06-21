@@ -14,6 +14,7 @@
 #include "nodes/sampler.hpp"
 #include "nodes/toggle.hpp"
 #include "nodes/microphone.hpp"
+#include "nodes/delay.hpp"
 
 namespace audionodes {
 
@@ -31,7 +32,8 @@ const static std::map<std::string, NodeCreator> node_types = {
   NodeType(MidiTrigger, "MidiTriggerNode"),
   NodeType(Sampler, "SamplerNode"),
   NodeType(Toggle, "ToggleNode"),
-  NodeType(Microphone, "MicrophoneNode")
+  NodeType(Microphone, "MicrophoneNode"),
+  NodeType(Delay, "DelayNode")
 };
 
 // Nodes addressed by unique integers

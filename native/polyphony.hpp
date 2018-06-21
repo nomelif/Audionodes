@@ -48,7 +48,7 @@ class Universe {
           size_t replace_idx = 0;
           for (size_t i = 0; i < old_channel_amount; ++i) {
             if (!channel_removed[i]) {
-              if (replace_idx != i) apply_to[replace_idx] = apply_to[i];
+              if (replace_idx != i) apply_to[replace_idx] = std::move(apply_to[i]);
               replace_idx++;
             }
           }

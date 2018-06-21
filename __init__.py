@@ -13,6 +13,8 @@ bl_info = {
     "wiki_url": "https://github.com/nomelif/Audionodes"
 }
 
+# Move all of this into blender/__init__.py?
+
 
 import bpy
 import time
@@ -86,6 +88,9 @@ node_categories = [
     ]),
     AudioNodeCategory("FILTERS", "Filters", items=[
         NodeItem("IIRFilterNode"),
+    ]),
+    AudioNodeCategory("EFFECTS", "Effects", items=[
+        NodeItem("DelayNode"),
     ]),
     AudioNodeCategory("MIDI", "MIDI", items=[
         NodeItem("MidiInNode"),

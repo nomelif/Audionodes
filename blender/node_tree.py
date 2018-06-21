@@ -375,6 +375,18 @@ class Toggle(Node, AudioTreeNode):
         self.inputs.new('RawAudioSocketType', "B")
         self.outputs.new('RawAudioSocketType', "Audio")
 
+class Delay(Node, AudioTreeNode):
+    bl_idname = 'DelayNode'
+    bl_label = 'Delay'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Delay time")
+        self.inputs[1].value_prop = 1
+        self.inputs.new('RawAudioSocketType', "Feedback")
+        self.outputs.new('RawAudioSocketType', "Audio")
+
 
 class PitchBend(Node, AudioTreeNode):
     bl_idname = 'PitchBendNode'
