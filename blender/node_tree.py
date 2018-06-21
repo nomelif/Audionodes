@@ -43,7 +43,8 @@ class AudioTree(NodeTree):
 
     def post_load_handler(self):
         for node in self.nodes:
-            node.reinit()
+            if isinstance(node, AudioTreeNode):
+                node.reinit()
         self.update()
 
 
@@ -110,6 +111,9 @@ class AudioTreeNode:
 
     def register_native(self):
         self["unique_id"] = ffi.create_node(self.bl_idname.encode('ascii'))
+        if self["unique_id"] == -1:
+            # better error type
+            raise "Failed to register node with backend"
 
     def init(self, context):
         self.register_native()
