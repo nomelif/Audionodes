@@ -33,6 +33,7 @@ void Delay::DynamicBuffer::process(
     if (shrink) {
       // Pop from buffer
       output[i] = read_head.block->buf[read_head.pos];
+      if (!std::isfinite(output[i])) output[i] = 0;
       read_head.pos++;
       size--;
       if (read_head.pos >= Block::length) {
@@ -49,10 +50,9 @@ void Delay::DynamicBuffer::process(
         read_head.pos = 0;
         block_dist--;
       }
-      if (!std::isfinite(last_output)) last_output = 0;
     }
     if (grow) {
-      SigT val = input[i]+last_output*feedback[i];
+      SigT val = input[i]+output[i]*feedback[i];
       
       // Push to buffer
       write_head.block->buf[write_head.pos] = val;
@@ -89,7 +89,7 @@ Delay::DynamicBuffer::DynamicBuffer() {
   write_head = {first, 0};
 }
 
-Delay::DynamicBuffer::~DynamicBuffer() {
+void Delay::DynamicBuffer::dealloc() {
   Block *start = read_head.block;
   if (start == nullptr) return;
   Block *next = start;
@@ -98,22 +98,28 @@ Delay::DynamicBuffer::~DynamicBuffer() {
     next = current->next;
     delete current;
   } while (next != start);
+  read_head = {nullptr, 0};
+  write_head = {nullptr, 0};
 }
 
-Delay::DynamicBuffer& Delay::DynamicBuffer::operator=(DynamicBuffer &&from) {
+Delay::DynamicBuffer::~DynamicBuffer() {
+  dealloc();
+}
+
+Delay::DynamicBuffer& Delay::DynamicBuffer::operator=(DynamicBuffer &&from) noexcept {
+  dealloc();
   read_head = from.read_head;
   write_head = from.write_head;
   size = from.size;
   block_amt = from.block_amt;
   block_dist = from.block_dist;
-  last_output = from.last_output;
   from.read_head = {nullptr, 0};
   from.write_head = {nullptr, 0};
   from.size = from.block_amt = from.block_dist = 0;
   return *this;
 }
 
-Delay::DynamicBuffer::DynamicBuffer(DynamicBuffer &&from) {
+Delay::DynamicBuffer::DynamicBuffer(DynamicBuffer &&from) noexcept {
   operator=(std::move(from));
 }
 

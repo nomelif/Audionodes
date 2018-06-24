@@ -24,14 +24,15 @@ class Delay : public Node {
       Block *next;
     };
     struct Head {
-      Block *block;
+      Block *block = nullptr;
       size_t pos = 0;
     } read_head, write_head;
     size_t size = 0, block_amt = 0, block_dist = 0;
+    void dealloc();
     public:
     void process(const Chunk&, const Chunk&, const Chunk&, Chunk&);
-    DynamicBuffer& operator=(DynamicBuffer&&);
-    DynamicBuffer(DynamicBuffer&&);
+    DynamicBuffer& operator=(DynamicBuffer&&) noexcept;
+    DynamicBuffer(DynamicBuffer&&) noexcept;
     DynamicBuffer& operator=(const DynamicBuffer&) = delete;
     DynamicBuffer(const DynamicBuffer&) = delete;
     
