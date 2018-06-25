@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Piano> registration("PianoNode");
+
 Piano::Piano() :
     Node({SocketType::midi, SocketType::audio}, SocketTypeList(4, SocketType::audio), {})
 {

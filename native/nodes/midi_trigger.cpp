@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<MidiTrigger> registration("MidiTriggerNode");
+
 MidiTrigger::MidiTrigger() :
     Node({SocketType::midi}, {SocketType::trigger}, {PropertyType::integer, PropertyType::select})
 {}

@@ -3,6 +3,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Collapse> registration("CollapseNode");
+
 Collapse::Collapse() :
   Node({SocketType::audio}, {SocketType::audio}, {PropertyType::select})
 {}

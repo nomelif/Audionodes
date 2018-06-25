@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Toggle> registration("ToggleNode");
+
 Toggle::Toggle() :
     Node({SocketType::trigger, SocketType::audio, SocketType::audio}, {SocketType::audio}, {})
 {}

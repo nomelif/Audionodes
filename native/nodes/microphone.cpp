@@ -3,6 +3,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Microphone> registration("MicrophoneNode");
+
 void Microphone::callback(void *userdata, Uint8 *_stream, int len) {
   Microphone *node = (Microphone*) userdata;
   if (!node->mark_connected) return;

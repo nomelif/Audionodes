@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<PitchBend> registration("PitchBendNode");
+
 PitchBend::PitchBend() :
     Node({SocketType::midi}, {SocketType::audio}, {})
 {

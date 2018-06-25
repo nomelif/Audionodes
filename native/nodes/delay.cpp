@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Delay> registration("DelayNode");
+
 Delay::Delay() :
     Node(SocketTypeList(3, SocketType::audio), {SocketType::audio}, {})
 {}

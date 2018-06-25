@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Slider> registration("SliderNode");
+
 Slider::Slider() :
     Node({SocketType::midi}, {SocketType::audio}, {PropertyType::integer, PropertyType::select})
 {

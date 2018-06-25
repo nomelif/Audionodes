@@ -4,6 +4,7 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Sampler> registration("SamplerNode");
 
 Sampler::Sampler():
  Node({SocketType::trigger}, {SocketType::audio}, {PropertyType::select})

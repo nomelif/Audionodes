@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Oscillator> registration("OscillatorNode");
+
 Oscillator::Oscillator() :
     Node(
       SocketTypeList(4, SocketType::audio),

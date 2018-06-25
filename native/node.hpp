@@ -6,8 +6,11 @@
 #include "polyphony.hpp"
 #include "data/windows.hpp"
 #include <mutex>
+#include <functional>
+#include <map>
 
 namespace audionodes {
+
 
 class Node {
   protected:
@@ -59,6 +62,26 @@ class Node {
   virtual void process(NodeInputWindow&) = 0;
   Node(SocketTypeList, SocketTypeList, PropertyTypeList, bool is_sink=false);
   virtual ~Node() = 0;
+  
+  
+  typedef std::function<Node*()> Creator;
+  typedef std::map<std::string, Creator> TypeMap;
+};
+
+// Node registration singleton helper (or factory, if you will)
+// Usage:
+// static NodeTypeRegistration<NodeClass> registration("identifier");
+extern Node::TypeMap node_types;
+template<class type>
+class NodeTypeRegistration {
+  std::string identifier;
+  public:
+  NodeTypeRegistration(std::string identifier) : identifier(identifier) {
+    node_types[identifier] = []() { return (Node*) new type(); };
+  }
+  ~NodeTypeRegistration() {
+    node_types.erase(identifier);
+  }
 };
 
 }

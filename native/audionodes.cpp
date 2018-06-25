@@ -1,40 +1,9 @@
 #include "audionodes.hpp"
 
-#include "nodes/oscillator.hpp"
-#include "nodes/sink.hpp"
-#include "nodes/math.hpp"
-#include "nodes/midi_in.hpp"
-#include "nodes/piano.hpp"
-#include "nodes/pitch_bend.hpp"
-#include "nodes/slider.hpp"
-#include "nodes/collapse.hpp"
-#include "nodes/iir_filter.hpp"
-#include "nodes/noise.hpp"
-#include "nodes/midi_trigger.hpp"
-#include "nodes/sampler.hpp"
-#include "nodes/toggle.hpp"
-#include "nodes/microphone.hpp"
-#include "nodes/delay.hpp"
-
 namespace audionodes {
 
-const static std::map<std::string, NodeCreator> node_types = {
-  NodeType(Oscillator, "OscillatorNode"),
-  NodeType(Sink, "SinkNode"),
-  NodeType(Math, "MathNode"),
-  NodeType(MidiIn, "MidiInNode"),
-  NodeType(Piano, "PianoNode"),
-  NodeType(PitchBend, "PitchBendNode"),
-  NodeType(Slider, "SliderNode"),
-  NodeType(Collapse, "CollapseNode"),
-  NodeType(IIRFilter, "IIRFilterNode"),
-  NodeType(Noise, "NoiseNode"),
-  NodeType(MidiTrigger, "MidiTriggerNode"),
-  NodeType(Sampler, "SamplerNode"),
-  NodeType(Toggle, "ToggleNode"),
-  NodeType(Microphone, "MicrophoneNode"),
-  NodeType(Delay, "DelayNode")
-};
+// Each node registers itself here (refer to node.hpp, RegisterNodeType)
+Node::TypeMap node_types;
 
 // Nodes addressed by unique integers
 std::map<node_uid, Node*> node_storage;

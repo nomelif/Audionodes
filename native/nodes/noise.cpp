@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Noise> registration("NoiseNode");
+
 Noise::Noise() :
     Node({SocketType::audio}, {SocketType::audio}, {}),
     distribution(-1, 1)

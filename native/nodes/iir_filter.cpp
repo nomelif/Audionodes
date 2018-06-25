@@ -2,6 +2,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<IIRFilter> registration("IIRFilterNode");
+
 IIRFilter::IIRFilter() :
     Node(
       SocketTypeList(4, SocketType::audio),

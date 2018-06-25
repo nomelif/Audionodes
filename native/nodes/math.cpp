@@ -3,6 +3,8 @@
 
 namespace audionodes {
 
+static NodeTypeRegistration<Math> registration("MathNode");
+
 Math::Math() :
     Node({SocketType::audio, SocketType::audio}, {SocketType::audio}, {PropertyType::select})
 {}

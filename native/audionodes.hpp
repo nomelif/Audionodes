@@ -5,12 +5,12 @@
 #include "common.hpp"
 #include "node_tree.hpp"
 #include "util/circular_buffer.hpp"
+#include "node.hpp"
 
 #include <iostream>
 #include <map>
 #include <set>
 #include <mutex>
-#include <functional>
 #include <thread>
 #include <cstring>
 #include <SDL2/SDL.h>
@@ -37,9 +37,6 @@ struct Message {
   Message(Node*, size_t, int);
   Message(Node*, size_t, int, void*);
 };
-
-typedef std::function<Node*()> NodeCreator;
-#define NodeType(type, ident) {(ident), ([](){ return (Node*)new type(); })}
 
 }
 
