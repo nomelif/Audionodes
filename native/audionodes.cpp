@@ -150,7 +150,7 @@ extern "C" {
       node_storage[id] = node;
       return id;
     } else {
-      std::cerr << "Audionodes native: Tried to create invalid node type" << std::endl;
+      std::cerr << "Audionodes native: Tried to create node of invalid type \"" << type << "\"" << std::endl;
       return -1;
     }
   }
