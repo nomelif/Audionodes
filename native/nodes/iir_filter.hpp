@@ -4,7 +4,6 @@
 
 #include "common.hpp"
 #include "node.hpp"
-#include "util/circular_array.hpp"
 
 namespace audionodes {
 
