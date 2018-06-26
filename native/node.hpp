@@ -63,24 +63,28 @@ class Node {
   Node(SocketTypeList, SocketTypeList, PropertyTypeList, bool is_sink=false);
   virtual ~Node() = 0;
   
-  
-  typedef std::function<Node*()> Creator;
-  typedef std::map<std::string, Creator> TypeMap;
+  typedef Node* (*Creator)();
 };
 
 // Node registration singleton helper (or factory, if you will)
 // Usage:
 // static NodeTypeRegistration<NodeClass> registration("identifier");
-extern Node::TypeMap node_types;
+extern "C" {
+  void audionodes_register_node_type(const char*, Node::Creator);
+  void audionodes_unregister_node_type(const char*);
+}
 template<class type>
 class NodeTypeRegistration {
-  std::string identifier;
+  const char *identifier;
+  static Node* create_node() {
+    return static_cast<Node*>(new type());
+  }
   public:
-  NodeTypeRegistration(std::string identifier) : identifier(identifier) {
-    node_types[identifier] = []() { return (Node*) new type(); };
+  NodeTypeRegistration(const char *identifier) : identifier(identifier) {
+    audionodes_register_node_type(identifier, create_node);
   }
   ~NodeTypeRegistration() {
-    node_types.erase(identifier);
+    audionodes_unregister_node_type(identifier);
   }
 };
 

@@ -38,6 +38,8 @@ struct Message {
   Message(Node*, size_t, int, void*);
 };
 
+typedef std::map<std::string, Node::Creator> NodeTypeMap;
+
 }
 
 #endif

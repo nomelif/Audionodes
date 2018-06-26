@@ -3,7 +3,7 @@
 namespace audionodes {
 
 // Each node registers itself here (refer to node.hpp, RegisterNodeType)
-Node::TypeMap node_types;
+static NodeTypeMap *node_types = nullptr;
 
 // Nodes addressed by unique integers
 std::map<node_uid, Node*> node_storage;
@@ -100,6 +100,20 @@ bool initialized = false;
 
 // Methods to be used through the FFI
 extern "C" {
+  void audionodes_register_node_type(const char *identifier, Node::Creator creator) {
+    if (!node_types) node_types = new NodeTypeMap();
+    (*node_types)[identifier] = creator;
+  }
+  
+  void audionodes_unregister_node_type(const char *identifier) {
+    if (!node_types) return;
+    node_types->erase(identifier);
+    if (node_types->size() == 0) {
+      delete node_types;
+      node_types = nullptr;
+    }
+  }
+  
   void audionodes_initialize() {
     SDL_Init(SDL_INIT_AUDIO);
 
@@ -142,11 +156,10 @@ extern "C" {
     main_node_tree = nullptr;
   }
 
-  node_uid audionodes_create_node(const char* type_c) {
-    const std::string type = type_c;
+  node_uid audionodes_create_node(const char* type) {
     node_uid id = node_storage_alloc();
-    if (node_types.count(type)) {
-      Node *node = node_types.at(type)();
+    if (node_types && node_types->count(type)) {
+      Node *node = node_types->at(type)();
       node_storage[id] = node;
       return id;
     } else {
