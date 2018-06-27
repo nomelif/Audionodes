@@ -386,11 +386,37 @@ class Delay(Node, AudioTreeNode):
     def init(self, context):
         AudioTreeNode.init(self, context)
         self.inputs.new('RawAudioSocketType', "Audio")
-        self.inputs.new('RawAudioSocketType', "Delay time")
+        self.inputs.new('RawAudioSocketType', "Delay time (s)")
         self.inputs[1].value_prop = 1
         self.inputs.new('RawAudioSocketType', "Feedback")
         self.outputs.new('RawAudioSocketType', "Audio")
 
+class RandomAccessDelay(Node, AudioTreeNode):
+    bl_idname = 'RandomAccessDelayNode'
+    bl_label = 'Random Access Delay'
+
+    def change_buffer(self, context):
+        self.send_property_update(0, self.buffer_length)
+    
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.change_buffer(None)
+    
+    buffer_length = bpy.props.IntProperty(
+        name = "Buffer length (s)",
+        update = change_buffer
+    )
+    
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Audio")
+        self.inputs.new('RawAudioSocketType', "Delay time (s)")
+        self.inputs[1].value_prop = 1
+        self.inputs.new('RawAudioSocketType', "Feedback")
+        self.outputs.new('RawAudioSocketType', "Audio")
+    
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'buffer_length')
 
 class PitchBend(Node, AudioTreeNode):
     bl_idname = 'PitchBendNode'

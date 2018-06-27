@@ -14,4 +14,5 @@ add_paths (NATIVE_SRCS
   toggle.cpp
   microphone.cpp
   delay.cpp
+  random_access_delay.cpp
 )

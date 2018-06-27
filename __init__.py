@@ -91,6 +91,7 @@ node_categories = [
     ]),
     AudioNodeCategory("EFFECTS", "Effects", items=[
         NodeItem("DelayNode"),
+        NodeItem("RandomAccessDelayNode"),
     ]),
     AudioNodeCategory("MIDI", "MIDI", items=[
         NodeItem("MidiInNode"),
