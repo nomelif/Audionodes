@@ -13,7 +13,7 @@ namespace audionodes {
 
 class Microphone : public Node {
   SDL_AudioDeviceID dev = 0;
-  CircularBuffer<SigT, 4096> q;
+  CircularBuffer<Chunk, (1<<15)/N> q;
   static void callback(void*, Uint8*, int);
   public:
   Microphone();

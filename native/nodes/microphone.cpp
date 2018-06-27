@@ -10,8 +10,14 @@ void Microphone::callback(void *userdata, Uint8 *_stream, int len) {
   if (!node->mark_connected) return;
   float *stream = (float*)_stream;
   len /= sizeof(float);
-  for (int i = 0; i < len; i++) {
-    node->q.push(stream[i]);
+  int amt = len/N;
+  int si = 0;
+  for (int i = 0; i < amt; i++) {
+    Chunk buf;
+    for (size_t j = 0; j < N && si < len; ++j, ++si) {
+      buf[j] = stream[si];
+    }
+    node->q.push(buf);
   }
 }
 
@@ -45,12 +51,10 @@ void Microphone::connect_callback() {
 
 void Microphone::process(NodeInputWindow &input) {
   AudioData::PolyWriter output(output_window[0], 1);
-  for (size_t j = 0; j < N; ++j) {
-    if (!q.empty()) {
-      output[0][j] = q.pop();
-    } else {
-      output[0][j] = 0;
-    }
+  if (!q.empty()) {
+    output[0] = q.pop();
+  } else {
+    output[0].fill(0);
   }
 }
 
