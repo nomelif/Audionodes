@@ -50,11 +50,11 @@ void Microphone::connect_callback() {
 }
 
 void Microphone::process(NodeInputWindow &input) {
-  AudioData::PolyWriter output(output_window[0], 1);
+  Chunk &output = output_window[0].mono;
   if (!q.empty()) {
-    output[0] = q.pop();
+    output = q.pop();
   } else {
-    output[0].fill(0);
+    output.fill(0);
   }
 }
 
