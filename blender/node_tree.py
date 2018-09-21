@@ -190,10 +190,11 @@ class Oscillator(Node, AudioTreeNode):
         AudioTreeNode.init(self, context)
         self.inputs.new('RawAudioSocketType', "Frequency (Hz)")
         self.inputs.new('RawAudioSocketType', "Amplitude")
-        self.inputs[1].value_prop = 1.0
+        self.inputs[-1].value_prop = 1.0
         self.inputs.new('RawAudioSocketType', "Offset")
+        self.inputs.new('RawAudioSocketType', "Phase offset")
         self.inputs.new('RawAudioSocketType', "Parameter")
-        self.inputs[3].value_prop = 0.5
+        self.inputs[-1].value_prop = 0.5
         self.outputs.new('RawAudioSocketType', "Audio")
 
     def draw_buttons(self, context, layout):

@@ -10,7 +10,7 @@ namespace audionodes {
 
 class Oscillator : public Node {
   enum InputSockets {
-    frequency, amplitude, offset, param
+    frequency, amplitude, offset, phase, param
   };
   enum Properties {
     oscillation_func, anti_alias

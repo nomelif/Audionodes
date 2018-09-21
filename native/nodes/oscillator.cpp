@@ -6,7 +6,7 @@ static NodeTypeRegistration<Oscillator> registration("OscillatorNode");
 
 Oscillator::Oscillator() :
     Node(
-      SocketTypeList(4, SocketType::audio),
+      SocketTypeList(5, SocketType::audio),
       {SocketType::audio},
       {PropertyType::select, PropertyType::boolean}
     )
@@ -63,6 +63,7 @@ void Oscillator::process(NodeInputWindow &input) {
       &frequency = input[InputSockets::frequency][i],
       &amplitude = input[InputSockets::amplitude][i],
       &offset    = input[InputSockets::offset][i],
+      &phase     = input[InputSockets::phase][i],
       &param     = input[InputSockets::param][i];
     Chunk &channel = output[i];
     SigT state = bundles[i].state;
@@ -71,36 +72,38 @@ void Oscillator::process(NodeInputWindow &input) {
       SigT step = frequency[j]/RATE;
       state = std::fmod(state + step, 1);
       if (state < 0) state += 1;
+      SigT phase_st = std::fmod(state + phase[j], 1);
+      if (phase_st < 0) state += 1;
       switch (f_id) {
         case Modes::sine:
-          channel[j] = std::sin(state*2*M_PI);
+          channel[j] = std::sin(phase_st*2*M_PI);
           break;
         case Modes::saw:
-          channel[j] = state*2-1;
+          channel[j] = phase_st*2-1;
           break;
         case Modes::square:
-          channel[j] = state > 1-param[j] ? 1. : -1.;
+          channel[j] = phase_st > 1-param[j] ? 1. : -1.;
           break;
         case Modes::triangle:
           if (anti_alias) {
             // Will be integrated
-            channel[j] = state > 0.5 ? 1. : -1.;
+            channel[j] = phase_st > 0.5 ? 1. : -1.;
           } else {
-            channel[j] = std::fabs(4*state-2)-1;
+            channel[j] = std::fabs(4*phase_st-2)-1;
           }
       }
       if (anti_alias) {
         switch (f_id) {
           case Modes::saw:
-            channel[j] -= poly_blep(state, step);
+            channel[j] -= poly_blep(phase_st, step);
             break;
           case Modes::square:
-            channel[j] -= poly_blep(state, step);
-            channel[j] += poly_blep(std::fmod(state+param[j], 1), step);
+            channel[j] -= poly_blep(phase_st, step);
+            channel[j] += poly_blep(std::fmod(phase_st+param[j], 1), step);
             break;
           case Modes::triangle:
-            channel[j] -= poly_blep(state, step);
-            channel[j] += poly_blep(std::fmod(state+0.5, 1), step);
+            channel[j] -= poly_blep(phase_st, step);
+            channel[j] += poly_blep(std::fmod(phase_st+0.5, 1), step);
             
             // Leaky integrator
             channel[j] = std::abs(step)*channel[j]*4 + (1-std::abs(step))*last_val;
