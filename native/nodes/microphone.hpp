@@ -18,8 +18,8 @@ class Microphone : public Node {
   public:
   Microphone();
   ~Microphone();
-  void connect_callback();
-  void process(NodeInputWindow&);
+  void connect_callback() override;
+  void process(NodeInputWindow&) override;
 };
 
 }

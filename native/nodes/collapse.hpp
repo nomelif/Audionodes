@@ -22,8 +22,8 @@ class Collapse : public Node {
   };
   public:
   Collapse();
-  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  void process(NodeInputWindow&);
+  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>) override;
+  void process(NodeInputWindow&) override;
 };
 
 }

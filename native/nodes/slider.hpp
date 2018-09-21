@@ -23,8 +23,8 @@ class Slider : public Node {
   SigT value_state;
   public:
   Slider();
-  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  void process(NodeInputWindow&);
+  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>) override;
+  void process(NodeInputWindow&) override;
 };
 
 }

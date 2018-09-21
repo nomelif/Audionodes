@@ -10,7 +10,7 @@ namespace audionodes {
 class Sink : public Node {
   public:
   Sink();
-  void process(NodeInputWindow&);
+  void process(NodeInputWindow&) override;
 };
 
 }

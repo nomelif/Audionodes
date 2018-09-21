@@ -24,7 +24,7 @@ class MidiTrigger : public Node {
   public:
   MidiTrigger();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  void process(NodeInputWindow&);
+  void process(NodeInputWindow&) override;
 };
 
 }

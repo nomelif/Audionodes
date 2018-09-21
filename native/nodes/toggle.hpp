@@ -24,7 +24,7 @@ class Toggle : public Node {
   public:
   Toggle();
 //  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  void process(NodeInputWindow&);
+  void process(NodeInputWindow&) override;
 };
 
 }

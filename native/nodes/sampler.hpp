@@ -32,9 +32,9 @@ class Sampler : public Node {
   public:
   Sampler();
   ~Sampler();
-  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>);
-  void process(NodeInputWindow&);
-  void receive_binary(int, int, void*);
+  Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>) override;
+  void process(NodeInputWindow&) override;
+  void receive_binary(int, int, void*) override;
 };
 }
 

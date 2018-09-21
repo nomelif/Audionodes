@@ -21,7 +21,7 @@ class MidiIn : public Node {
   public:
   MidiIn();
   ~MidiIn();
-  void process(NodeInputWindow&);
+  void process(NodeInputWindow&) override;
 };
 
 }

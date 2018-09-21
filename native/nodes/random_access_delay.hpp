@@ -28,8 +28,8 @@ class RandomAccessDelay : public Node {
   
   public:
   RandomAccessDelay();
-  void apply_bundle_universe_changes(const Universe&);
-  void process(NodeInputWindow&);
+  void apply_bundle_universe_changes(const Universe&) override;
+  void process(NodeInputWindow&) override;
 };
 
 }

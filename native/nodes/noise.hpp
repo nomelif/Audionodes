@@ -13,7 +13,7 @@ class Noise : public Node {
   std::uniform_real_distribution<> distribution;
   public:
   Noise();
-  void process(NodeInputWindow&);
+  void process(NodeInputWindow&) override;
 };
 
 }

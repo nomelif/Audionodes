@@ -28,7 +28,7 @@ class Math : public Node {
 
   public:
   Math();
-  void process(NodeInputWindow&);
+  void process(NodeInputWindow&) override;
 };
 
 }
