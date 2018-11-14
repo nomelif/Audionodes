@@ -26,7 +26,7 @@ class Piano : public Node {
   std::vector<VoiceState> voices, new_voices, voices_tmp;
   std::vector<size_t> removed_tmp;
   // null when note doesn't exist, otherwise pointer to VoiceState
-  std::array<VoiceState*, 127> existing_note;
+  std::array<VoiceState*, 128> existing_note;
   bool sustain = false;
   public:
   Piano();
