@@ -29,7 +29,8 @@ struct MidiData : public Data {
     int get_aftertouch() const;
     bool is_panic() const;
     bool is_sustain() const;
-    bool is_sustain_enable() const;
+    bool is_sostenuto() const;
+    bool is_pedal_down() const;
     Event(unsigned char, unsigned char, unsigned char, unsigned char);
     Event(Type, unsigned char, unsigned char, unsigned char);
     Event();

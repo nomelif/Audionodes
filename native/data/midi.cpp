@@ -69,15 +69,19 @@ int MidiData::Event::get_aftertouch() const {
 }
 
 bool MidiData::Event::is_panic() const {
-  return (get_type() == Type::control) && (param1 == 0x7b);
+  return get_type() == Type::control && param1 == 0x7b;
 }
 
 bool MidiData::Event::is_sustain() const {
-  return (get_type() == Type::control) && (param1 == 0x40);
+  return get_type() == Type::control && param1 == 0x40;
 }
 
-bool MidiData::Event::is_sustain_enable() const {
-  return is_sustain() && (param2 > 0x40);
+bool MidiData::Event::is_sostenuto() const {
+  return get_type() == Type::control && param1 == 0x42;
+}
+
+bool MidiData::Event::is_pedal_down() const {
+  return param2 >= 0x40;
 }
 
 MidiData::Event::Event(
