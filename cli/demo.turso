@@ -1,0 +1,36 @@
+(
+
+(Oscillator-2
+  "OscillatorNode"
+  (inputs
+    ((0 . 3.0)
+     (1 . 200.0)))
+  (properties
+    ()))
+
+
+(Oscillator
+  "OscillatorNode"
+  (inputs
+    ((0 . (Oscillator-2 0))
+     (1 . 1.0)))
+  (properties
+    ()))
+
+
+(Sink
+  "SinkNode"
+  (inputs
+    ((0 . (Oscillator 0))))
+  (properties
+    ()))
+)
+
+(eval
+ (begin
+  (define (loobs i)
+   (begin
+    (sleep 1)
+    (anode-update-node-property-value 'Oscillator 0 i)
+    (loobs (modulo (+ i 1) 4))))
+  (loobs 0)))
