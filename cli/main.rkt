@@ -3,6 +3,9 @@
 (require ffi/unsafe
          ffi/unsafe/define)
 
+(define-namespace-anchor a)
+(define ns (namespace-anchor->namespace a))
+
 (define-ffi-definer define-anode (ffi-lib "../libnative"))
 
 (define _update-state-pointer (_cpointer 'void))
@@ -25,13 +28,12 @@
 
 (define anode-link-alist '())
 
-(define (anode-delete-links-by-origin oridin-id origin-socket)
+(define (anode-delete-links-by-origin origin-id origin-socket)
   (begin
     (set! anode-link-alist (filter (lambda (link)
-                                     (match link
-                                       [(list (list origin-id origin-socket) _)
-                                        false]
-                                       [_ true]))
+                                     (not (and
+                                      (equal? (caadr link) origin-id)
+                                      (equal? (cadadr link) origin-socket))))
                                    anode-link-alist))
     (anode-update-links)))
 
@@ -39,10 +41,9 @@
 (define (anode-delete-link-by-target target-id target-socket)
   (begin
     (set! anode-link-alist (filter (lambda (link)
-                                     (match link
-                                       [(list _ (list target-id target-socket))
-                                        false]
-                                       [_ true]))
+                                     (not (and
+                                      (equal? (caadr link) target-id)
+                                      (equal? (cadadr link) target-socket))))
                                    anode-link-alist))
     (anode-update-links)))
 
@@ -229,6 +230,12 @@
       (match command
         ['(exit)
          '()]
+        [`(eval ,x)
+         (begin
+          (print
+           (eval x ns))
+          (display "\n")
+          (anode-loop))]
         [_
          (begin
           (anode-deserialise-nodes command)
