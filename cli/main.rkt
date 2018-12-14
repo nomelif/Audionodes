@@ -1,7 +1,8 @@
 #lang racket
 
 (require ffi/unsafe
-         ffi/unsafe/define)
+         ffi/unsafe/define
+         racket/exn)
 
 (define-namespace-anchor a)
 (define ns (namespace-anchor->namespace a))
@@ -86,7 +87,9 @@
   (audionodes_initialize))
 
 (define (anode-cleanup)
-  (audionodes_cleanup))
+  (begin
+    (map anode-remove-node (hash-keys anode-id-lookup))
+    (audionodes_cleanup)))
 
 (define (anode-create-node node-type node-id)
   (cond
@@ -191,55 +194,106 @@
           [_
            (error "Malformed node" node-data)]))
       nodes)
-    (map
-      (lambda (node-data)
-        (match node-data
-          [`(,node-id ,_ (inputs ,input-hash) (properties ,property-hash))
+    (with-handlers
+        ([exn?
+         (lambda (e) (begin
+                       (map
+                        (lambda (node-data)
+                          (begin
+                          (match node-data
+                            [`(,node-id . ,_)
+                             (anode-remove-node node-id)])
+                       (raise e)))) nodes))])
+      (map
+        (lambda (node-data)
+          (match node-data
+            [`(,node-id ,_ (inputs ,input-hash) (properties ,property-hash))
+             (begin
+               (map (lambda (input)
+                      (match input
+                        [`(,socket . (,source-id ,source-socket))
+                         (anode-add-link source-id source-socket node-id socket)]
+                        [`(,socket . ,value)
+                         (anode-update-node-input-value node-id socket value)]
+                        [_
+                         (error "Malformed input value" input)]))
+                    input-hash)
+               (map (lambda (property)
+                      (match property
+                        [`(,socket . ,value)
+                         (anode-update-node-property-value node-id socket value)]
+                        [_
+                         (error "Malformed property value" property)]))
+                    property-hash))]))
+        nodes))
+    void))
+
+(define (run-cli-command command)
+  (with-handlers
+      ([exn?
+        (lambda (e)
+          (begin
+            (displayln (exn->string e))
+            'exception))])
+    (match command
+      ['(exit)
+       'exit]
+      [`(link (,origin-id ,origin-socket) (,target-id ,target-socket))
+       (begin
+         (anode-add-link origin-id origin-socket target-id target-socket)
+         'ok)]
+      [`(unlink-target (,target-id ,target-socket))
+       (begin
+         (anode-delete-link-by-target target-id target-socket)
+         'ok)]
+      [`(eval ,x)
+       (begin
+         (let ((result (eval x ns)))
            (begin
-             (map (lambda (input)
-                    (match input
-                      [`(,socket . (,source-id ,source-socket))
-                       (anode-add-link source-id source-socket node-id socket)
-                       ]
-                      [`(,socket . ,value)
-                       (anode-update-node-input-value node-id socket value)
-                       ]
-                      [_
-                       (error "Malformed input value" input)]
-                    )) input-hash)
-             (map (lambda (property)
-                    (match property
-                      [`(,socket . ,value)
-                       (anode-update-node-property-value node-id socket value)
-                       ]
-                      [_
-                       (error "Malformed property value" property)]
-                    )) property-hash)
-             )
-           ]))
-      nodes)
-    void
-    ))
+             (display "\n")
+             (print result)
+             (display "\n")
+             'ok)))]
+      [`(load ,file)
+       (run-cli-commands (file->list file))]
+      [_
+       (begin
+         (anode-deserialise-nodes command)
+         'ok)])))
+
+(define (run-cli-commands commands)
+  (match commands
+    [`()
+     'ok]
+    [`(,current . ,rest)
+     (match (run-cli-command current)
+       ['ok
+        (run-cli-commands rest)]
+       [code
+        code])]))
+  
 
 (define (anode-loop)
   (begin
     (display "Turso> ")
-    (let (
-          (command (read))
-          )
-      (match command
-        ['(exit)
-         '()]
-        [`(eval ,x)
-         (begin
-          (print
-           (eval x ns))
-          (display "\n")
-          (anode-loop))]
-        [_
-         (begin
-          (anode-deserialise-nodes command)
-          (anode-loop))]))))
+    (define command '())
+    (with-handlers
+        ([exn?
+          (lambda (e)
+            (displayln (exn->string e)))])
+      (set! command (read)))
+    (cond
+      ((equal? command '())
+       (anode-loop))
+      (else
+       (match
+           (run-cli-command command)
+         ['ok
+          (anode-loop)]
+         ['exit
+          '()]
+         ['exception
+          (anode-loop)])))))
 
 (define (anode-cli)
   (begin
