@@ -155,7 +155,7 @@ And build.
 PS> cmake --build . --target blender --config Release
 ```
 
-`Audionodes.zip` should appear at the repository root, which can then be installed into Blender.
+`Audionodes.zip` should appear at the repository root and can then be installed into Blender.
 
 
 ## How does one use this sorcery?!
