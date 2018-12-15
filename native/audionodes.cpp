@@ -84,8 +84,8 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
     Message msg = msg_queue.pop();
     msg.apply();
   }
-  const static Sint16 maximum_value = (1 << 15)-1;
-  const static Sint16 minimum_value = -(1 << 15);
+  constexpr Sint16 maximum_value = (1 << 15)-1;
+  constexpr Sint16 minimum_value = -(1 << 15);
   const Chunk &result = main_node_tree->evaluate();
   for (int i = 0; i < len; ++i) {
     if (result[i] < -1) {
