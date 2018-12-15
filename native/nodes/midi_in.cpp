@@ -45,13 +45,18 @@ MidiIn::MidiIn() :
   overflow_flag(false)
 {
   fluid_settings_t* settings = new_fluid_settings();
-  fluid_settings_setstr(settings, "midi.portname", "Audionodes");
+  if (fluid_settings_get_type(settings, "midi.portname") == FLUID_STR_TYPE) {
+    fluid_settings_setstr(settings, "midi.portname", "Audionodes");
+  }
   driver = new_fluid_midi_driver(settings, handle_midi_event, this);
+  if (!driver) {
+    std::cerr << "Audionodes Native: Unable to create MIDI device via Fluidsynth" << std::endl;
+  }
 }
 
 MidiIn::~MidiIn()
 {
-  delete_fluid_midi_driver(driver);
+  if (driver) delete_fluid_midi_driver(driver);
 }
 
 void MidiIn::process(NodeInputWindow &input) {

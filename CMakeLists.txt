@@ -30,6 +30,8 @@ endfunction ()
 # Collect source files
 include (native/CMakeLists.txt)
 
+set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+
 add_library (native SHARED ${NATIVE_SRCS})
 set_target_properties (native PROPERTIES PUBLIC_HEADER ${NATIVE_PUBLIC_HEADER})
 target_include_directories (native PRIVATE ${NATIVE_HEADERS})
@@ -45,19 +47,38 @@ target_link_libraries (native ${SDL2_LIBRARY})
 target_link_libraries (native ${FLUID_LIBRARY})    
 
 # Make a .zip-file which can be installed into Blender
-add_custom_target (blender 
-  COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes
-  COMMAND ${CMAKE_COMMAND} -E copy
-    $<TARGET_FILE_NAME:native>
-    "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py"
-    Audionodes
-  COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes/blender
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-    "${CMAKE_CURRENT_SOURCE_DIR}/blender"
-    Audionodes/blender
-  COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_PROJECT_NAME}.zip" --format=zip Audionodes
-  COMMAND ${CMAKE_COMMAND} -E remove_directory Audionodes
-)
+if (NOT WIN32)
+  add_custom_target (blender 
+    COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes
+    COMMAND ${CMAKE_COMMAND} -E copy
+      $<TARGET_FILE_NAME:native>
+      "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py"
+      Audionodes
+    COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes/blender
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${CMAKE_CURRENT_SOURCE_DIR}/blender"
+      Audionodes/blender
+    COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_PROJECT_NAME}.zip" --format=zip Audionodes
+    COMMAND ${CMAKE_COMMAND} -E remove_directory Audionodes
+  )
+else ()
+  add_custom_target (blender 
+    COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes
+    COMMAND ${CMAKE_COMMAND} -E copy
+      "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py"
+      Audionodes
+    COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes/blender
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${CMAKE_CURRENT_SOURCE_DIR}/blender"
+      Audionodes/blender
+    COMMAND ${CMAKE_COMMAND} -E make_directory Audionodes/bin
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${CMAKE_CURRENT_SOURCE_DIR}/Release"
+      Audionodes/bin
+    COMMAND ${CMAKE_COMMAND} -E tar "cfv" "${CMAKE_PROJECT_NAME}.zip" --format=zip Audionodes
+    COMMAND ${CMAKE_COMMAND} -E remove_directory Audionodes
+  )
+endif ()
 add_dependencies (blender native)
 
 find_program (BLENDER blender)

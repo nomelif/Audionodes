@@ -114,14 +114,14 @@ extern "C" {
   void audionodes_initialize() {
     SDL_Init(SDL_INIT_AUDIO);
 
-		SDL_AudioSpec spec;
-		spec.freq     = RATE;
-		spec.format   = AUDIO_S16SYS;
-		spec.channels = 1;
-		spec.samples  = N;
-		spec.callback = audio_callback;
-		spec.userdata = nullptr;
-		SDL_AudioSpec obtainedSpec;
+    SDL_AudioSpec spec;
+    spec.freq     = RATE;
+    spec.format   = AUDIO_S16SYS;
+    spec.channels = 1;
+    spec.samples  = N;
+    spec.callback = audio_callback;
+    spec.userdata = nullptr;
+    SDL_AudioSpec obtainedSpec;
     dev = SDL_OpenAudioDevice(NULL, 0, &spec, &obtainedSpec, 0);
     if (dev == 0) {
       std::cerr << "Audionides Native: Unable to open audio device: " << SDL_GetError() << std::endl;

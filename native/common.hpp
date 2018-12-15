@@ -10,8 +10,14 @@
 
 namespace audionodes {
 
+#ifdef __linux__
 const size_t N = 256;
+#else
+const size_t N = 512;
+#endif
+
 const int RATE = 44100;
+const double M_PI = 3.14159265358979323846;
 typedef float SigT;
 typedef std::array<SigT, N> Chunk;
 typedef int node_uid;
