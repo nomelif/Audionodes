@@ -5,18 +5,9 @@ __pycache__
 
 # Builds
 libnative.so
+libnative.dylib
 Audionodes.zip
 
-# Nope
-# # OS Specific files
-# .directory
-# .DS
-# __MACOSX
-# .kdev4/
-# *.kdev4
-# *~
-# .idea
-# .DS_Store
 
 # CMake
 CMakeCache.txt
@@ -28,3 +19,14 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
+
+# Visual Studio
+.vs/
+*.vcxproj
+*.vcxproj.*
+*.sln
+Debug/
+Release/
+Win32/
+native.dir/
+x64/

@@ -7,7 +7,14 @@ Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 ## Installation
 
 For now Audionodes doesn't come with the required libraries. You need to install `SDL 2` (for audio output, and possibly input in the future) and `FluidSynth` (for MIDI input, and possibly SoundFont support in the future) for it to work.
-We currently support Linux and macOS.
+We currently support Windows, Linux and macOS.
+
+### I am running Windows
+
+Download the plugin in zip format for Windows under Releases,
+and install it just like any other Blender plugin.
+
+Windows installation is the easiest, since all dependencies are included.
 
 ### I am running Linux
 
@@ -51,7 +58,7 @@ sudo apt install cmake make gcc libsdl2-dev libfluidsynth-dev
 
 Again, use similar packages with other distributions.
 
-*Building instructions after macOS dependencies...*
+*Building instructions after other platforms' dependencies...*
 
 ### macOS dependencies
 
@@ -61,6 +68,26 @@ Again, install the required dependencies (+ CMake) via [Homebrew](https://brew.s
 
 ```
 brew install cmake sdl2 fluidsynth
+```
+
+### Windows dependencies
+
+This one's tricky. You will need `Visual Studio C++` for compilation (tested on 2017), and a dependency manager for it called [vcpkg](https://github.com/Microsoft/vcpkg).
+
+Assuming Visual Studio is already installed, and that you have a working Git installation.
+
+Start by installing [CMake](https://cmake.org/downloads).
+
+Now, set up `vcpkg` for x64 and install the required dependencies.
+Fire up PowerShell and naviage into a suitable folder, then:
+
+```
+PS> git clone https://github.com/Microsoft/vcpkg.git
+PS> cd vcpkg
+PS> .\bootsrap-vcpkg.bat
+*takes a while*
+PS> .\vcpkg install --triplet x64-windows sdl2 fluidsynth
+*takes a long while*
 ```
 
 ### Building in Linux & macOS
@@ -108,6 +135,28 @@ It also might simply not work on your system due to various reasons.
 
 Oh, and to build, install and enable the addon, you can `make blender_install blender_enable`.
 Conversly, you can remove the addon with `make blender_uninstall`.
+
+### Building in Windows
+
+Navigate to the Audionodes repository (in PowerShell) and configure CMake:
+
+```
+PS> cmake . `
+-DCMAKE_TOOLCHAIN_FILE=[vcpkg]\scripts\buildsystems\vcpkg.cmake `
+-DVCPKG_TARGET_TRIPLET=x64-windows `
+-DCMAKE_GENERATOR_PLATFORM=x64
+```
+
+where `[vcpkg]` should be replaced with the path you installed `vcpkg` in.
+
+And build.
+
+```
+PS> cmake --build . --target blender --config Release
+```
+
+`Audionodes.zip` should appear at the repository root, which can then be installed into Blender.
+
 
 ## How does one use this sorcery?!
 **Note: This guide is fairly outdated, but you should get the idea.**

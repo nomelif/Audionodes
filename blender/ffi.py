@@ -6,7 +6,7 @@ import platform
 native_fname = {
     "Linux": "libnative.so",
     "Darwin": "libnative.dylib",
-    "Windows": "native.dll"
+    "Windows": "bin\\native.dll"
 }[platform.system()]
 native_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", native_fname))
 if not os.path.isfile(native_path):
@@ -16,8 +16,26 @@ NOTE: The addon will not work if you download a raw repository-zip, \
 because the native backend needs to be compiled.
 Please make sure you download the addon from the Releases-page or compile the backend yourself.""" % native_path)
 
-# mode=8 stands for RTLD_DEEPBIND dlopen flag [DISABLED]
-native = ct.CDLL(native_path, mode=0)
+if os.name == 'nt':
+    # Source: https://stackoverflow.com/a/7586821
+    from ctypes import wintypes
+    LOAD_WITH_ALTERED_SEARCH_PATH = 0x00000008
+    kernel32 = ct.WinDLL("kernel32", use_last_error=True)
+    def check_bool(result, func, args):
+        if not result:
+            raise ct.WinError(ct.get_last_error())
+        return args
+
+    kernel32.LoadLibraryExW.errcheck = check_bool
+    kernel32.LoadLibraryExW.restype = wintypes.HMODULE
+    kernel32.LoadLibraryExW.argtypes = (wintypes.LPCWSTR, wintypes.HANDLE, wintypes.DWORD)
+
+if os.name == 'nt':
+    handle = kernel32.LoadLibraryExW(native_path, None, LOAD_WITH_ALTERED_SEARCH_PATH)
+    native = ct.CDLL(native_path, mode=0, handle=handle)
+else:
+    # mode=8 stands for RTLD_DEEPBIND dlopen flag [DISABLED]
+    native = ct.CDLL(native_path, mode=0)
 
 flag_loading_file = False
 flag_initialized = False
