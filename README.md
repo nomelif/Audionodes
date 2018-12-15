@@ -187,7 +187,7 @@ You should now hear a sine wave that has a continuously changing frequency.
 How about playing it like a conventional keyboard instrument?
 You can use the `MIDI input` and `Piano` nodes (available in the `MIDI` node category) to make it playable.
 
-![MIDI input -> Piano -> Oscillator -> Sink](https://imgur.com/76Qh41S.png)
+![MIDI input -> Piano -> Oscillator -> Sink](https://imgur.com/uVdloUn.png)
 
 You might need to create the `MIDI input` node after plugging in your MIDI device on Windows, or connect it properly through an interface like [QjackCtl](https://qjackctl.sourceforge.io/) on Linux.
 
