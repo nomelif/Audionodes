@@ -6,15 +6,13 @@ Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Installation
 
-For now Audionodes doesn't come with the required libraries. You need to install `SDL 2` (for audio output, and possibly input in the future) and `FluidSynth` (for MIDI input, and possibly SoundFont support in the future) for it to work.
 We currently support Windows, Linux and macOS.
+For now Audionodes doesn't come with the required libraries on Linux and macOS. You need to install `SDL 2` (for audio output and output) and `FluidSynth` (for MIDI input, and possibly SoundFont support in the future) for it to work. The Windows version has dependencies bundled in.
 
 ### I am running Windows
 
 Download the plugin in zip format for Windows under Releases,
 and install it just like any other Blender plugin.
-
-Windows installation is the easiest, since all dependencies are included.
 
 ### I am running Linux
 
