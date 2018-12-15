@@ -9,6 +9,8 @@ Lisenced under GPLv.3. (https://www.gnu.org/licenses/gpl-3.0.en.html)
 We currently support Windows, Linux and macOS.
 For now Audionodes doesn't come with the required libraries on Linux and macOS. You need to install `SDL 2` (for audio output and output) and `FluidSynth` (for MIDI input, and possibly SoundFont support in the future) for it to work. The Windows version has dependencies bundled in.
 
+After installing, you may want to look at the tutorial at the end of the README.
+
 ### I am running Windows
 
 Download the plugin in zip format for Windows under Releases,
@@ -156,40 +158,45 @@ PS> cmake --build . --target blender --config Release
 `Audionodes.zip` should appear at the repository root and can then be installed into Blender.
 
 
-## How does one use this sorcery?!
-**Note: This guide is fairly outdated, but you should get the idea.**
-We are going to update it.
+## Quick start tutorial
 
-We start by creating a new node setup:
+Open a node editor view, press on the speker icon, and create a new node tree.
 
-<a href="http://imgur.com/pz2aQMr"><img src="http://i.imgur.com/pz2aQMr.png" title="source: imgur.com" /></a>
+![new node tree](https://i.imgur.com/TytRPHJ.png)
 
-We will first add a `Sink` (`Shift + A > Outputs > Sink`). That is where our sound will go at the end.
+The most crucial node is the output node, the `Sink`. The signal it receives will be played by your speakers. Add one with `Shift + A > Audio output > Sink`. Now let's add simple sine oscillator: `Shift + A > Generators > Oscillator`. You can adjust the frequency and the amplitude before plugging it into the sink, say `400 Hz` at `0.4` amplitude. Brace your ears.
 
-<a href="http://imgur.com/vsMk0Ez"><img src="http://i.imgur.com/vsMk0Ez.png" title="source: imgur.com" /></a>
+![Oscillator -> Sink](https://imgur.com/wkY8TnR.png)
 
-Let's try something simple: we will play a 400Hz sine wave. This is mostly to test our setup. Go add a `Inputs > Sine` and type `400` into the topmost input. Then (while aware of a possibly loud sound), hook it up to the sink:
+You should now hear a tone being played. If not, maybe open an issue so we can figure out what's wrong.
 
-<a href="http://imgur.com/kXsd1sT"><img src="http://i.imgur.com/kXsd1sT.png" title="source: imgur.com" /></a>
+Oh, go ahead, play with the values, they can all be changed real-time!
 
-You should hear a continuous beep. Let's make it more interesting. Add another Sine and give it a frequency of `10`, a `Range` of `0.3` and an `Offset` of `0.7`. Then hook it up to the first Sine's `Range` Like here:
+Next let's explore the power of modularity.
+You can plug the output of any node into any input of any node, allowing endless customization.
+Create a new Oscillator (just like before), but this time let's configure it to be an LFO, a low frequency oscillator, that controls the frequency of our first oscillator.
 
-<a href="http://imgur.com/z77ttYf"><img src="http://i.imgur.com/z77ttYf.png" title="source: imgur.com" /></a>
+![Oscillator -> Oscillator -> Sink](https://imgur.com/QqGlTtl.png)
 
-What this does is change the volume of the sound we had before (that's what range does) along a smooth curve (a sine wave) ten times per second (that is: at 10Hz, 1Hz meaning basically once per second). The range means that this curve moves within `0.3` of it's default range vertically. Together with the `Offset` and knowing that by default the range is -1 to 1, that means that the volume of our sound varies between 70% + 30% = 100% and 70% - 30% = 40%.
+You already know what frequency and amplitude do.
+The offset parameter in the `Oscillator` node changes what value the oscillator oscillates around.
+This one, with amplitude `50` and offset `400` would then oscillate between `350` and `450`.
+The same could be accomplished with a math "Add" node.
+You should now hear a sine wave that has a continuously changing frequency.
 
-We can even make this playable by keyboard: plug in a `Piano` input like so:
+How about playing it like a conventional keyboard instrument?
+You can use the `MIDI input` and `Piano` nodes (available in the `MIDI` node category) to make it playable.
 
-<a href="http://imgur.com/yG1n4Rf"><img src="http://i.imgur.com/yG1n4Rf.png" title="source: imgur.com" /></a>
+![MIDI input -> Piano -> Oscillator -> Sink](https://imgur.com/76Qh41S.png)
 
-Activate it by hitting the `Keyboard capture` button and terminate it by hitting `Esc` on your keyboard. While the `Piano` node is activated, you can play with a MIDI keyboard. Windows should jump on the first one that moves. Linux with the alsaseq module installed should be hand-configured with QJackCTL (GUI) or aconnect (CLI). Linux without alsaseq installed should try to autoconfigure itself like Windows.
+You might need to create the `MIDI input` node after plugging in your MIDI device on Windows, or connect it properly through an interface like [QjackCtl](https://qjackctl.sourceforge.io/) on Linux.
 
-### Interesting setups
+If you don't have a MIDI keyboard lying around, try a virtual one like [VMPK](http://vmpk.sourceforge.net/).
+
+Currently there is no envelope configured, so ends and beginnings of notes will be abrupt. The output range of the `Sink` goes from `-1` to `1`, and anything that sums to louder than that will be clipped (and not sound great depending on your taste).
+
+That's it! Be sure to try some of the other nodes as well. There is more in-depth documentation available at the [wiki](https://github.com/nomelif/Audionodes/wiki) (work in progress).
+
+### Interesting setups (legacy)
 
 We have made up a gist with interesting Audionodes setups, see here: https://gist.github.com/nomelif/759d6963c3ded049268f6e6ada855d3f. They are complete with samples on SoundCloud.
-
-#### Sonar [TODO: Move to the Gist]
-
-This imitates a sonar ping:
-
-<a href="http://imgur.com/T7KP32w"><img src="http://i.imgur.com/T7KP32w.png" title="source: imgur.com" /></a>
