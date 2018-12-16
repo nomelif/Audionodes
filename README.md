@@ -160,7 +160,7 @@ PS> cmake --build . --target blender --config Release
 
 ## Quick start tutorial
 
-Open a node editor view, press on the speker icon, and create a new node tree.
+Open a node editor view, press on the speaker icon, and create a new node tree.
 
 ![new node tree](https://i.imgur.com/TytRPHJ.png)
 
