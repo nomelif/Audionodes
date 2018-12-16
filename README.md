@@ -123,7 +123,7 @@ make blender
 install it into Blender.
 
 If you are lazy, you can also build and install the addon directly
-into your Blender installation, like so:
+into your Blender installation (if one was found when running `cmake`), like so:
 
 ```
 make blender_install
@@ -168,7 +168,7 @@ The most crucial node is the output node, the `Sink`. The signal it receives wil
 
 ![Oscillator -> Sink](https://imgur.com/wkY8TnR.png)
 
-You should now hear a tone being played. If not, maybe open an issue so we can figure out what's wrong.
+You should now hear a tone being played. If not, have a look at the console output (open Blender via a terminal or `Window > Toggle System Console`) and maybe open an issue so we can figure out what's wrong.
 
 Oh, go ahead, play with the values, they can all be changed real-time!
 
