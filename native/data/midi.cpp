@@ -3,45 +3,15 @@
 namespace audionodes {
 
 MidiData::Event::Type MidiData::Event::get_type() const {
-  switch (raw_type) {
-    case 0x8:
-      return Type::note_off;
-    case 0x9:
-      return Type::note_on;
-    case 0xA:
-      return Type::polyphonic_aftertouch;
-    case 0xB:
-      return Type::control;
-    case 0xC:
-      return Type::program;
-    case 0xD:
-      return Type::channel_aftertouch;
-    case 0xE:
-      return Type::pitch_bend;
-    default:
-      return Type::undef;
+  if (raw_type >= 0x8 && raw_type <= 0xE) {
+    return static_cast<Type>(raw_type);
+  } else {
+    return Type::undef;
   }
 }
 
 unsigned char MidiData::Event::get_type_value(Type type) {
-  switch (type) {
-    case Type::note_off:
-      return 0x8;
-    case Type::note_on:
-      return 0x9;
-    case Type::polyphonic_aftertouch:
-      return 0xA;
-    case Type::control:
-      return 0xB;
-    case Type::program:
-      return 0xC;
-    case Type::channel_aftertouch:
-      return 0xD;
-    case Type::pitch_bend:
-      return 0xE;
-    default:
-      return 0;
-  }
+  return static_cast<unsigned char>(type);
 }
 
 int MidiData::Event::get_channel() const {

@@ -9,14 +9,14 @@ namespace audionodes {
 struct MidiData : public Data {
   struct Event {
     enum class Type {
-      note_off,
-      note_on,
-      polyphonic_aftertouch,
-      control,
-      program,
-      channel_aftertouch,
-      pitch_bend,
-      undef
+      note_off = 0x8,
+      note_on = 0x9,
+      polyphonic_aftertouch = 0xA,
+      control = 0xB,
+      program = 0xC,
+      channel_aftertouch = 0xD,
+      pitch_bend = 0xE,
+      undef = 0
     };
     unsigned char raw_type, raw_channel, param1, param2;
     
