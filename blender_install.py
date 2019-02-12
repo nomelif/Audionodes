@@ -3,6 +3,7 @@
 # Usage:
 # blender -b -P blender_install.py -- install <addon name> <path>
 # blender -b -P blender_install.py -- enable <addon name>
+# blender -b -P blender_install.py -- uninstall <addon name>
 
 print("""\033[94m
 Note: Blender might print misleading error messages.
