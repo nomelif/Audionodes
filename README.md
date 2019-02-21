@@ -191,7 +191,7 @@ You can use the `MIDI input` and `Piano` nodes (available in the `MIDI` node cat
 
 You might need to create the `MIDI input` node after plugging in your MIDI device on Windows, or connect it properly through an interface like [QjackCtl](https://qjackctl.sourceforge.io/) on Linux. On Windows you may also need something like [loopMIDI](http://www.tobias-erichsen.de/software/loopmidi.html) in order to get MIDI input from other software.
 
-If you don't have a MIDI keyboard lying around, try a virtual one like [VMPK](http://vmpk.sourceforge.net/). With 
+If you don't have a MIDI keyboard lying around, try a virtual one like [VMPK](http://vmpk.sourceforge.net/).
 
 Currently there is no envelope configured, so ends and beginnings of notes will be abrupt. The output range of the `Sink` goes from `-1` to `1`, and anything that sums to louder than that will be clipped (and not sound great depending on your taste).
 
