@@ -7,6 +7,10 @@
 #include "util/circular_buffer.hpp"
 #include "node.hpp"
 
+extern "C" {
+#include "c_interface.h"
+}
+
 #include <iostream>
 #include <map>
 #include <set>
@@ -18,7 +22,7 @@
 
 namespace audionodes {
 
-struct Message {
+struct InboundMessage {
   enum class Type {
     audio_input, property, binary    
   };
@@ -32,10 +36,10 @@ struct Message {
   
   void apply();
   
-  Message();
-  Message(Node*, size_t, float);
-  Message(Node*, size_t, int);
-  Message(Node*, size_t, int, void*);
+  InboundMessage();
+  InboundMessage(Node*, size_t, float);
+  InboundMessage(Node*, size_t, int);
+  InboundMessage(Node*, size_t, int, void*);
 };
 
 typedef std::map<std::string, Node::Creator> NodeTypeMap;

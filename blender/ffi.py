@@ -70,7 +70,7 @@ native.audionodes_remove_node.argtypes = [ct.c_int]
 native.audionodes_remove_node.restype = None
 def remove_node(node_id):
     native.audionodes_remove_node(node_id)
-    
+
 native.audionodes_node_exists.argtypes = [ct.c_int]
 native.audionodes_node_exists.restype = ct.c_bool
 def node_exists(node_id):
@@ -92,16 +92,16 @@ def send_node_binary_data(node_id, slot, data):
     native.audionodes_send_node_binary_data(node_id, slot, len(data), data)
 
 native.audionodes_begin_tree_update.argtypes = []
-native.audionodes_begin_tree_update.restype = ct.c_void_p
+native.audionodes_begin_tree_update.restype = None
 def begin_tree_update():
-    return native.audionodes_begin_tree_update()
+    native.audionodes_begin_tree_update()
 
-native.audionodes_add_tree_update_link.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, ct.c_size_t, ct.c_size_t]
+native.audionodes_add_tree_update_link.argtypes = [ct.c_int, ct.c_int, ct.c_size_t, ct.c_size_t]
 native.audionodes_add_tree_update_link.restype = None
-def add_tree_update_link(ref, from_node, to_node, from_socket, to_socket):
-    native.audionodes_add_tree_update_link(ref, from_node, to_node, from_socket, to_socket)
+def add_tree_update_link(from_node, to_node, from_socket, to_socket):
+    native.audionodes_add_tree_update_link(from_node, to_node, from_socket, to_socket)
 
-native.audionodes_finish_tree_update.argtypes = [ct.c_void_p]
+native.audionodes_finish_tree_update.argtypes = []
 native.audionodes_finish_tree_update.restype = None
-def finish_tree_update(ref):
-    native.audionodes_finish_tree_update(ref)
+def finish_tree_update():
+    native.audionodes_finish_tree_update()

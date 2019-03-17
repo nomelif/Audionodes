@@ -21,7 +21,7 @@ class AudioTree(NodeTree):
         # don't do anything in that case
         if ffi.flag_loading_file:
             return
-        links = ffi.begin_tree_update()
+        ffi.begin_tree_update()
         for link in self.links:
             if link.to_node.bl_idname == "NodeReroute":
                 continue
@@ -38,8 +38,8 @@ class AudioTree(NodeTree):
                 continue
             from_node.check_revive()
             to_node.check_revive()
-            ffi.add_tree_update_link(links, from_node.get_uid(), to_node.get_uid(), from_socket.get_index(), to_socket.get_index())
-        ffi.finish_tree_update(links)
+            ffi.add_tree_update_link(from_node.get_uid(), to_node.get_uid(), from_socket.get_index(), to_socket.get_index())
+        ffi.finish_tree_update()
 
     def post_load_handler(self):
         for node in self.nodes:
