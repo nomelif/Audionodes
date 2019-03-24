@@ -126,6 +126,14 @@ class AudioTreeNode:
         self.check_revive()
         ffi.update_node_property_value(self.get_uid(), index, value)
 
+    def get_configuration_options(self, slot):
+        self.check_revive()
+        return ffi.get_configuration_options(self.get_uid(), slot)
+
+    def set_configuration_option(self, slot, opt):
+        self.check_revive()
+        return ffi.set_configuration_option(self.get_uid(), slot, opt)
+
     def reinit(self):
         self.register_native()
         for socket in self.inputs:
@@ -254,9 +262,53 @@ class MidiIn(Node, AudioTreeNode):
     bl_idname = 'MidiInNode'
     bl_label = 'MIDI input'
 
+    def apply_conf(self):
+        self["conf_fail"] = self.set_configuration_option(2, "") == 0
+
+    def change_driver(self, context):
+        self.set_configuration_option(0, self.driver_enum)
+        (device, self["device_enum_items"]) = self.get_configuration_options(1)
+        self.device_enum = device
+        self.apply_conf()
+
+    def change_device(self, context):
+        self.set_configuration_option(1, self.device_enum)
+        self.apply_conf()
+
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.set_configuration_option(0, self.driver_enum)
+        self.set_configuration_option(1, self.device_enum)
+        self.apply_conf()
+        (driver, self["driver_enum_items"]) = self.get_configuration_options(0)
+        self.driver_enum = driver
+        (device, self["device_enum_items"]) = self.get_configuration_options(1)
+        self.device_enum = device
+
+    driver_enum = bpy.props.EnumProperty(
+        items = lambda self, ctx: [(opt, opt, '') for opt in self["driver_enum_items"]],
+        update = change_driver
+    )
+
+    device_enum = bpy.props.EnumProperty(
+        items = lambda self, ctx: [(opt, opt, '') for opt in self["device_enum_items"]],
+        update = change_device
+    )
+
     def init(self, context):
         AudioTreeNode.init(self, context)
+        (driver, self["driver_enum_items"]) = self.get_configuration_options(0)
+        self.driver_enum = driver
+        (device, self["device_enum_items"]) = self.get_configuration_options(1)
+        self.device_enum = device
+        self.apply_conf()
         self.outputs.new('MidiSocketType', "Stream")
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, 'driver_enum', text='Driver')
+        layout.prop(self, 'device_enum', text='Device')
+        if self["conf_fail"]:
+            layout.label("MIDI configuration failed", icon='ERROR')
 
 class Piano(Node, AudioTreeNode):
     bl_idname = 'PianoNode'

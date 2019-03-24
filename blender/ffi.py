@@ -91,6 +91,23 @@ native.audionodes_send_node_binary_data.restype = None
 def send_node_binary_data(node_id, slot, data):
     native.audionodes_send_node_binary_data(node_id, slot, len(data), data)
 
+native.audionodes_get_configuration_options.argtypes = [ct.c_int, ct.c_int]
+native.audionodes_get_configuration_options.restype = ct.POINTER(ct.c_char_p)
+def get_configuration_options(node_id, slot):
+    opts = []
+    ptr = native.audionodes_get_configuration_options(node_id, slot)
+    selected = ptr[0].decode("ascii")
+    i = 1
+    while ptr[i]:
+        opts.append(ptr[i].decode("ascii"))
+        i += 1
+    return (selected, opts)
+
+native.audionodes_set_configuration_option.argtypes = [ct.c_int, ct.c_int, ct.c_char_p]
+native.audionodes_set_configuration_option.restype = ct.c_int
+def set_configuration_option(node_id, slot, opt):
+    return native.audionodes_set_configuration_option(node_id, slot, opt.encode("ascii"))
+
 native.audionodes_begin_tree_update.argtypes = []
 native.audionodes_begin_tree_update.restype = None
 def begin_tree_update():

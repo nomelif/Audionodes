@@ -213,6 +213,31 @@ extern "C" {
     receive_message(InboundMessage(node_storage[id], slot, length, bin));
   }
   
+  static Node::ConfigurationDescriptor configuration_options;
+  static std::vector<const char*> configuration_options_C;
+  const char** audionodes_get_configuration_options(node_uid id, int slot) {
+    if (!node_storage.count(id)) {
+      std::cerr << "Audionodes native: Tried to get configuration options from non-existent node " << id << std::endl;
+      configuration_options = {"", {}};
+    } else {
+      configuration_options = node_storage[id]->get_configuration_options(slot);
+    }
+    configuration_options_C = {configuration_options.selected.c_str()};
+    for (std::string &str : configuration_options.options) {
+      configuration_options_C.push_back(str.c_str());
+    }
+    configuration_options_C.push_back(nullptr);
+    return configuration_options_C.data();
+  }
+  
+  int audionodes_set_configuration_option(node_uid id, int slot, const char *option) {
+    if (!node_storage.count(id)) {
+      std::cerr << "Audionodes native: Tried to set configuration option of non-existent node " << id << std::endl;
+      return -1;
+    }
+    return node_storage[id]->set_configuration_option(slot, std::string(option));
+  }
+  
   void audionodes_begin_tree_update() {
     tree_update_links.clear();
   }

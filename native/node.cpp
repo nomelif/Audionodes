@@ -58,6 +58,9 @@ int Node::get_property_value(int index) {
 }
 void Node::receive_binary(int, int, void*) {}
 
+Node::ConfigurationDescriptor Node::get_configuration_options(int) { return {"", {}}; }
+int Node::set_configuration_option(int, std::string) { return 0; }
+
 void Node::connect_callback() {}
 void Node::disconnect_callback() {}
 

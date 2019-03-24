@@ -11,7 +11,6 @@
 
 namespace audionodes {
 
-
 class Node {
   protected:
   bool is_sink;
@@ -48,6 +47,14 @@ class Node {
   void set_property_value(int, int);
   int get_property_value(int);
   virtual void receive_binary(int, int, void*);
+  
+  struct ConfigurationDescriptor {
+    std::string selected;
+    std::vector<std::string> options;
+  };
+  virtual ConfigurationDescriptor get_configuration_options(int);
+  virtual int set_configuration_option(int, std::string);
+  
   std::vector<SigT> input_values;
   std::vector<SigT> old_input_values;
   std::vector<int> property_values;
