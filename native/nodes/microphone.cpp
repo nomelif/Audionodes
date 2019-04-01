@@ -24,6 +24,19 @@ void Microphone::callback(void *userdata, Uint8 *_stream, int len) {
 Microphone::Microphone() :
     Node({}, {SocketType::audio}, {})
 {
+  open();
+}
+Microphone::Microphone(Microphone &other) :
+    Node(other)
+{
+  open();
+}
+
+Microphone::~Microphone() {
+  SDL_CloseAudioDevice(dev);
+}
+
+void Microphone::open() {
   SDL_AudioSpec want, have;
 
   want.freq = RATE;
@@ -39,10 +52,6 @@ Microphone::Microphone() :
     std::cerr << "Failed to open microphone: " << SDL_GetError() << std::endl;
   }
   SDL_PauseAudioDevice(dev, 0);
-}
-
-Microphone::~Microphone() {
-  SDL_CloseAudioDevice(dev);
 }
 
 void Microphone::connect_callback() {

@@ -15,8 +15,10 @@ class Microphone : public Node {
   SDL_AudioDeviceID dev = 0;
   CircularBuffer<Chunk, (1<<15)/N> q;
   static void callback(void*, Uint8*, int);
+  void open();
   public:
   Microphone();
+  Microphone(Microphone&);
   ~Microphone();
   void connect_callback() override;
   void process(NodeInputWindow&) override;

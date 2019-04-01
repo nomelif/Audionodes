@@ -156,9 +156,9 @@ extern "C" {
   }
 
   node_uid audionodes_create_node(const char* type) {
-    node_uid id = node_storage_alloc();
     if (get_node_types().count(type)) {
-      Node *node = get_node_types().at(type)();
+      node_uid id = node_storage_alloc();
+      Node *node = get_node_types().at(type).construct();
       node_storage[id] = node;
       return id;
     } else {
@@ -167,11 +167,22 @@ extern "C" {
     }
   }
 
-  node_uid audionodes_copy_node(node_uid old_id, const char* type_c) {
-    node_uid new_id = audionodes_create_node(type_c);
-    if (new_id == -1) return -1;
-    node_storage[new_id]->copy_input_values(*node_storage[old_id]);
-    return new_id;
+  node_uid audionodes_copy_node(node_uid old_id, const char* type) {
+    Node *old_node;
+    if (!node_storage.count(old_id)) {
+      std::cerr << "Audionodes native: Tried to copy non-existent node " << old_id << std::endl;
+      return -1;
+    }
+    old_node = node_storage[old_id];
+    if (get_node_types().count(type)) {
+      node_uid id = node_storage_alloc();
+      Node *node = get_node_types().at(type).copy(old_node);
+      node_storage[id] = node;
+      return id;
+    } else {
+      std::cerr << "Audionodes native: Tried to copy node of invalid type \"" << type << "\"" << std::endl;
+      return -1;
+    }
   }
 
   void audionodes_remove_node(node_uid id) {
@@ -213,29 +224,43 @@ extern "C" {
     receive_message(InboundMessage(node_storage[id], slot, length, bin));
   }
   
-  static Node::ConfigurationDescriptor configuration_options;
-  static std::vector<const char*> configuration_options_C;
-  const char** audionodes_get_configuration_options(node_uid id, int slot) {
+  static Node::ConfigurationDescriptorList configuration_options;
+  static std::vector<AudionodesConfigurationDescriptor> configuration_options_C;
+  static std::vector<std::vector<const char*>> configuration_strings_C;
+  AudionodesConfigurationDescriptor* audionodes_get_configuration_options(node_uid id) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to get configuration options from non-existent node " << id << std::endl;
-      configuration_options = {"", {}};
+      configuration_options = {};
     } else {
-      configuration_options = node_storage[id]->get_configuration_options(slot);
+      configuration_options = node_storage[id]->get_configuration_options();
     }
-    configuration_options_C = {configuration_options.selected.c_str()};
-    for (std::string &str : configuration_options.options) {
-      configuration_options_C.push_back(str.c_str());
+    configuration_options_C.clear();
+    configuration_strings_C.clear();
+    for (Node::ConfigurationDescriptor &conf : configuration_options) {
+      configuration_strings_C.emplace_back();
+      auto &strlist = configuration_strings_C.back();
+      strlist.reserve(conf.available_values.size()+1);
+      for (auto &str : conf.available_values) {
+        strlist.push_back(str.c_str());
+      }
+      strlist.push_back(nullptr);
+      configuration_options_C.push_back({true,
+        conf.name.c_str(),
+        conf.current_value.c_str(),
+        strlist.data()
+      });
     }
-    configuration_options_C.push_back(nullptr);
+    // List end indicator
+    configuration_options_C.push_back({false, nullptr, nullptr, nullptr});
     return configuration_options_C.data();
   }
   
-  int audionodes_set_configuration_option(node_uid id, int slot, const char *option) {
+  int audionodes_set_configuration_option(node_uid id, const char *name, const char *option) {
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to set configuration option of non-existent node " << id << std::endl;
       return -1;
     }
-    return node_storage[id]->set_configuration_option(slot, std::string(option));
+    return node_storage[id]->set_configuration_option(std::string(name), std::string(option));
   }
   
   void audionodes_begin_tree_update() {

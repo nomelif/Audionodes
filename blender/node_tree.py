@@ -1,7 +1,7 @@
 
 import bpy
 
-from bpy.types import NodeTree, Node, NodeSocket
+from bpy.types import NodeTree, Node, NodeSocket, Operator, PropertyGroup
 
 from . import ffi
 
@@ -126,13 +126,13 @@ class AudioTreeNode:
         self.check_revive()
         ffi.update_node_property_value(self.get_uid(), index, value)
 
-    def get_configuration_options(self, slot):
+    def get_configuration_options(self):
         self.check_revive()
-        return ffi.get_configuration_options(self.get_uid(), slot)
+        return ffi.get_configuration_options(self.get_uid())
 
-    def set_configuration_option(self, slot, opt):
+    def set_configuration_option(self, name, val):
         self.check_revive()
-        return ffi.set_configuration_option(self.get_uid(), slot, opt)
+        return ffi.set_configuration_option(self.get_uid(), name, val)
 
     def reinit(self):
         self.register_native()
@@ -258,57 +258,155 @@ class Math(Node, AudioTreeNode):
     def draw_buttons(self, context, layout):
         layout.prop(self, 'func_enum', text='')
 
+
+class MidiConfiguration(PropertyGroup):
+    _prop_names = ['driver', 'portname', 'alsa_raw_device',
+                   'jack_server', 'oss_device', 'win_device']
+    driver = bpy.props.StringProperty()
+    portname = bpy.props.StringProperty()
+    alsa_raw_device = bpy.props.StringProperty()
+    jack_server = bpy.props.StringProperty()
+    oss_device = bpy.props.StringProperty()
+    win_device = bpy.props.StringProperty()
+
+midi_conf_node = None
+midi_conf_valid_props = []
+midi_conf_options = {
+    'driver': [],
+    'win_device': [],
+}
+midi_conf_option_descriptions = {
+    'driver': {
+        'alsa_raw': ('alsa_raw', 'ALSA raw', 'Linux only, use hardware directly'),
+        'alsa_seq': ('alsa_seq', 'ALSA sequencer', 'Linux only, patch via aconnect or similar'),
+        'coremidi': ('coremidi', 'CoreMIDI', 'macOS only'),
+        'jack': ('jack', 'JACK', 'JACK Audio Connection Kit'),
+        'midishare': ('midishare', 'MidiShare', ''),
+        'oss': ('oss', 'OSS', 'Open Sound System'),
+        'winmidi': ('winmidi', 'Windows MIDI', 'Windows only'),
+    }
+}
+
+class MidiConfOperator(Operator):
+    """MIDI Configuration popup for MidiInNode"""
+    bl_idname = 'audionodes.configure_midi'
+    bl_label = "MIDI Configuration"
+
+    driver = bpy.props.EnumProperty(
+        name = "Driver",
+        items = lambda self, ctx: midi_conf_options['driver']
+    )
+    portname = bpy.props.StringProperty(
+        name = "Port name",
+        description = "Port name to be displayed in the patchbay",
+        maxlen = 63
+    )
+    alsa_raw_device = bpy.props.StringProperty(
+        name = "Device",
+        description = "The MIDI device to connect to. See available options with e.g. `amidi -l`",
+        maxlen = 255
+    )
+    jack_server = bpy.props.StringProperty(
+        name = "JACK server",
+        description = "Specify custom JACK server address, or leave empty for default",
+        maxlen = 255
+    )
+    oss_device = bpy.props.StringProperty(
+        name = "Device",
+        description = "OSS device (file) to use",
+        maxlen = 255
+    )
+    win_device = bpy.props.EnumProperty(
+        name = "Device",
+        description = "The MIDI device to connect to",
+        items = lambda self, ctx: midi_conf_options['win_device']
+    )
+
+    def invoke(self, context, event):
+        global midi_conf_node, midi_conf_options, midi_conf_valid_props
+        midi_conf_node = context.node
+        midi_conf_node.check_revive()
+        if midi_conf_node["conf_fail"] and not midi_conf_node["conf_attempted"]:
+            # UX: Initial config opened from file not working, reset
+            midi_conf_node.set_configuration_option("reset_configuration", "")
+        for name, val, opts in midi_conf_node.get_configuration_options():
+            midi_conf_valid_props.append(name)
+            if name in midi_conf_options:
+                if name in midi_conf_option_descriptions:
+                    midi_conf_options[name] = [
+                        midi_conf_option_descriptions[name][opt] for opt in opts
+                    ]
+                else:
+                    midi_conf_options[name] = [(opt, opt, '') for opt in opts]
+            if val or name not in midi_conf_options:
+                setattr(self, name, val)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "driver")
+        if self.driver == 'alsa_raw':
+            layout.prop(self, "alsa_raw_device")
+        elif self.driver == 'alsa_seq':
+            layout.prop(self, "portname")
+        elif self.driver == 'coremidi':
+            layout.prop(self, "portname")
+        elif self.driver == 'jack':
+            layout.prop(self, "jack_server")
+        # No settings for midishare
+        elif self.driver == 'oss':
+            layout.prop(self, "oss_device")
+        elif self.driver == 'winmidi':
+            layout.prop(self, "win_device")
+    def check(self, context):
+        # Redraw needed when driver is changed
+        return True
+
+    def execute(self, context):
+        global midi_conf_node, midi_conf_options, midi_conf_valid_props
+        for name in midi_conf_valid_props:
+            setattr(midi_conf_node.conf, name, getattr(self, name))
+        midi_conf_node.apply_conf(context)
+        midi_conf_node["conf_attempted"] = True
+        midi_conf_node = None
+        midi_conf_valid_props = []
+        for lst in midi_conf_options.values():
+            lst.clear()
+        return {'FINISHED'}
+
 class MidiIn(Node, AudioTreeNode):
     bl_idname = 'MidiInNode'
     bl_label = 'MIDI input'
 
-    def apply_conf(self):
-        self["conf_fail"] = self.set_configuration_option(2, "") == 0
+    conf = bpy.props.PointerProperty(type=MidiConfiguration)
 
-    def change_driver(self, context):
-        self.set_configuration_option(0, self.driver_enum)
-        (device, self["device_enum_items"]) = self.get_configuration_options(1)
-        self.device_enum = device
-        self.apply_conf()
+    def init_conf(self):
+        for name, val, opts in self.get_configuration_options():
+            setattr(self.conf, name, val)
 
-    def change_device(self, context):
-        self.set_configuration_option(1, self.device_enum)
-        self.apply_conf()
+    def apply_conf(self, context=None):
+        for name in MidiConfiguration._prop_names:
+            self.set_configuration_option(name, getattr(self.conf, name))
+        self["conf_fail"] = self.set_configuration_option("apply_configuration", "") == 0
+        if context: context.area.tag_redraw()
 
     def reinit(self):
         AudioTreeNode.reinit(self)
-        self.set_configuration_option(0, self.driver_enum)
-        self.set_configuration_option(1, self.device_enum)
+        self["conf_attempted"] = False
         self.apply_conf()
-        (driver, self["driver_enum_items"]) = self.get_configuration_options(0)
-        self.driver_enum = driver
-        (device, self["device_enum_items"]) = self.get_configuration_options(1)
-        self.device_enum = device
-
-    driver_enum = bpy.props.EnumProperty(
-        items = lambda self, ctx: [(opt, opt, '') for opt in self["driver_enum_items"]],
-        update = change_driver
-    )
-
-    device_enum = bpy.props.EnumProperty(
-        items = lambda self, ctx: [(opt, opt, '') for opt in self["device_enum_items"]],
-        update = change_device
-    )
 
     def init(self, context):
         AudioTreeNode.init(self, context)
-        (driver, self["driver_enum_items"]) = self.get_configuration_options(0)
-        self.driver_enum = driver
-        (device, self["device_enum_items"]) = self.get_configuration_options(1)
-        self.device_enum = device
-        self.apply_conf()
+        self["conf_attempted"] = False
+        self.init_conf()
+        self.apply_conf(context)
         self.outputs.new('MidiSocketType', "Stream")
 
     def draw_buttons(self, context, layout):
-        layout.prop(self, 'driver_enum', text='Driver')
-        layout.prop(self, 'device_enum', text='Device')
-        if self["conf_fail"]:
-            layout.label("MIDI configuration failed", icon='ERROR')
+        layout.operator("audionodes.configure_midi", "Configure MIDI")
+        if "conf_fail" in self and self["conf_fail"]:
+            layout.label("Configuration failed", icon='ERROR')
 
 class Piano(Node, AudioTreeNode):
     bl_idname = 'PianoNode'

@@ -49,11 +49,13 @@ class Node {
   virtual void receive_binary(int, int, void*);
   
   struct ConfigurationDescriptor {
-    std::string selected;
-    std::vector<std::string> options;
+    std::string name;
+    std::string current_value;
+    std::vector<std::string> available_values;
   };
-  virtual ConfigurationDescriptor get_configuration_options(int);
-  virtual int set_configuration_option(int, std::string);
+  typedef std::vector<ConfigurationDescriptor> ConfigurationDescriptorList;
+  virtual ConfigurationDescriptorList get_configuration_options();
+  virtual int set_configuration_option(std::string, std::string);
   
   std::vector<SigT> input_values;
   std::vector<SigT> old_input_values;
@@ -67,10 +69,19 @@ class Node {
   void copy_input_values(const Node&);
   NodeOutputWindow output_window;
   virtual void process(NodeInputWindow&) = 0;
+  
+  private:
+  void prepare_output_window();
+  
+  public:
   Node(SocketTypeList, SocketTypeList, PropertyTypeList, bool is_sink=false);
+  Node(Node&);
   virtual ~Node() = 0;
   
-  typedef Node* (*Creator)();
+  struct Creator {
+    Node* (*construct)();
+    Node* (*copy)(Node*);
+  };
 };
 
 // Node registration singleton helper (or factory, if you will)
@@ -86,9 +97,14 @@ class NodeTypeRegistration {
   static Node* create_node() {
     return static_cast<Node*>(new type());
   }
+  static Node* copy_node(Node *other) {
+    type *other_casted = dynamic_cast<type*>(other);
+    if (!other_casted) return nullptr;
+    return static_cast<Node*>(new type(*other_casted));
+  }
   public:
   NodeTypeRegistration(const char *identifier) : identifier(identifier) {
-    audionodes_register_node_type(identifier, create_node);
+    audionodes_register_node_type(identifier, {create_node, copy_node});
   }
   ~NodeTypeRegistration() {
     audionodes_unregister_node_type(identifier);

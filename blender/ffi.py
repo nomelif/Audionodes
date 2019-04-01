@@ -91,22 +91,33 @@ native.audionodes_send_node_binary_data.restype = None
 def send_node_binary_data(node_id, slot, data):
     native.audionodes_send_node_binary_data(node_id, slot, len(data), data)
 
-native.audionodes_get_configuration_options.argtypes = [ct.c_int, ct.c_int]
-native.audionodes_get_configuration_options.restype = ct.POINTER(ct.c_char_p)
-def get_configuration_options(node_id, slot):
+class CONFIGURATION_DESCRIPTOR(ct.Structure):
+    _fields_ = [("field_populated", ct.c_bool),
+                ("name", ct.c_char_p),
+                ("current_value", ct.c_char_p),
+                ("available_values", ct.POINTER(ct.c_char_p))]
+native.audionodes_get_configuration_options.argtypes = [ct.c_int]
+native.audionodes_get_configuration_options.restype = ct.POINTER(CONFIGURATION_DESCRIPTOR)
+def get_configuration_options(node_id):
     opts = []
-    ptr = native.audionodes_get_configuration_options(node_id, slot)
-    selected = ptr[0].decode("ascii")
-    i = 1
-    while ptr[i]:
-        opts.append(ptr[i].decode("ascii"))
+    ptr = native.audionodes_get_configuration_options(node_id)
+    i = 0
+    while ptr[i].field_populated:
+        opt = (ptr[i].name.decode("utf8"), ptr[i].current_value.decode("utf8"), [])
+        vals_ptr = ptr[i].available_values
+        j = 0
+        while vals_ptr[j]:
+            opt[2].append(vals_ptr[j].decode("utf8"))
+            j += 1
+        opts.append(opt)
         i += 1
-    return (selected, opts)
+    return opts
 
-native.audionodes_set_configuration_option.argtypes = [ct.c_int, ct.c_int, ct.c_char_p]
+native.audionodes_set_configuration_option.argtypes = [ct.c_int, ct.c_char_p, ct.c_char_p]
 native.audionodes_set_configuration_option.restype = ct.c_int
-def set_configuration_option(node_id, slot, opt):
-    return native.audionodes_set_configuration_option(node_id, slot, opt.encode("ascii"))
+def set_configuration_option(node_id, name, val):
+    return native.audionodes_set_configuration_option(node_id,
+        name.encode("utf8"), val.encode("utf8"))
 
 native.audionodes_begin_tree_update.argtypes = []
 native.audionodes_begin_tree_update.restype = None

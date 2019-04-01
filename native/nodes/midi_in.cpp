@@ -1,5 +1,5 @@
 #include "nodes/midi_in.hpp"
-
+#include <iostream>
 namespace audionodes {
 
 static NodeTypeRegistration<MidiIn> registration("MidiInNode");
@@ -40,18 +40,32 @@ int MidiIn::handle_midi_event(void* _node, fluid_midi_event_t* event){
 }
 
 MidiIn::MidiIn() :
-  Node({}, {SocketType::midi}, {}),
-  event_buffer(false),
-  overflow_flag(false)
+    Node({}, {SocketType::midi}, {}),
+    event_buffer(false),
+    overflow_flag(false)
 {
-  settings = new_fluid_settings();
-  if (fluid_settings_get_type(settings, "midi.portname") == FLUID_STR_TYPE) {
-    fluid_settings_setstr(settings, "midi.portname", "Audionodes");
-  }
-  driver = new_fluid_midi_driver(settings, handle_midi_event, this);
+  reset_configuration();
+  apply_configuration();
   if (!driver) {
     std::cerr << "Audionodes Native: Unable to create MIDI device via Fluidsynth" << std::endl;
   }
+}
+
+MidiIn::MidiIn(MidiIn &from) :
+    Node(from),
+    event_buffer(false),
+    overflow_flag(false)
+{
+  settings = new_fluid_settings();
+  std::vector<char> buf(256);
+  for (auto &sname : internal_setting_names) {
+    if (fluid_settings_get_type(settings, sname.second) == FLUID_STR_TYPE) {
+      fluid_settings_copystr(from.settings, sname.second, buf.data(), buf.size());
+      fluid_settings_setstr(settings, sname.second, buf.data());
+    }
+  }
+  std::cout << driver << std::endl;
+  apply_configuration();
 }
 
 MidiIn::~MidiIn()
@@ -60,71 +74,58 @@ MidiIn::~MidiIn()
   if (driver) delete_fluid_midi_driver(driver);
 }
 
-std::string MidiIn::get_current_driver() {
-  std::vector<char> buf(256);
-  fluid_settings_copystr(settings, "midi.driver", buf.data(), buf.size());
-  return std::string(buf.data());
-}
 
-std::string MidiIn::get_device_setting_name() {
-  std::string setting_name = "midi.";
-  setting_name += get_current_driver();
-  setting_name += ".device";
-  return setting_name;
-}
-
-Node::ConfigurationDescriptor MidiIn::get_configuration_options(int slot) {
+Node::ConfigurationDescriptorList MidiIn::get_configuration_options() {
   std::vector<char> buf(256);
-  std::vector<std::string> list;
+  ConfigurationDescriptorList list;
   fluid_settings_t *tmp_settings = new_fluid_settings();
   
-  std::string setting_name;
-  switch (slot) {
-    case conf_driver:
-      setting_name = "midi.driver";
-      break;
-    case conf_device:
-      setting_name = get_device_setting_name();
-      list.push_back("default");
-      break;
-    default: // Invalid
-      return {buf.data(), list};
-      break;
-  }
-  
-  if (fluid_settings_get_type(tmp_settings, setting_name.c_str()) == FLUID_STR_TYPE) {
-    fluid_settings_foreach_option(tmp_settings, setting_name.c_str(), &list,
-    [](void *lp, char *name, char *option) {
-      static_cast<decltype(list)*>(lp)->emplace_back(option);
-    });
-    fluid_settings_copystr(settings, setting_name.c_str(), buf.data(), buf.size());
+  for (auto &sname : internal_setting_names) {
+    if (fluid_settings_get_type(tmp_settings, sname.second) == FLUID_STR_TYPE) {
+      ConfigurationDescriptor desc;
+      desc.name = sname.first;
+      if (implicit_default_value.count(sname.first)) {
+        desc.available_values.push_back(implicit_default_value[sname.first]);
+      }
+      fluid_settings_foreach_option(tmp_settings, sname.second, &desc.available_values,
+      [](void *lp, char *name, char *option) {
+        static_cast<decltype(desc.available_values)*>(lp)->emplace_back(option);
+      });
+      fluid_settings_copystr(settings, sname.second, buf.data(), buf.size());
+      desc.current_value = std::string(buf.data());
+      list.push_back(desc);
+    }
   }
   
   delete_fluid_settings(tmp_settings);
-  return {buf.data(), list};
+  return list;
 }
 
-int MidiIn::set_configuration_option(int slot, std::string value) {
-  std::string setting_name;
-  switch (slot) {
-    case conf_driver:
-      setting_name = "midi.driver";
-      break;
-    case conf_device:
-      setting_name = get_device_setting_name();
-      break;
-    case conf_commit:
-      return apply_settings();
-      break;
-  }
-  if (fluid_settings_get_type(settings, setting_name.c_str()) == FLUID_STR_TYPE) {
-    fluid_settings_setstr(settings, setting_name.c_str(), value.c_str());
-    return true;
-  }
-  return false;
+int MidiIn::set_configuration_option(std::string name, std::string value) {
+  if (name == "reset_configuration") {
+    reset_configuration();
+    return 1;
+  } else if (name == "apply_configuration") {
+    return apply_configuration();
+  } else if (internal_setting_names.count(name)) {
+    if (name == "portname" && value == "") value = "Audionodes";
+    const char *setting_name = internal_setting_names[name];
+    if (fluid_settings_get_type(settings, setting_name) == FLUID_STR_TYPE) {
+      fluid_settings_setstr(settings, setting_name, value.c_str());
+      return 1;
+    } else return 2;
+  } else return 0;
 }
 
-bool MidiIn::apply_settings() {
+void MidiIn::reset_configuration() {
+  if (settings) delete_fluid_settings(settings);
+  settings = new_fluid_settings();
+  if (fluid_settings_get_type(settings, "midi.portname") == FLUID_STR_TYPE) {
+    fluid_settings_setstr(settings, "midi.portname", "Audionodes");
+  }
+}
+
+bool MidiIn::apply_configuration() {
   if (driver) delete_fluid_midi_driver(driver);
   driver = new_fluid_midi_driver(settings, handle_midi_event, this);
   return driver != nullptr;

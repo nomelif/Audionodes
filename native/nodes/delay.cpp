@@ -7,6 +7,9 @@ static NodeTypeRegistration<Delay> registration("DelayNode");
 Delay::Delay() :
     Node(SocketTypeList(3, SocketType::audio), {SocketType::audio}, {})
 {}
+Delay::Delay(Delay &other) :
+    Node(other)
+{}
 
 void Delay::apply_bundle_universe_changes(const Universe &universe) {
   universe.apply_delta(bundles);

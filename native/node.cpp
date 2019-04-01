@@ -19,8 +19,29 @@ Node::Node(
   input_values.resize(input_types.size());
   old_input_values.resize(input_types.size());
   property_values.resize(property_types.size());
-  output_window.sockets.reserve(input_types.size());
-  for (auto type : output_types) {
+  prepare_output_window();
+}
+
+Node::Node(Node &other) :
+    is_sink(other.is_sink),
+    _input_socket_types(other.input_socket_types),
+    _output_socket_types(other.output_socket_types),
+    _property_types(other.property_types),
+    input_socket_types(_input_socket_types),
+    output_socket_types(_output_socket_types),
+    property_types(_property_types),
+    
+    input_values(other.input_values),
+    old_input_values(other.old_input_values),
+    property_values(other.property_values)
+{
+  prepare_output_window();
+}
+
+void Node::prepare_output_window() {
+  output_window.sockets.clear();
+  output_window.sockets.reserve(input_socket_types.size());
+  for (auto type : output_socket_types) {
     Data *data = nullptr;
     switch (type) {
       typedef SocketType ST;
@@ -58,8 +79,8 @@ int Node::get_property_value(int index) {
 }
 void Node::receive_binary(int, int, void*) {}
 
-Node::ConfigurationDescriptor Node::get_configuration_options(int) { return {"", {}}; }
-int Node::set_configuration_option(int, std::string) { return 0; }
+Node::ConfigurationDescriptorList Node::get_configuration_options() { return {}; }
+int Node::set_configuration_option(std::string, std::string) { return 0; }
 
 void Node::connect_callback() {}
 void Node::disconnect_callback() {}

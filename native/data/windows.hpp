@@ -53,6 +53,7 @@ class NodeOutputWindow {
   typedef std::vector<Data**> SocketsList;
   
   NodeOutputWindow();
+  NodeOutputWindow(NodeOutputWindow&) = delete;
   ~NodeOutputWindow();
   template<class T>
   inline T& get(size_t idx) {
