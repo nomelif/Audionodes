@@ -37,8 +37,8 @@ IIRFilter::Filter::Filter(Modes mode, size_t poles, SigT cutoff, SigT resonance,
     }
     FSigT real = std::cos(rot), imag = std::sin(rot)/rolloff;
     FSigT M = std::pow(real, 2)+std::pow(imag, 2);
-    constexpr FSigT T = 2*std::tan(0.5);
-    constexpr FSigT T2 = pow(T, 2);
+    FSigT T = 2*std::tan(0.5);
+    FSigT T2 = std::pow(T, 2);
     FSigT D = 4-4*real*T+M*T2;
     FSigT k;
     if (mode == Modes::low_pass) {
