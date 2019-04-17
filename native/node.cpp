@@ -92,16 +92,28 @@ void Node::copy_input_values(const Node &old_node) {
 }
 
 Universe::Descriptor Node::infer_polyphony_operation(std::vector<Universe::Pointer> inputs) {
-  Universe::Descriptor result;
-  // Universes will be the first polyphonic universe found in the inputs,
-  // otherwise monophonic
+  Universe::Pointer poly_uni;
+  bool poly_found = false;
+  // Universes will be the only polyphonic universe found in the inputs,
+  // otherwise (if none or differing) monophonic
   for (auto uni : inputs) {
     if (uni->is_polyphonic()) {
-      result.set_all(uni);
-      break;
+      if (poly_found) {
+        if (*poly_uni != *uni) {
+          poly_found = false;
+          break;
+        }
+      } else {
+        poly_found = true;
+        poly_uni = uni;
+      }
     }
   }
-  return result;
+  if (poly_found) {
+    return Universe::Descriptor(poly_uni, poly_uni, poly_uni);
+  } else {
+    return Universe::Descriptor();
+  }
 }
 
 void Node::apply_bundle_universe_changes(const Universe&) {}
