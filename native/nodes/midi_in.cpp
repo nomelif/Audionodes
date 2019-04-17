@@ -84,9 +84,6 @@ Node::ConfigurationDescriptorList MidiIn::get_configuration_options() {
     if (fluid_settings_get_type(tmp_settings, sname.second) == FLUID_STR_TYPE) {
       ConfigurationDescriptor desc;
       desc.name = sname.first;
-      if (implicit_default_value.count(sname.first)) {
-        desc.available_values.push_back(implicit_default_value[sname.first]);
-      }
       fluid_settings_foreach_option(tmp_settings, sname.second, &desc.available_values,
       [](void *lp, char *name, char *option) {
         static_cast<decltype(desc.available_values)*>(lp)->emplace_back(option);

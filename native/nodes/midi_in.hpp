@@ -22,10 +22,6 @@ class MidiIn : public Node {
     {"oss_device", "midi.oss.device"},
     {"win_device", "midi.winmidi.device"}
   };
-  // Fluid doesn't return these as options
-  std::map<std::string, std::string> implicit_default_value = {
-    {"win_device", "default"}
-  };
  
   fluid_midi_driver_t *driver = nullptr;
   fluid_settings_t *settings = nullptr;
