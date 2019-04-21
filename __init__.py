@@ -30,25 +30,6 @@ import struct
 import tempfile
 import platform
 
-if "bpy" in locals():
-    if 'node_tree' in locals():
-
-        print('audio_nodes: detected reload event.')
-        import importlib
-
-        try:
-            modules = (node_tree,)
-            for m in modules:
-                importlib.reload(m)
-            print("audio_nodes: reloaded modules, all systems operational")
-
-        except Exception as E:
-            print('reload failed with error:')
-            print(E)
-
-
-import bpy
-
 from . import blender
 node_tree = blender.node_tree
 ffi = blender.ffi
@@ -103,20 +84,14 @@ node_categories = [
 ]
 
 def register():
-
-    try:
-        unregister()
-    except:
-        pass
-
-    bpy.utils.register_module(__name__)
+    blender.register()
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
     ffi.initialize()
 
 def unregister():
     ffi.cleanup()
     nodeitems_utils.unregister_node_categories("AUDIONODES")
-    bpy.utils.unregister_module(__name__)
+    blender.unregister()
 
 import atexit
 def exit_handler():
@@ -139,6 +114,6 @@ def post_load_handler(_):
 
 bpy.app.handlers.load_pre.append(pre_load_handler)
 bpy.app.handlers.load_post.append(post_load_handler)
-    
+
 if __name__ == "__main__":
     register()
