@@ -122,7 +122,7 @@ class TriggerSocket(NodeSocket, AudioTreeNodeSocket):
             layout.label(text)
         else:
             row = layout.row(align=True)
-            row.operator("audionodes.trigger")
+            row.operator("audionodes.trigger", text=text)
             row.operator("audionodes.trigger_reset", text="", icon='FILE_REFRESH')
 
     def draw_color(self, context, node):
