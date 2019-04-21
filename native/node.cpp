@@ -68,9 +68,6 @@ size_t Node::get_input_count() { return input_socket_types.size(); }
 void Node::set_input_value(int index, SigT value) {
   input_values[index] = value;
 }
-SigT Node::get_input_value(int index) {
-  return input_values[index];
-}
 void Node::set_property_value(int index, int value) {
   property_values[index] = value;
 }

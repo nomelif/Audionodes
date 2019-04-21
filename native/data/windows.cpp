@@ -2,10 +2,10 @@
 
 namespace audionodes {
 
-NodeInputWindow::Socket::Socket(Data **data, bool view_collapsed, bool tmp_audio_data) :
+NodeInputWindow::Socket::Socket(Data **data, bool view_collapsed, bool tmp_data) :
   view_collapsed(view_collapsed),
   data(data),
-  tmp_audio_data(tmp_audio_data)
+  tmp_data(tmp_data)
 {}
 
 const Chunk& NodeInputWindow::Socket::operator[](size_t idx) {
@@ -20,7 +20,7 @@ const Chunk& NodeInputWindow::Socket::operator[](size_t idx) {
   }
 }
 void NodeInputWindow::Socket::delete_temporary_data() {
-  if (tmp_audio_data) {
+  if (tmp_data) {
     delete *data;
     delete data;
   }

@@ -43,7 +43,6 @@ class Node {
   size_t get_input_count();
   
   void set_input_value(int, SigT);
-  SigT get_input_value(int);
   void set_property_value(int, int);
   int get_property_value(int);
   virtual void receive_binary(int, int, void*);

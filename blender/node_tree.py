@@ -86,13 +86,44 @@ class MidiSocket(NodeSocket, AudioTreeNodeSocket):
     def draw_color(self, context, node):
         return (0.9, 0.86, 0.14, 1.0)
 
+class TriggerOperator(Operator):
+    '''One-off trigger'''
+    bl_idname = 'audionodes.trigger'
+    bl_label = "Trigger"
+
+    @classmethod
+    def poll(cls, context):
+        return hasattr(context, 'socket') and isinstance(context.socket, TriggerSocket)
+
+    def invoke(self, context, event):
+        context.node.send_value_update(context.socket.get_index(), 1)
+        return {'FINISHED'}
+
+class TriggerResetOperator(Operator):
+    '''One-off trigger reset'''
+    bl_idname = 'audionodes.trigger_reset'
+    bl_label = "Reset"
+
+    @classmethod
+    def poll(cls, context):
+        return hasattr(context, 'socket') and isinstance(context.socket, TriggerSocket)
+
+    def invoke(self, context, event):
+        context.node.send_value_update(context.socket.get_index(), 2)
+        return {'FINISHED'}
+
 class TriggerSocket(NodeSocket, AudioTreeNodeSocket):
-    '''Socket for trogger events'''
+    '''Socket for trigger events'''
     bl_idname = 'TriggerSocketType'
     bl_label = 'Trigger'
 
     def draw(self, context, layout, node, text):
-        layout.label(text)
+        if self.is_output or self.is_linked:
+            layout.label(text)
+        else:
+            row = layout.row(align=True)
+            row.operator("audionodes.trigger")
+            row.operator("audionodes.trigger_reset", text="", icon='FILE_REFRESH')
 
     def draw_color(self, context, node):
         return (0.52734375, 0.99609375, 0.87109375, 1.0)

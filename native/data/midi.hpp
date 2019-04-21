@@ -43,6 +43,9 @@ struct MidiData : public Data {
   MidiData(EventSeries);
   MidiData();
   
+  // Cleanup before write
+  void clear();
+  
   static MidiData dummy;
 };
 

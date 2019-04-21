@@ -10,8 +10,12 @@ struct TriggerData : public Data {
   typedef size_t Event;
   typedef std::vector<Event> EventSeries;
   EventSeries events;
+  bool reset;
   TriggerData(EventSeries);
   TriggerData();
+  
+  // Cleanup before write
+  void clear();
   
   static TriggerData dummy;
 };

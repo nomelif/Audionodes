@@ -77,6 +77,10 @@ MidiData::MidiData(EventSeries events) :
 
 MidiData::MidiData() {}
 
+void MidiData::clear() {
+  events.clear();
+}
+
 MidiData MidiData::dummy = MidiData();
 
 }

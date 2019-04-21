@@ -129,8 +129,7 @@ bool MidiIn::apply_configuration() {
 }
 
 void MidiIn::process(NodeInputWindow &input) {
-  MidiData::EventSeries &events = output_window.get<MidiData>(0).events;
-  events.clear();
+  MidiData::EventSeries &events = output_window.get_clear<MidiData>(0).events;
   if (!overflow_flag) {
     while (!event_buffer.empty()) {
       events.push_back(event_buffer.pop());
