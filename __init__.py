@@ -15,7 +15,6 @@ bl_info = {
 
 # Move all of this into blender/__init__.py?
 
-
 import bpy
 import time
 from bpy.types import NodeTree, Node, NodeSocket, NodeSocketFloat
@@ -34,63 +33,12 @@ from . import blender
 node_tree = blender.node_tree
 ffi = blender.ffi
 
-### Node Categories ###
-# Node categories are a python system for automatically
-# extending the Add menu, toolbar panels and search operator.
-# For more examples see release/scripts/startup/nodeitems_builtins.py
-
-import nodeitems_utils
-from nodeitems_utils import NodeCategory, NodeItem
-
-
-# our own base class with an appropriate poll function,
-# so the categories only show up in our own tree type
-class AudioNodeCategory(NodeCategory):
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.tree_type == 'AudioTreeType'
-
-node_categories = [
-    AudioNodeCategory("AUDIO_OUT", "Audio output", items=[
-        NodeItem("SinkNode"),
-    ]),
-    AudioNodeCategory("AUDIO_IN", "Audio input", items=[
-        NodeItem("MicrophoneNode"),
-    ]),
-    AudioNodeCategory("GENERATORS", "Generators", items=[
-        NodeItem("OscillatorNode"),
-        NodeItem("NoiseNode"),
-        NodeItem("SamplerNode"),
-    ]),
-    AudioNodeCategory("OPERATORS", "Operators", items=[
-        NodeItem("MathNode"),
-        NodeItem("CollapseNode"),
-        NodeItem("ToggleNode")
-    ]),
-    AudioNodeCategory("FILTERS", "Filters", items=[
-        NodeItem("IIRFilterNode"),
-    ]),
-    AudioNodeCategory("EFFECTS", "Effects", items=[
-        NodeItem("DelayNode"),
-        NodeItem("RandomAccessDelayNode"),
-    ]),
-    AudioNodeCategory("MIDI", "MIDI", items=[
-        NodeItem("MidiInNode"),
-        NodeItem("PianoNode"),
-        NodeItem("PitchBendNode"),
-        NodeItem("SliderNode"),
-        NodeItem("MidiTriggerNode"),
-    ]),
-]
-
 def register():
     blender.register()
-    nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
     ffi.initialize()
 
 def unregister():
     ffi.cleanup()
-    nodeitems_utils.unregister_node_categories("AUDIONODES")
     blender.unregister()
 
 import atexit
