@@ -68,13 +68,17 @@ void Sampler::process(NodeInputWindow &input) {
 
   // Trigger detection
   auto &triggers = input[InputSockets::trigger_socket].get<TriggerData>();
-  if (triggers.events.size() > 0){
-    if(get_property_value(Properties::mode) == 0){
+  if (triggers.reset) {
+    playhead = 0;
+    running = false;
+  }
+  if (triggers.events.size() > 0) {
+    if (get_property_value(Properties::mode) == 0) {
       playhead = 0;
       running = true;
-    }else{
+    } else {
       playhead = 0;
-      running = !running;
+      running = running ^ (triggers.events.size() % 2);
     }
   }
 
