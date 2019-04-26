@@ -235,6 +235,30 @@ class Clock(Node, AudioTreeNode):
 
 classes.append(Clock)
 
+class TriggerEnvelope(Node, AudioTreeNode):
+    bl_idname = 'TriggerEnvelopeNode'
+    bl_label = 'Trigger Envelope'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('TriggerSocketType', "Trigger")
+        self.inputs.new('RawAudioSocketType', "Delay time")
+        self.inputs.new('RawAudioSocketType', "Attack time")
+        self.inputs[-1].value_prop = 0.1
+        self.inputs.new('RawAudioSocketType', "Hold time")
+        self.inputs[-1].value_prop = 0.5
+        self.inputs.new('RawAudioSocketType', "Hold level")
+        self.inputs[-1].value_prop = 0.8
+        self.inputs.new('RawAudioSocketType', "Attack slope")
+        self.inputs[-1].value_prop = 0.5
+        self.inputs.new('RawAudioSocketType', "Decay slope")
+        self.inputs[-1].value_prop = 0.5
+        self.inputs.new('RawAudioSocketType', "Release slope")
+        self.inputs[-1].value_prop = 0.5
+        self.outputs.new('RawAudioSocketType', "Envelope")
+
+classes.append(TriggerEnvelope)
+
 class Toggle(Node, AudioTreeNode):
     bl_idname = 'ToggleNode'
     bl_label = 'Toggle'

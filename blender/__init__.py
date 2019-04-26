@@ -20,6 +20,7 @@ node_categories = [
         NodeItem("NoiseNode"),
         NodeItem("SamplerNode"),
         NodeItem("ClockNode"),
+        NodeItem("TriggerEnvelopeNode"),
     ]),
     AudioNodeCategory("OPERATORS", "Operators", items=[
         NodeItem("MathNode"),

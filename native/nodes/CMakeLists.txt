@@ -13,6 +13,7 @@ add_paths (NATIVE_SRCS
   sampler.cpp
   clock.cpp
   toggle.cpp
+  trigger_envelope.cpp
   microphone.cpp
   delay.cpp
   random_access_delay.cpp
