@@ -9,8 +9,7 @@ Clock::Clock() :
 {}
 
 Universe::Descriptor Clock::infer_polyphony_operation(std::vector<Universe::Pointer>) {
-  Universe::Pointer mono(new Universe());
-  return Universe::Descriptor(mono, mono, mono);
+  return Universe::Descriptor();
 }
 
 void Clock::process(NodeInputWindow &input) {

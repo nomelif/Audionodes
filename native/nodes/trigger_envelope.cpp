@@ -16,8 +16,7 @@ TriggerEnvelope::TriggerEnvelope() :
 {}
 
 Universe::Descriptor TriggerEnvelope::infer_polyphony_operation(std::vector<Universe::Pointer>) {
-  Universe::Pointer mono(new Universe());
-  return {mono, mono, mono};
+  return Universe::Descriptor();
 }
 
 void TriggerEnvelope::process(NodeInputWindow &input) {
