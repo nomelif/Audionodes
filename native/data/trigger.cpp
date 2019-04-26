@@ -8,6 +8,10 @@ TriggerData::TriggerData(EventSeries events) :
 {}
 TriggerData::TriggerData() {}
 
+TriggerData::Iterator TriggerData::iterate() const {
+  return {events.begin(), events.end()};
+}
+
 void TriggerData::clear() {
   events.clear();
   reset = false;

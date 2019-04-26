@@ -222,6 +222,19 @@ class Sampler(Node, AudioTreeNode):
 
 classes.append(Sampler)
 
+class Clock(Node, AudioTreeNode):
+    bl_idname = 'ClockNode'
+    bl_label = 'Clock'
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('RawAudioSocketType', "Rate (BPM)")
+        self.inputs[-1].value_prop = 120
+        self.inputs.new('TriggerSocketType', "Run/stop")
+        self.outputs.new('TriggerSocketType', "Trigger")
+
+classes.append(Clock)
+
 class Toggle(Node, AudioTreeNode):
     bl_idname = 'ToggleNode'
     bl_label = 'Toggle'

@@ -11,6 +11,7 @@ add_paths (NATIVE_SRCS
   noise.cpp
   midi_trigger.cpp
   sampler.cpp
+  clock.cpp
   toggle.cpp
   microphone.cpp
   delay.cpp

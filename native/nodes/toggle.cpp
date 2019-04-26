@@ -18,11 +18,9 @@ void Toggle::process(NodeInputWindow &input) {
   for(size_t i = 0; i < n; i++){
     bool state = a_on;
     size_t k = 0;
+    auto it = triggers.iterate();
     for(size_t j = 0; j < N; j++){
-      if(k < triggers.events.size() && triggers.events[k] <= j){
-        state = !state;
-        k++;
-      }
+      state ^= it.count(j) % 2;
       if(state)
         output[i][j] = s_a[i][j];
       else

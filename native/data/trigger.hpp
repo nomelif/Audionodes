@@ -14,6 +14,21 @@ struct TriggerData : public Data {
   TriggerData(EventSeries);
   TriggerData();
   
+  // Iteration helper (when sequentially iterating through 0..N)
+  struct Iterator {
+    EventSeries::const_iterator it, end;
+    inline size_t count(size_t i) {
+      size_t amt = 0;
+      while (it != end && *it <= i) {
+        amt++;
+        it++;
+      }
+      return amt;
+    }
+  };
+  
+  Iterator iterate() const;
+  
   // Cleanup before write
   void clear();
   
