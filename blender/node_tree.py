@@ -11,8 +11,8 @@ class AudioTree(NodeTree):
     '''Node tree for audio mixer'''
 
     bl_idname = 'AudioTreeType'
-    bl_label = 'Audio nodes'
-    bl_icon = 'PLAY_AUDIO'
+    bl_label = 'Audio Node Editor'
+    bl_icon = 'PLAY_SOUND'
 
     def init(self):
         pass
@@ -70,9 +70,9 @@ class RawAudioSocket(NodeSocket, AudioTreeNodeSocket):
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
-            layout.label(text)
+            layout.label(text=text)
         else:
-            layout.prop(self, "value_prop", text=text)
+            layout.prop(data=self, property="value_prop", text=text)
 
     def draw_color(self, context, node):
         return (0.607, 0.153, 0.702, 1.0)
@@ -85,7 +85,7 @@ class MidiSocket(NodeSocket, AudioTreeNodeSocket):
     bl_label = 'MIDI'
 
     def draw(self, context, layout, node, text):
-        layout.label(text)
+        layout.label(text=text)
 
     def draw_color(self, context, node):
         return (0.9, 0.86, 0.14, 1.0)
@@ -132,8 +132,8 @@ class TriggerSocket(NodeSocket, AudioTreeNodeSocket):
             layout.label(text)
         else:
             row = layout.row(align=True)
-            row.operator("audionodes.trigger", text=text)
-            row.operator("audionodes.trigger_reset", text="", icon='FILE_REFRESH')
+            row.operator(operator="audionodes.trigger", text=text)
+            row.operator(operator="audionodes.trigger_reset", text="", icon='FILE_REFRESH')
 
     def draw_color(self, context, node):
         return (0.52734375, 0.99609375, 0.87109375, 1.0)

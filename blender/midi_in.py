@@ -154,8 +154,8 @@ class MidiIn(Node, AudioTreeNode):
         self.outputs.new('MidiSocketType', "Stream")
 
     def draw_buttons(self, context, layout):
-        layout.operator("audionodes.configure_midi", "Configure MIDI")
+        layout.operator(operator="audionodes.configure_midi", text="Configure MIDI")
         if "conf_fail" in self and self["conf_fail"]:
-            layout.label("Configuration failed", icon='ERROR')
+            layout.label(text="Configuration failed", icon='ERROR')
 
 classes.append(MidiIn)

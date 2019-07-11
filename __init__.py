@@ -5,7 +5,7 @@ bl_info = {
     "description": "Create complex soundscapes in real time using nodes.",
     "author": "Roope Salmi, Théo Friberg",
     "version": (0,3,1),
-    "blender": (2,77,0),
+    "blender": (2,80,0),
     "location": "Node Editor > Sound Icon > Add new",
     "warning": "Very much alpha, may blow up in your face.",
     "category": "Node",

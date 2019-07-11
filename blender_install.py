@@ -13,21 +13,27 @@ These can most likely be ignored if the target doesn't fail.
 import bpy, sys
 argv = sys.argv
 argv = argv[argv.index("--") + 1:]
+
+if bpy.app.version < (2, 80, 0):
+    namespace = bpy.ops.wm
+else:
+    namespace = bpy.ops.preferences
+
 if argv[0] == "install":
     try:
-        bpy.ops.wm.addon_disable(module=argv[1])
-        bpy.ops.wm.addon_remove(module=argv[1])
+        namespace.addon_disable(module=argv[1])
+        namespace.addon_remove(module=argv[1])
     except:
         # Addon not previously installed, fine
         pass
-    bpy.ops.wm.addon_install(filepath=argv[2])
+    namespace.addon_install(filepath=argv[2])
 elif argv[0] == "enable":
-    bpy.ops.wm.addon_enable(module=argv[1])
+    namespace.addon_enable(module=argv[1])
     bpy.ops.wm.save_userpref()
 elif argv[0] == "uninstall":
     try:
-        bpy.ops.wm.addon_disable(module=argv[1])
-        bpy.ops.wm.addon_remove(module=argv[1])
+        namespace.addon_disable(module=argv[1])
+        namespace.addon_remove(module=argv[1])
     except:
         pass
     bpy.ops.wm.save_userpref()
