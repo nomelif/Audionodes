@@ -66,7 +66,7 @@ class RawAudioSocket(NodeSocket, AudioTreeNodeSocket):
     def update_value(self, context):
        self.node.send_value_update(self.get_index(), self.value_prop)
 
-    value_prop = bpy.props.FloatProperty(update=update_value)
+    value_prop: bpy.props.FloatProperty(update=update_value)
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:

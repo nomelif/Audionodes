@@ -8,12 +8,12 @@ classes = []
 class MidiConfiguration(PropertyGroup):
     _prop_names = ['driver', 'portname', 'alsa_raw_device',
                    'jack_server', 'oss_device', 'win_device']
-    driver = bpy.props.StringProperty()
-    portname = bpy.props.StringProperty()
-    alsa_raw_device = bpy.props.StringProperty()
-    jack_server = bpy.props.StringProperty()
-    oss_device = bpy.props.StringProperty()
-    win_device = bpy.props.StringProperty()
+    driver: bpy.props.StringProperty()
+    portname: bpy.props.StringProperty()
+    alsa_raw_device: bpy.props.StringProperty()
+    jack_server: bpy.props.StringProperty()
+    oss_device: bpy.props.StringProperty()
+    win_device: bpy.props.StringProperty()
 
 classes.append(MidiConfiguration)
 
@@ -40,31 +40,31 @@ class MidiConfOperator(Operator):
     bl_idname = 'audionodes.configure_midi'
     bl_label = "MIDI Configuration"
 
-    driver = bpy.props.EnumProperty(
+    driver: bpy.props.EnumProperty(
         name = "Driver",
         items = lambda self, ctx: midi_conf_options['driver']
     )
-    portname = bpy.props.StringProperty(
+    portname: bpy.props.StringProperty(
         name = "Port name",
         description = "Port name to be displayed in the patchbay",
         maxlen = 63
     )
-    alsa_raw_device = bpy.props.StringProperty(
+    alsa_raw_device: bpy.props.StringProperty(
         name = "Device",
         description = "The MIDI device to connect to. See available options with e.g. `amidi -l`",
         maxlen = 255
     )
-    jack_server = bpy.props.StringProperty(
+    jack_server: bpy.props.StringProperty(
         name = "JACK server",
         description = "Specify custom JACK server address, or leave empty for default",
         maxlen = 255
     )
-    oss_device = bpy.props.StringProperty(
+    oss_device: bpy.props.StringProperty(
         name = "Device",
         description = "OSS device (file) to use",
         maxlen = 255
     )
-    win_device = bpy.props.EnumProperty(
+    win_device: bpy.props.EnumProperty(
         name = "Device",
         description = "The MIDI device to connect to",
         items = lambda self, ctx: midi_conf_options['win_device']
@@ -89,24 +89,24 @@ class MidiConfOperator(Operator):
             if val or name not in midi_conf_options:
                 setattr(self, name, val)
         wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+        return wm.invoke_props_dialog(operator=self)
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, "driver")
+        layout.prop(data=self, property="driver")
         if self.driver == 'alsa_raw':
-            layout.prop(self, "alsa_raw_device")
+            layout.prop(data=self, property="alsa_raw_device")
         elif self.driver == 'alsa_seq':
-            layout.prop(self, "portname")
+            layout.prop(data=self, property="portname")
         elif self.driver == 'coremidi':
-            layout.prop(self, "portname")
+            layout.prop(data=self, property="portname")
         elif self.driver == 'jack':
-            layout.prop(self, "jack_server")
+            layout.prop(data=self, property="jack_server")
         # No settings for midishare
         elif self.driver == 'oss':
-            layout.prop(self, "oss_device")
+            layout.prop(data=self, property="oss_device")
         elif self.driver == 'winmidi':
-            layout.prop(self, "win_device")
+            layout.prop(data=self, property="win_device")
     def check(self, context):
         # Redraw needed when driver is changed
         return True
@@ -129,7 +129,7 @@ class MidiIn(Node, AudioTreeNode):
     bl_idname = 'MidiInNode'
     bl_label = 'MIDI input'
 
-    conf = bpy.props.PointerProperty(type=MidiConfiguration)
+    conf: bpy.props.PointerProperty(type=MidiConfiguration)
 
     def init_conf(self):
         for name, val, opts in self.get_configuration_options():

@@ -26,12 +26,12 @@ class Oscillator(Node, AudioTreeNode):
 
     func_enum_to_native = { item[0]: item[3] for item in func_enum_items }
 
-    func_enum = bpy.props.EnumProperty(
+    func_enum: bpy.props.EnumProperty(
         items = func_enum_items,
         update = change_func
     )
     
-    anti_alias_check = bpy.props.BoolProperty(
+    anti_alias_check: bpy.props.BoolProperty(
         name = "Anti-alias",
         update = change_func
     )
@@ -88,7 +88,7 @@ class Math(Node, AudioTreeNode):
 
     func_enum_to_native = { item[0]: item[3] for item in func_enum_items }
 
-    func_enum = bpy.props.EnumProperty(
+    func_enum: bpy.props.EnumProperty(
         items = func_enum_items,
         update = change_func
     )
@@ -141,11 +141,11 @@ class MidiTrigger(Node, AudioTreeNode):
         AudioTreeNode.reinit(self)
         self.update_props(None)
 
-    channel = bpy.props.IntProperty(name="Control", min=0, max=127, default=1, update=update_props)
+    channel: bpy.props.IntProperty(name="Control", min=0, max=127, default=1, update=update_props)
     modes = [('TRIGGER_BUTTON', 'Trigger button', '', 0),
              ('KEY', 'Key', '', 1)]
 
-    interfaceType = bpy.props.EnumProperty(
+    interfaceType: bpy.props.EnumProperty(
         items = modes,
         update = update_props
     )
@@ -194,7 +194,7 @@ class Sampler(Node, AudioTreeNode):
     modes = [('RUN_ONCE', 'Run once', '', 0),
              ('LOOP', 'Loop', '', 1)]
 
-    mode = bpy.props.EnumProperty(
+    mode: bpy.props.EnumProperty(
         items = modes,
         update = update_props
     )
@@ -207,8 +207,8 @@ class Sampler(Node, AudioTreeNode):
         self.send_sound()
 
 
-    sound = bpy.props.StringProperty(subtype='FILE_PATH', update=load_sound, get=None, set=None)
-    sound_datablock = bpy.props.StringProperty(name="Sound Datablock")
+    sound: bpy.props.StringProperty(subtype='FILE_PATH', update=load_sound, get=None, set=None)
+    sound_datablock: bpy.props.StringProperty(name="Sound Datablock")
     def draw_buttons(self, context, layout):
         layout.prop(self, "sound", text="")
         layout.prop(self, "mode", text="Mode")
@@ -297,7 +297,7 @@ class RandomAccessDelay(Node, AudioTreeNode):
         AudioTreeNode.reinit(self)
         self.change_buffer(None)
     
-    buffer_length = bpy.props.IntProperty(
+    buffer_length: bpy.props.IntProperty(
         name = "Buffer length (s)",
         update = change_buffer
     )
@@ -339,11 +339,11 @@ class Slider(Node, AudioTreeNode):
         AudioTreeNode.reinit(self)
         self.update_props(None)
 
-    channel = bpy.props.IntProperty(name="ID", min=1, max=16, default=1, update=update_props)
+    channel: bpy.props.IntProperty(name="ID", min=1, max=16, default=1, update=update_props)
     modes = [('SLIDER', 'Slider', '', 0),
              ('KNOB', 'Knob', '', 1)]
 
-    interfaceType = bpy.props.EnumProperty(
+    interfaceType: bpy.props.EnumProperty(
         items = modes,
         update = update_props
     )
@@ -382,7 +382,7 @@ class Collapse(Node, AudioTreeNode):
 
     method_enum_to_native = { item[0]: item[3] for item in method_enum_items }
 
-    method_enum = bpy.props.EnumProperty(
+    method_enum: bpy.props.EnumProperty(
         items = method_enum_items,
         update = change_method
     )
@@ -416,11 +416,11 @@ class IIRFilter(Node, AudioTreeNode):
 
     mode_enum_to_native = { item[0]: item[3] for item in mode_enum_items }
 
-    mode_enum = bpy.props.EnumProperty(
+    mode_enum: bpy.props.EnumProperty(
         items = mode_enum_items,
         update = update_props
     )
-    poles = bpy.props.IntProperty(name="Biquads", min=0, max=6, default=2, update=update_props)
+    poles: bpy.props.IntProperty(name="Biquads", min=0, max=6, default=2, update=update_props)
 
     def init(self, context):
         AudioTreeNode.init(self, context)
