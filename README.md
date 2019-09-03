@@ -72,7 +72,7 @@ brew install cmake sdl2 fluidsynth
 
 ### Windows dependencies
 
-This one's tricky. You will need `Visual Studio C++` for compilation (tested on 2017), and a dependency manager for it called [vcpkg](https://github.com/Microsoft/vcpkg).
+This one's tricky. You will need `Visual Studio C++` (you only need the [build tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019)) for compilation (tested on 2017 & 2019), and a dependency manager for it called [vcpkg](https://github.com/Microsoft/vcpkg).
 
 Assuming Visual Studio is already installed, and that you have a working Git installation.
 
@@ -134,7 +134,7 @@ installation this will use or if none was found at all.
 It also might simply not work on your system due to various reasons.
 
 Oh, and to build, install and enable the addon, you can `make blender_install blender_enable`.
-Conversly, you can remove the addon with `make blender_uninstall`.
+Conversely, you can remove the addon with `make blender_uninstall`.
 
 ### Building in Windows
 
@@ -147,7 +147,7 @@ PS> cmake . `
 -DCMAKE_GENERATOR_PLATFORM=x64
 ```
 
-where `[vcpkg]` should be replaced with the path you installed `vcpkg` in.
+where `[vcpkg]` should be replaced with the **full** path you installed `vcpkg` in.
 
 And build.
 
