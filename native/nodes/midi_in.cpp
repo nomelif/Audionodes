@@ -64,7 +64,6 @@ MidiIn::MidiIn(MidiIn &from) :
       fluid_settings_setstr(settings, sname.second, buf.data());
     }
   }
-  std::cout << driver << std::endl;
   apply_configuration();
 }
 
@@ -85,7 +84,11 @@ Node::ConfigurationDescriptorList MidiIn::get_configuration_options() {
       ConfigurationDescriptor desc;
       desc.name = sname.first;
       fluid_settings_foreach_option(tmp_settings, sname.second, &desc.available_values,
+      #if FLUIDSYNTH_VERSION_MAJOR == 1
       [](void *lp, char *name, char *option) {
+      #else
+      [](void *lp, const char *name, const char *option) {
+      #endif
         static_cast<decltype(desc.available_values)*>(lp)->emplace_back(option);
       });
       fluid_settings_copystr(settings, sname.second, buf.data(), buf.size());
