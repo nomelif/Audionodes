@@ -15,16 +15,12 @@ void Toggle::process(NodeInputWindow &input) {
   if (triggers.reset) a_on = true;
   size_t n = input.get_channel_amount();
   AudioData::PolyWriter output(output_window[0], n);
-  for(size_t i = 0; i < n; i++){
+  for (size_t i = 0; i < n; i++) {
     bool state = a_on;
-    size_t k = 0;
     auto it = triggers.iterate();
-    for(size_t j = 0; j < N; j++){
+    for (size_t j = 0; j < N; j++) {
       state ^= it.count(j) % 2;
-      if(state)
-        output[i][j] = s_a[i][j];
-      else
-        output[i][j] = s_b[i][j];
+      output[i][j] = state ? s_a[i][j] : s_b[i][j];
     }
   }
   a_on ^= triggers.events.size() % 2;
