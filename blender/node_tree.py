@@ -129,7 +129,7 @@ class TriggerSocket(NodeSocket, AudioTreeNodeSocket):
 
     def draw(self, context, layout, node, text):
         if self.is_output or self.is_linked:
-            layout.label(text)
+            layout.label(text=text)
         else:
             row = layout.row(align=True)
             row.operator(operator="audionodes.trigger", text=text)
