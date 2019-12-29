@@ -9,7 +9,7 @@
 
 namespace audionodes {
 
-class Slider : public Node {
+class MIDIControl : public Node {
   enum InputSockets {
     midi_in
   };
@@ -18,11 +18,11 @@ class Slider : public Node {
   };
   enum Properties {
     channel,
-    interfaceType
+    cc_no
   };
   SigT value_state;
   public:
-  Slider();
+  MIDIControl();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>) override;
   void process(NodeInputWindow&) override;
 };

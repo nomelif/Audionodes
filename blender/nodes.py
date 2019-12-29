@@ -326,29 +326,20 @@ class PitchBend(Node, AudioTreeNode):
 
 classes.append(PitchBend)
 
-class Slider(Node, AudioTreeNode):
-    bl_idname = 'SliderNode'
+class MIDIControl(Node, AudioTreeNode):
+    bl_idname = 'MIDIControlNode'
     bl_label = 'MIDI Control'
-
 
     def update_props(self, context):
         self.send_property_update(0, self.channel)
-        self.send_property_update(1, self.modes_to_native[self.interfaceType])
+        self.send_property_update(1, self.cc_no)
 
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.update_props(None)
 
-    channel: bpy.props.IntProperty(name="ID", min=1, max=16, default=1, update=update_props)
-    modes = [('SLIDER', 'Slider', '', 0),
-             ('KNOB', 'Knob', '', 1)]
-
-    interfaceType: bpy.props.EnumProperty(
-        items = modes,
-        update = update_props
-    )
-
-    modes_to_native = { item[0]: item[3] for item in modes }
+    channel: bpy.props.IntProperty(name="Channel", description="Set to 0 to listen to all channels", min=0, max=16, default=0, update=update_props)
+    cc_no: bpy.props.IntProperty(name="CC #", min=0, max=127, default=70, update=update_props)
 
     def init(self, context):
         AudioTreeNode.init(self, context)
@@ -357,10 +348,10 @@ class Slider(Node, AudioTreeNode):
         self.update_props(None)
 
     def draw_buttons(self, context, layout):
-        layout.prop(self, 'interfaceType')
         layout.prop(self, 'channel')
+        layout.prop(self, 'cc_no')
 
-classes.append(Slider)
+classes.append(MIDIControl)
 
 class Collapse(Node, AudioTreeNode):
     bl_idname = 'CollapseNode'

@@ -38,7 +38,7 @@ node_categories = [
         NodeItem("MidiInNode"),
         NodeItem("PianoNode"),
         NodeItem("PitchBendNode"),
-        NodeItem("SliderNode"),
+        NodeItem("MIDIControlNode"),
         NodeItem("MidiTriggerNode"),
     ]),
 ]

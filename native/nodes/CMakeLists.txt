@@ -5,10 +5,10 @@ add_paths (NATIVE_SRCS
   piano.cpp
   pitch_bend.cpp
   sink.cpp
-  slider.cpp
   collapse.cpp
   iir_filter.cpp
   noise.cpp
+  midi_control.cpp
   midi_trigger.cpp
   sampler.cpp
   clock.cpp
