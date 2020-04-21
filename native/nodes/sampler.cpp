@@ -1,7 +1,5 @@
 #include "nodes/sampler.hpp"
 
-#include <iostream>
-
 namespace audionodes {
 
 static NodeTypeRegistration<Sampler> registration("SamplerNode");
@@ -21,8 +19,7 @@ void Sampler::receive_binary(int slot, int length, void* file) {
   Uint32 size_;
 
   // Delete the old buffer if there was one
-  delete [] buff;
-  buff = nullptr;
+  buff.clear();
 
   // Loads the wave file into tbuf, most probably not with the settings we wanted, have contains the specs of what actually was loaded
   Uint8 *tbuf;
@@ -45,7 +42,7 @@ void Sampler::receive_binary(int slot, int length, void* file) {
 
     // Copy the data from the temporary buffer to one just large enough
     size = cvt.len_cvt / sizeof(float);
-    buff = new float[size];
+    buff.resize(size);
     for (size_t i = 0; i < size; i++) {
       buff[i] = ((float*) cvt.buf)[i];
     }
@@ -53,66 +50,48 @@ void Sampler::receive_binary(int slot, int length, void* file) {
     loaded = true;
   } else {
     loaded = false;
-    buff = nullptr;
-    std::cerr << "Sampler: " << SDL_GetError() << std::endl;
   }
+  buff.shrink_to_fit();
   delete [] ((char*) file);
   playhead = 0;
-  if(get_property_value(Properties::mode) == 0 || loaded == false)
-    running = false;
-  else
-    running = true;
+  running = false;
 }
 
 void Sampler::process(NodeInputWindow &input) {
-
-  // Trigger detection
   auto &triggers = input[InputSockets::trigger_socket].get<TriggerData>();
   if (triggers.reset) {
     playhead = 0;
     running = false;
   }
-  if (triggers.events.size() > 0) {
-    if (get_property_value(Properties::mode) == 0) {
-      playhead = 0;
-      running = true;
-    } else {
-      playhead = 0;
-      running = running ^ (triggers.events.size() % 2);
-    }
-  }
+  auto &value = output_window[0].mono;
+  bool loop = get_property_value(Properties::mode) == Modes::loop;
 
-  Chunk &value = output_window[0].mono;
-
-  // If no file is loaded or the file is not being played, send an empty signal
-  if (!loaded || !running || playhead > size) {
+  if (!loaded || (!running && !triggers.events.size())) {
     value.fill(0);
   } else {
-    // Read from the file either until the end of the chunk or until the end of the file
-    for (size_t j = 0; j < N; ++j) {
-      value[j] = buff[(playhead + j)%size];
-    }
-
-    // Fill the rest with zeroes
-    if (size-playhead < N && get_property_value(Properties::mode) == 0) {
-      for (size_t j = size-playhead; j < N; ++j) value[j] = 0;
-    }
-
-    // Advance the playhead and maybe end playback
-    playhead += N;
-    if (playhead >= size) {
-      if(get_property_value(Properties::mode) == 0){
-        playhead = 0;
-        running = false;
-      }else
-        playhead = playhead % size;
+    auto it = triggers.iterate();
+    if (loop) {
+      for (size_t j = 0; j < N; ++j) {
+        size_t trig = it.count(j);
+        if (trig) {
+          playhead = 0;
+          running = running ^ (trig % 2);
+        }
+        value[j] = running ? buff[playhead] : 0;
+        if (++playhead == size) playhead = 0;
+      }
+    } else {
+      for (size_t j = 0; j < N; ++j) {
+        if (it.count(j)) {
+          playhead = 0;
+          running = true;
+        }
+        value[j] = running ? buff[playhead] : 0;
+        if (++playhead == size) running = false;
+      }
     }
   }
 
-}
-
-Sampler::~Sampler(){
-  delete [] buff;
 }
 
 }

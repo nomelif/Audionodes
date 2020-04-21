@@ -169,27 +169,16 @@ class Sampler(Node, AudioTreeNode):
     bl_idname = 'SamplerNode'
     bl_label = 'Sampler'
 
-
     def update_props(self, context):
         self.send_property_update(0, self.modes_to_native[self.mode])
-    
-    def send_sound(self):
-        if self.sound_datablock != "":
-          sound_struct = bpy.data.sounds[self.sound_datablock]
-          self.send_binary(0, sound_struct.packed_file.data)
 
-    def load_sound(self, context):
-        if self.sound_datablock != "":
-          bpy.data.sounds[self.sound_datablock].use_memory_cache = False
-          bpy.data.sounds[self.sound_datablock].use_fake_user = False
-        sound_struct = bpy.data.sounds.load(filepath=self.sound)
-        sound_struct.use_fake_user = True
-        sound_struct.use_mono = True
-        sound_struct.pack()
-        # Unnecessary?
-        # sound_struct.use_memory_cache = True
-        self.sound_datablock = sound_struct.name
-        self.send_binary(0, sound_struct.packed_file.data)
+    def send_sound(self, context):
+        if self.sound != None:
+            self.sound.pack()
+            self.send_binary(0, self.sound.packed_file.data)
+        else:
+            # Empty file works for now (until there's proper error handling on the other end)
+            self.send_binary(0, bytes())
 
     modes = [('RUN_ONCE', 'Run once', '', 0),
              ('LOOP', 'Loop', '', 1)]
@@ -204,13 +193,12 @@ class Sampler(Node, AudioTreeNode):
     def reinit(self):
         AudioTreeNode.reinit(self)
         self.update_props(None)
-        self.send_sound()
+        self.send_sound(None)
 
 
-    sound: bpy.props.StringProperty(subtype='FILE_PATH', update=load_sound, get=None, set=None)
-    sound_datablock: bpy.props.StringProperty(name="Sound Datablock")
+    sound: bpy.props.PointerProperty(name="Sound (WAV)", type=bpy.types.Sound, update=send_sound)
     def draw_buttons(self, context, layout):
-        layout.prop(self, "sound", text="")
+        layout.template_ID(self, "sound", open="SOUND_OT_open")
         layout.prop(self, "mode", text="Mode")
 
     def init(self, context):
@@ -218,7 +206,6 @@ class Sampler(Node, AudioTreeNode):
         self.inputs.new('TriggerSocketType', "Trigger")
         self.outputs.new('RawAudioSocketType', "Audio")
         self.update_props(None)
-        self.send_sound()
 
 classes.append(Sampler)
 

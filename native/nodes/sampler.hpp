@@ -22,8 +22,12 @@ class Sampler : public Node {
   enum Properties {
     mode
   };
+  enum Modes {
+    oneshot,
+    loop
+  };
   
-  float *buff = nullptr;
+  std::vector<float> buff;
   size_t size;
   size_t playhead = 0;
   bool running = false;
@@ -31,7 +35,6 @@ class Sampler : public Node {
   
   public:
   Sampler();
-  ~Sampler();
   Universe::Descriptor infer_polyphony_operation(std::vector<Universe::Pointer>) override;
   void process(NodeInputWindow&) override;
   void receive_binary(int, int, void*) override;
