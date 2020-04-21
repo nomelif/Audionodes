@@ -11,8 +11,10 @@ NodeTypeMap& get_node_types() {
 // Nodes addressed by unique integers
 std::map<node_uid, Node*> node_storage;
 node_uid node_storage_counter = 0;
+node_uid last_node_uid;
 node_uid node_storage_alloc() {
-  return node_storage_counter++;
+  last_node_uid = node_storage_counter++;
+  return last_node_uid;
 }
 
 NodeTree *main_node_tree;
@@ -43,13 +45,28 @@ void InboundMessage::apply() {
 }
 
 CircularBuffer<InboundMessage, 256> inbd_msg_queue;
+CircularBuffer<Node::ReturnMessage, 512> outbd_msg_queue;
+std::vector<Node::ReturnMessage> outbd_msg_queue_sync;
+
+static AudionodesReturnMessage convert_return_message(Node::ReturnMessage msg) {
+  AudionodesReturnMessage into {true, msg.uid, msg.msg_type, msg.data_type};
+  switch (msg.data_type) {
+    case 0:
+      into.integer = msg.integer;
+      break;
+    case 1:
+      into.number = msg.number;
+      break;
+  }
+  return into;
+}
 
 void receive_message(InboundMessage msg) {
   if (msg.node->mark_connected) {
     // Node is connected and actively used by the execution thread, use thread-safe communication
     // Sleep until queue has room
     for (size_t rep = 0; rep < 10 && inbd_msg_queue.full(); ++rep) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000*N/RATE+1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(long(1000.*N/RATE+1)));
     }
     // Fail
     if (inbd_msg_queue.full()) {
@@ -66,6 +83,8 @@ void receive_message(InboundMessage msg) {
     msg.apply();
   }
 }
+
+static std::atomic<bool> messages_flushed(false);
 
 void audio_callback(void *userdata, Uint8 *_stream, int len) {
   // Cast byte stream into 16-bit signed int stream
@@ -86,7 +105,9 @@ void audio_callback(void *userdata, Uint8 *_stream, int len) {
   }
   constexpr Sint16 maximum_value = (1 << 15)-1;
   constexpr Sint16 minimum_value = -(1 << 15);
-  const Chunk &result = main_node_tree->evaluate();
+  bool refresh_ui = messages_flushed;
+  if (refresh_ui) messages_flushed = false;
+  const Chunk &result = main_node_tree->evaluate(refresh_ui);
   for (int i = 0; i < len; ++i) {
     if (result[i] < -1) {
       stream[i] = minimum_value;
@@ -103,8 +124,10 @@ bool initialized = false;
 
 std::vector<NodeTree::ConstructionLink> tree_update_links;
 
-// Methods to be used through the FFI
 extern "C" {
+  // Internal API
+  // extern "C" in anticipation of external add-on nodes. A lot of Node functionality
+  // still isn't cross-compiler compatbile so this is not possible yet.
   void audionodes_register_node_type(const char *identifier, Node::Creator creator) {
     get_node_types()[identifier] = creator;
   }
@@ -113,6 +136,20 @@ extern "C" {
     get_node_types().erase(identifier);
   }
   
+  node_uid audionodes_get_newest_node_uid() {
+    return last_node_uid;
+  }
+  
+  void audionodes_send_return_message(Node::ReturnMessage msg, bool exec_thread) {
+    // TODO: Use thread_local or other stuff to detect current thread
+    if (exec_thread) {
+      outbd_msg_queue.push(msg);
+    } else {
+      outbd_msg_queue_sync.push_back(msg);
+    }
+  }
+  
+  // Methods to be used through the FFI
   void audionodes_initialize() {
     SDL_Init(SDL_INIT_AUDIO);
 
@@ -224,10 +261,10 @@ extern "C" {
     receive_message(InboundMessage(node_storage[id], slot, length, bin));
   }
   
-  static Node::ConfigurationDescriptorList configuration_options;
-  static std::vector<AudionodesConfigurationDescriptor> configuration_options_C;
-  static std::vector<std::vector<const char*>> configuration_strings_C;
   AudionodesConfigurationDescriptor* audionodes_get_configuration_options(node_uid id) {
+    static Node::ConfigurationDescriptorList configuration_options;
+    static std::vector<AudionodesConfigurationDescriptor> configuration_options_C;
+    static std::vector<std::vector<const char*>> configuration_strings_C;
     if (!node_storage.count(id)) {
       std::cerr << "Audionodes native: Tried to get configuration options from non-existent node " << id << std::endl;
       configuration_options = {};
@@ -263,6 +300,22 @@ extern "C" {
     return node_storage[id]->set_configuration_option(std::string(name), std::string(option));
   }
   
+  AudionodesReturnMessage* audionodes_fetch_messages() {
+    static std::vector<AudionodesReturnMessage> messages_C;
+    messages_C.clear();
+    for (auto &msg : outbd_msg_queue_sync) {
+      messages_C.push_back(convert_return_message(msg));
+    }
+    outbd_msg_queue_sync.clear();
+    for (size_t rep = 0; rep < 512; ++rep) {
+      if (outbd_msg_queue.empty()) break;
+      messages_C.push_back(convert_return_message(outbd_msg_queue.pop()));
+    }
+    messages_C.push_back({false, -1, 0});
+    messages_flushed = true;
+    return messages_C.data();
+  }
+  
   void audionodes_begin_tree_update() {
     tree_update_links.clear();
   }
@@ -270,6 +323,7 @@ extern "C" {
   void audionodes_add_tree_update_link(node_uid from_node, node_uid to_node, size_t from_socket, size_t to_socket) {
     if (!node_storage.count(from_node) || !node_storage.count(to_node)) {
       std::cerr << "Audionodes native: Tried to create a link to/from non-existent node " << from_node << " " << to_node << std::endl;
+      return;
     }
     tree_update_links.push_back({from_node, to_node, from_socket, to_socket});
   }
@@ -320,7 +374,7 @@ extern "C" {
     if (q.size() < to_process.size()) {
       // Not all nodes that were supposed to be included got into the order ->
       // there is a loop
-      std::cerr << "Audionodes Native: Error building tree: loop found" << std::endl;
+      std::cerr << "Audionodes native: Error building tree: loop found" << std::endl;
       tree_update_links.clear();
       return;
     }

@@ -16,6 +16,11 @@ class Node {
   bool is_sink;
   
   public:
+  const node_uid uid;
+  
+  // When true, UI updates are pending (don't send again)
+  bool refresh_ui_flag = false;
+  
   enum class SocketType {
     audio, midi, trigger
   };
@@ -56,6 +61,17 @@ class Node {
   virtual ConfigurationDescriptorList get_configuration_options();
   virtual int set_configuration_option(std::string, std::string);
   
+  // TODO: Move this somewhere else (meant for global messages as well)
+  struct ReturnMessage {
+    node_uid uid;
+    int msg_type, data_type;
+    union {
+      int integer;  // 0
+      float number; // 1
+      // string: 2
+    };
+  };
+  
   std::vector<SigT> input_values;
   std::vector<SigT> old_input_values;
   std::vector<int> property_values;
@@ -68,6 +84,9 @@ class Node {
   void copy_input_values(const Node&);
   NodeOutputWindow output_window;
   virtual void process(NodeInputWindow&) = 0;
+  
+  void send_return_message(int, int, bool exec_thread=true);
+  void send_return_message_f(int, float, bool exec_thread=true);
   
   private:
   void prepare_output_window();
@@ -83,13 +102,15 @@ class Node {
   };
 };
 
-// Node registration singleton helper (or factory, if you will)
-// Usage:
-// static NodeTypeRegistration<NodeClass> registration("identifier");
 extern "C" {
   void audionodes_register_node_type(const char*, Node::Creator);
   void audionodes_unregister_node_type(const char*);
+  node_uid audionodes_get_newest_node_uid();
+  void audionodes_send_return_message(Node::ReturnMessage, bool);
 }
+// Node registration singleton helper
+// Usage:
+// static NodeTypeRegistration<NodeClass> registration("identifier");
 template<class type>
 class NodeTypeRegistration {
   const char *identifier;
@@ -99,6 +120,7 @@ class NodeTypeRegistration {
   static Node* copy_node(Node *other) {
     type *other_casted = dynamic_cast<type*>(other);
     if (!other_casted) return nullptr;
+    // TODO: Not thread safe?
     return static_cast<Node*>(new type(*other_casted));
   }
   public:

@@ -68,10 +68,11 @@ NodeTree::NodeTree(std::vector<Node*> order, std::vector<std::vector<Link>> link
   }
 }
 
-const Chunk& NodeTree::evaluate() {
+const Chunk& NodeTree::evaluate(bool refresh_ui) {
   output.fill(0.);
   for (size_t i = 0; i < amount; ++i) {
     Node *node = node_evaluation_order[i];
+    if (refresh_ui) node->refresh_ui_flag = false;
     // Collect node inputs
     size_t input_amt = node->get_input_count();
     for (size_t j = 0; j < input_amt; ++j) {

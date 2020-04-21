@@ -119,6 +119,38 @@ def set_configuration_option(node_id, name, val):
     return native.audionodes_set_configuration_option(node_id,
         name.encode("utf8"), val.encode("utf8"))
 
+class RETURN_MESSAGE_PAYLOAD(ct.Union):
+    _fields_ = [
+                ("integer", ct.c_int),   # 0
+                ("number", ct.c_float),  # 1
+                ("string", ct.c_char_p), # 2
+               ]
+class RETURN_MESSAGE(ct.Structure):
+    _fields_ = [("field_populated", ct.c_bool),
+                ("node_id", ct.c_int),
+                ("msg_type", ct.c_int),
+                ("data_type", ct.c_int),
+                ("payload", RETURN_MESSAGE_PAYLOAD)]
+    _anonymous_ = ("payload",)
+
+native.audionodes_fetch_messages.argtypes = []
+native.audionodes_fetch_messages.restype = ct.POINTER(RETURN_MESSAGE)
+def fetch_messages():
+    msgs = []
+    ptr = native.audionodes_fetch_messages()
+    i = 0
+    while ptr[i].field_populated:
+        payload = None
+        if ptr[i].data_type == 0:
+            payload = ptr[i].integer
+        elif ptr[i].data_type == 1:
+            payload = ptr[i].number
+        elif ptr[i].data_type == 2:
+            payload = ptr[i].string.decode("utf8")
+        msgs.append((ptr[i].node_id, ptr[i].msg_type, payload))
+        i += 1
+    return msgs
+
 native.audionodes_begin_tree_update.argtypes = []
 native.audionodes_begin_tree_update.restype = None
 def begin_tree_update():

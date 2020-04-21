@@ -14,6 +14,7 @@ extern "C" {
 #include <iostream>
 #include <map>
 #include <set>
+#include <atomic>
 #include <mutex>
 #include <thread>
 #include <cstring>

@@ -49,14 +49,27 @@ from . import node_tree, nodes, midi_in
 for mod in (node_tree, nodes, midi_in):
     classes += mod.classes
 
+import bpy
+from bpy.utils import register_class, unregister_class
+from bpy.app import timers
+def handle_messages():
+    for msg in ffi.fetch_messages():
+        if msg[0] != -1:
+            node_tree.AudioTreeNode.deliver_message(msg)
+        else:
+            if msg[1] == 0:
+                # TODO: Error message from backend
+                pass
+    return 0.1
+
 def register():
-    from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
     nodeitems_utils.register_node_categories("AUDIONODES", node_categories)
+    timers.register(handle_messages, first_interval=0.1, persistent=True)
 
 def unregister():
-    from bpy.utils import unregister_class
+    timers.unregister(handle_messages)
     nodeitems_utils.unregister_node_categories("AUDIONODES")
     for cls in reversed(classes):
         unregister_class(cls)

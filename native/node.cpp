@@ -9,6 +9,7 @@ Node::Node(
   SocketTypeList input_types, SocketTypeList output_types,
   PropertyTypeList property_types, bool is_sink) :
     is_sink(is_sink),
+    uid(audionodes_get_newest_node_uid()),
     _input_socket_types(input_types),
     _output_socket_types(output_types),
     _property_types(property_types),
@@ -24,6 +25,7 @@ Node::Node(
 
 Node::Node(Node &other) :
     is_sink(other.is_sink),
+    uid(audionodes_get_newest_node_uid()),
     _input_socket_types(other.input_socket_types),
     _output_socket_types(other.output_socket_types),
     _property_types(other.property_types),
@@ -114,5 +116,17 @@ Universe::Descriptor Node::infer_polyphony_operation(std::vector<Universe::Point
 }
 
 void Node::apply_bundle_universe_changes(const Universe&) {}
+
+void Node::send_return_message(int msg_type, int payload, bool exec_thread) {
+  ReturnMessage msg {uid, msg_type, 0};
+  msg.integer = payload;
+  audionodes_send_return_message(msg, exec_thread);
+}
+
+void Node::send_return_message_f(int msg_type, float payload, bool exec_thread) {
+  ReturnMessage msg {uid, msg_type, 1};
+  msg.number = payload;
+  audionodes_send_return_message(msg, exec_thread);
+}
 
 }

@@ -29,7 +29,7 @@ class NodeTree {
   
   public:
   NodeTree(std::vector<Node*>, std::vector<std::vector<Link>>);
-  const Chunk& evaluate();
+  const Chunk& evaluate(bool);
 };
 
 }

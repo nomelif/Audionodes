@@ -19,6 +19,17 @@ struct AudionodesConfigurationDescriptor {
 AudionodesConfigurationDescriptor* audionodes_get_configuration_options(int);
 int audionodes_set_configuration_option(int, const char*, const char*);
 
+struct AudionodesReturnMessage {
+  bool field_populated;
+  int node_id, msg_type, data_type;
+  union {
+    int integer;
+    float number;
+    const char *string;
+  };
+};
+AudionodesReturnMessage* audionodes_fetch_messages();
+
 void audionodes_begin_tree_update();
 void audionodes_add_tree_update_link(int, int, size_t, size_t);
 void audionodes_finish_tree_update();
