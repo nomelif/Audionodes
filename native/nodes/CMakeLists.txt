@@ -14,6 +14,7 @@ add_paths (NATIVE_SRCS
   clock.cpp
   toggle.cpp
   trigger_envelope.cpp
+  trigger_sequencer.cpp
   microphone.cpp
   delay.cpp
   random_access_delay.cpp

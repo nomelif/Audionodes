@@ -25,7 +25,8 @@ node_categories = [
     AudioNodeCategory("OPERATORS", "Operators", items=[
         NodeItem("MathNode"),
         NodeItem("CollapseNode"),
-        NodeItem("ToggleNode")
+        NodeItem("ToggleNode"),
+        NodeItem("TriggerSequencerNode"),
     ]),
     AudioNodeCategory("FILTERS", "Filters", items=[
         NodeItem("IIRFilterNode"),

@@ -272,6 +272,59 @@ class Toggle(Node, AudioTreeNode):
 
 classes.append(Toggle)
 
+SEQUENCER_MAX_STEPS = 128
+def trigger_sequencer_list_update(self, context):
+    context.node.change_list(context)
+class TriggerSequencerList(bpy.types.PropertyGroup):
+    __annotations__ = {f"step{i}": bpy.props.BoolProperty(name=f"Step {i+1}", update=trigger_sequencer_list_update) for i in range(SEQUENCER_MAX_STEPS)}
+classes.append(TriggerSequencerList)
+
+class TriggerSequencer(Node, AudioTreeNode):
+    bl_idname = 'TriggerSequencerNode'
+    bl_label = 'Trigger Sequencer'
+    bl_width_min = 70.0
+
+    def change_list(self, context):
+        buf = bytearray(self.step_amount)
+        for i in range(self.step_amount):
+            buf[i] = getattr(self.sequence, f"step{i}")
+        self.send_binary(0, bytes(buf))
+
+    step_amount: bpy.props.IntProperty(name="Steps", default=16, min=1, max=SEQUENCER_MAX_STEPS, update=change_list)
+    sequence: bpy.props.PointerProperty(type=TriggerSequencerList, name="Sequence")
+
+    current_step: bpy.props.IntProperty(default=0)
+
+    def init(self, context):
+        AudioTreeNode.init(self, context)
+        self.inputs.new('TriggerSocketType', "Trigger")
+        self.outputs.new('TriggerSocketType', "Trigger")
+        self.change_list(None)
+
+    def reinit(self):
+        AudioTreeNode.reinit(self)
+        self.change_list(None)
+
+    def receive_message(self, slot, value):
+        if slot == 0:
+            self.current_step = value
+            # Force a redraw of the node
+            self.name = self.name
+
+    def draw_buttons(self, context, layout):
+        layout.prop(self, "step_amount")
+        grid = layout.grid_flow(row_major=True)
+        x = self.current_step-1
+        for i in range(self.step_amount):
+            l = grid.row()
+            l.alignment = 'CENTER'
+            if i == x:
+                l.alert = True
+            l.prop(self.sequence, f"step{i}", text="", icon_only=True)
+
+
+classes.append(TriggerSequencer)
+
 class Delay(Node, AudioTreeNode):
     bl_idname = 'DelayNode'
     bl_label = 'Delay'
