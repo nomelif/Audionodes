@@ -88,7 +88,7 @@ else ()
   # Install the addon directly into the found Blender installation
   message (STATUS "blender_install will use installation found at ${BLENDER}.")
   add_custom_target (blender_install COMMAND
-    ${BLENDER} -b -P "${CMAKE_SOURCE_DIR}/blender_install.py" --
+    ${BLENDER} --factory-startup -b -P "${CMAKE_SOURCE_DIR}/blender_install.py" --
       install ${CMAKE_PROJECT_NAME}
       "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.zip"
   )
@@ -98,7 +98,7 @@ else ()
       enable ${CMAKE_PROJECT_NAME}
   )
   add_custom_target (blender_uninstall COMMAND
-    ${BLENDER} -b -P "${CMAKE_SOURCE_DIR}/blender_install.py" --
+    ${BLENDER} --factory-startup -b -P "${CMAKE_SOURCE_DIR}/blender_install.py" --
       uninstall ${CMAKE_PROJECT_NAME}
   )
 endif ()
