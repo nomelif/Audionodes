@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.5)
-project (Audionodes LANGUAGES C CXX VERSION 0.3.0)
+project (Audionodes LANGUAGES C CXX VERSION 0.3.3)
 set (CMAKE_CXX_STANDARD 14)
 
 if (NOT CMAKE_BUILD_TYPE)
