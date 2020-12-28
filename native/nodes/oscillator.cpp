@@ -70,10 +70,8 @@ void Oscillator::process(NodeInputWindow &input) {
     SigT last_val = bundles[i].last_val;
     for (size_t j = 0; j < N; ++j) {
       SigT step = frequency[j]/RATE;
-      state = std::fmod(state + step, 1);
-      if (state < 0) state += 1;
-      SigT phase_st = std::fmod(state + phase[j], 1);
-      if (phase_st < 0) state += 1;
+      state = (state + step) - floor(state + step);
+      SigT phase_st = (state + phase[j]) - floor(state + phase[j]);
       switch (f_id) {
         case Modes::sine:
           channel[j] = std::sin(phase_st*2*M_PI);
