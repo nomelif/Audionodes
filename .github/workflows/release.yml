@@ -1,0 +1,103 @@
+
+name: Compile release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  draft_release:
+    name: Draft release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create draft release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Audionodes ${{ github.ref }}
+        draft: true
+        prerelease: true
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_id: ${{ steps.create_release.outputs.id }}
+  compile:
+    name: Compile addon
+    needs: draft_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target_triplet: x86_64-apple-darwin
+            export_name: Audionodes-macOS.zip
+          - os: ubuntu-latest
+            target_triplet: x86_64-unknown-linux-gnu
+            export_name: Audionodes-Linux.zip
+          - os: windows-latest
+            target_triplet: x86_64-pc-windows-msvc
+            export_name: Audionodes-Windows.zip
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+      - if: runner.os == 'Linux'
+        name: Install dependencies via apt
+        run: |
+          sudo apt-get update
+          sudo apt-get install libsdl2-dev libfluidsynth-dev
+      - if: runner.os == 'macOS'
+        name: Install Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+      - if: runner.os == 'macOS'
+        name: Install dependencies via Homebrew
+        run: brew install sdl2 fluid-synth
+      - if: runner.os == 'Windows'
+        name: Install dependencies via vcpkg
+        uses: lukka/run-vcpkg@v10
+        with:
+          vcpkgGitCommitId: 653912591af709c162fba2d4000a6b3362c8d3c9
+          runVcpkgInstall: true
+
+      - if: runner.os == 'Linux' || runner.os == 'macOS'
+        name: Compile
+        run: |
+          cmake .
+          make blender
+      - if: runner.os == 'Windows'
+        name: Prepare CMake
+        run: >
+          cmake .
+          -DCMAKE_TOOLCHAIN_FILE=vcpkg\scripts\buildsystems\vcpkg.cmake
+          -DVCPKG_TARGET_TRIPLET=x64-windows
+          -DCMAKE_GENERATOR_PLATFORM=x64
+      - if: runner.os == 'Windows'
+        name: Compile
+        run: |
+          cmake --build . --target blender --config Release
+      - name: Upload release assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.draft_release.outputs.upload_url }}
+          asset_name: ${{ matrix.export_name }}
+          asset_path: Audionodes.zip
+          asset_content_type: application/octet-stream
+
+  publish-release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs:
+      - draft_release
+      - compile
+    steps:
+      - uses: eregon/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          release_id: ${{ needs.draft_release.outputs.release_id }}
