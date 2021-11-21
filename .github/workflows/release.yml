@@ -72,7 +72,7 @@ jobs:
         name: Prepare CMake
         run: >
           cmake .
-          -DCMAKE_TOOLCHAIN_FILE=vcpkg\scripts\buildsystems\vcpkg.cmake
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
           -DVCPKG_TARGET_TRIPLET=x64-windows
           -DCMAKE_GENERATOR_PLATFORM=x64
       - if: runner.os == 'Windows'
