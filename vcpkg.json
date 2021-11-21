@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "audionodes",
+  "version": "0.0.0",
+  "dependencies": [
+    "sdl2",
+    "fluidsynth"
+  ]
+}
