@@ -80,6 +80,9 @@ class MidiConfOperator(Operator):
         for name, val, opts in midi_conf_node.get_configuration_options():
             midi_conf_valid_props.append(name)
             if name in midi_conf_options:
+                # Ensure val is a valid option
+                if val and val not in opts:
+                    opts.append(val)
                 if name in midi_conf_option_descriptions:
                     midi_conf_options[name] = [
                         midi_conf_option_descriptions[name][opt] for opt in opts
